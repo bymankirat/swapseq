@@ -1,0 +1,114 @@
+[
+ {
+  "dataset": "Diet study (strain-level)",
+  "samples": 526,
+  "people": 37,
+  "swappedSamplesCaught": 0.883,
+  "swapPairsNamedExactly": 0.778,
+  "oneWayCaught": 0.783,
+  "falseFlagsPer1000": 0.39,
+  "withReview": {
+   "swaps": 0.967,
+   "oneWay": 0.933,
+   "falsePer1000": 1.03
+  },
+  "selfEstimatedPower": {
+   "single": 0.798,
+   "swap": 0.835
+  },
+  "flagsOnOriginal": 0,
+  "checksOnOriginal": 0,
+  "reps": 30,
+  "prior": 0.01
+ },
+ {
+  "dataset": "Diet study (species)",
+  "samples": 483,
+  "people": 34,
+  "swappedSamplesCaught": 0.939,
+  "swapPairsNamedExactly": 0.933,
+  "oneWayCaught": 0.833,
+  "falseFlagsPer1000": 0.14,
+  "withReview": {
+   "swaps": 0.989,
+   "oneWay": 0.95,
+   "falsePer1000": 1.75
+  },
+  "selfEstimatedPower": {
+   "single": 0.811,
+   "swap": 0.9
+  },
+  "flagsOnOriginal": 0,
+  "checksOnOriginal": 1,
+  "reps": 30,
+  "prior": 0.01
+ },
+ {
+  "dataset": "MDSINE2 mice (healthy donor)",
+  "samples": 320,
+  "people": 5,
+  "swappedSamplesCaught": 0.028,
+  "swapPairsNamedExactly": 0.167,
+  "oneWayCaught": 0,
+  "falseFlagsPer1000": 0.11,
+  "withReview": {
+   "swaps": 0.483,
+   "oneWay": 0.317,
+   "falsePer1000": 13.25
+  },
+  "selfEstimatedPower": {
+   "single": 0.004,
+   "swap": 0.029
+  },
+  "flagsOnOriginal": 0,
+  "checksOnOriginal": 7,
+  "reps": 30,
+  "prior": 0.01
+ },
+ {
+  "dataset": "MDSINE2 mice (uc donor)",
+  "samples": 381,
+  "people": 5,
+  "swappedSamplesCaught": 0,
+  "swapPairsNamedExactly": 0.022,
+  "oneWayCaught": 0,
+  "falseFlagsPer1000": 0,
+  "withReview": {
+   "swaps": 0.156,
+   "oneWay": 0.183,
+   "falsePer1000": 15.73
+  },
+  "selfEstimatedPower": {
+   "single": 0,
+   "swap": 0.002
+  },
+  "flagsOnOriginal": 0,
+  "checksOnOriginal": 7,
+  "reps": 30,
+  "prior": 0.01
+ },
+ {
+  "dataset": "Diet study (strain-level) (2 per person)",
+  "samples": 74,
+  "people": 37,
+  "swappedSamplesCaught": 0,
+  "swapPairsNamedExactly": 0.167,
+  "oneWayCaught": null,
+  "falseFlagsPer1000": 0,
+  "withReview": {
+   "swaps": 0.417,
+   "oneWay": null,
+   "falsePer1000": 7.14
+  },
+  "selfEstimatedPower": {
+   "single": 0,
+   "swap": 0.192
+  },
+  "peopleInSwapFlagged": 0,
+  "uninvolvedPeopleFlagged": 0,
+  "flagsOnOriginal": 0,
+  "checksOnOriginal": 2,
+  "reps": 30,
+  "prior": 0.01
+ }
+]

@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use SwapSeq, please cite it as below."
+title: "SwapSeq: a sample mix-up checker for longitudinal microbiome studies"
+type: software
+authors:
+  - family-names: Singh
+    given-names: Mankirat
+version: 1.0.0
+date-released: 2026-11-04
+license: GPL-3.0-or-later
+repository-code: "https://github.com/bymankirat/swapseq"
+url: "https://bymankirat.github.io/swapseq/"
+keywords: [microbiome, 16S rRNA, sample mislabelling, quality control, longitudinal studies]
