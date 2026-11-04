@@ -654,7 +654,7 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
   <p><b>Demo data.</b> From the public Student Microbiome Project (Flores et al. 2014, <i>Genome Biology</i>), with participant IDs replaced. The demo plate layout and its two errors are simulated.</p>
 </div><div class="wrap">
   <span>Made by <a href="https://bymankirat.github.io/myportfolio/" target="_blank" rel="noopener">Mankirat Singh</a>, a human from Earth.</span>
-  <span id="ver">Method v3: soft Jaccard and Aitchison fingerprints with planted-error calibration</span>
+  <span id="ver">Cite: Singh M. (2026) SwapSeq v1.0.0. <a href="https://doi.org/10.5281/zenodo.23963612" target="_blank" rel="noopener">doi:10.5281/zenodo.23963612</a></span>
 </div></footer>
 
 <script>/*!
@@ -1203,7 +1203,7 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove()}
 const VERSION='SwapSeq method v3';
 function methodsText(g,prior){const f=g.rows.filter(r=>r.level==='flag').length,c=g.rows.filter(r=>r.level==='check').length,fp=g.pairs.filter(p=>p.level==='flag').length;
-  return `Sample identity was checked with ${VERSION} (soft Jaccard and Aitchison fingerprints, calibrated on errors planted in this dataset; expected mislabel rate ${prior*100}%). Of ${g.nScorable} samples from ${g.nSubjects} participants${g.name!=='All samples'?` (${g.name})`:''}, ${f} ${f===1?'was':'were'} flagged with strong evidence${fp?` (${fp} reciprocal swap${fp===1?'':'s'})`:''} and ${c} listed for checking against laboratory records. Estimated detection in this dataset: ${fmtPct(g.power.swapWithCheck)} of swapped tubes and ${fmtPct(g.power.singleWithCheck)} of single mislabels (${fmtPct(g.power.swap)} and ${fmtPct(g.power.single)} as strong flags).`}
+  return `Sample identity was checked with ${VERSION} (soft Jaccard and Aitchison fingerprints, calibrated on errors planted in this dataset; expected mislabel rate ${prior*100}%). Of ${g.nScorable} samples from ${g.nSubjects} participants${g.name!=='All samples'?` (${g.name})`:''}, ${f} ${f===1?'was':'were'} flagged with strong evidence${fp?` (${fp} reciprocal swap${fp===1?'':'s'})`:''} and ${c} listed for checking against laboratory records. Estimated detection in this dataset: ${fmtPct(g.power.swapWithCheck)} of swapped tubes and ${fmtPct(g.power.singleWithCheck)} of single mislabels (${fmtPct(g.power.swap)} and ${fmtPct(g.power.single)} as strong flags) (Singh 2026, https://doi.org/10.5281/zenodo.23963612).`}
 function toTSV(g){const h=['sample','labelled_as','level','verdict','p_strict','p_broad','p_mislabel','p_swap','looks_like','nearest_sample','swap_partner','partner_labelled_as','rare_asvs','rare_shared_with_look_alike','rare_shared_with_own','well','same_household','mismatch_score','swap_score'];
   const f=v=>Number.isFinite(v)?(+v).toFixed(4):'',pairOf=id=>g.pairs.find(p=>p.a===id||p.b===id);
   const head=[`# ${VERSION} QC audit`,`# file: ${st.tableName}; group: ${g.name}; date: ${new Date().toISOString().slice(0,10)}`,`# columns used: ${Object.entries(st.lastCols||{}).filter(([k,v])=>v).map(([k,v])=>k+'='+v).join(', ')}`,`# ${methodsText(g,+$('prior').value)}`];
