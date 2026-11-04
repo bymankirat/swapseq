@@ -208,7 +208,7 @@ tr[data-sid]{cursor:pointer}tr[data-sid]:hover td{background:var(--sunk)}
 .vtabs button{font:600 14px var(--sans);border:0;background:transparent;color:var(--muted);padding:8px 14px;border-radius:8px;cursor:pointer}
 .vtabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(10,16,32,.12)}
 .valchart h3{margin-bottom:4px}.valchart .legend{margin-top:10px}
-.legal{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;border-bottom:1px solid var(--line)}.legal p{font-size:13.5px;line-height:1.55}.legal b{color:var(--ink)}
+.legal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;border-bottom:1px solid var(--line)}.legal p{font-size:13.5px;line-height:1.55}.legal b{color:var(--ink)}
 footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;color:var(--muted);font-size:14px}
 
 @media (prefers-reduced-motion:reduce){.progress i{animation:none;width:100%}.flagbox,.flagtxt,.swaparc,.pring,.pw,.zoom{transition:none}}
@@ -229,7 +229,7 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
   <a class="brand" href="#top" aria-label="SwapSeq home">
     <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1.5" y="1.5" width="25" height="25" rx="6" fill="none" stroke="var(--ink)" stroke-width="1.6" opacity=".35"/><circle cx="9" cy="14" r="4.6" fill="var(--accent)"/><circle cx="19" cy="14" r="4.6" fill="var(--swap)"/><path d="M8 7.2c3-3 9-3 12 0M20 20.8c-3 3-9 3-12 0" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/></svg>
     <span>SwapSeq <small>sample mix-up checker</small></span></a>
-  <nav aria-label="Sections"><a href="#check">Check your data</a><a href="#how">How it works</a><a href="#validation">Validation</a></nav>
+  <nav aria-label="Sections"><a href="#check">Check your data</a><a href="#how">How it works</a><a href="#validation">Validation</a><a href="https://github.com/bymankirat/swapseq/issues/new/choose" target="_blank" rel="noopener">Feedback</a></nav>
   <span class="privacy"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7.5" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.3 7V5.2a2.7 2.7 0 0 1 5.4 0V7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Your files never leave your computer</span></span>
 </div></header>
 
@@ -651,6 +651,7 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
 <footer><div class="wrap legal">
   <p><b>Privacy.</b> SwapSeq has no server. Files you open are read by your browser and never sent anywhere. This page sets no cookies and uses no analytics or tracking. The website host may keep standard access logs, such as IP addresses, for security.</p>
   <p><b>Use.</b> SwapSeq is a quality-control tool for research data. It is not a medical device and must not be used for diagnosis or clinical decisions. Results come without warranty; check flags against your lab records. Free software under <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPL-3.0-or-later</a>.</p>
+  <p><b>Feedback.</b> Found a problem or have an idea? <a href="https://github.com/bymankirat/swapseq/issues/new?template=bug_report.yml" target="_blank" rel="noopener">Report a problem</a> or <a href="https://github.com/bymankirat/swapseq/issues/new?template=feedback.yml" target="_blank" rel="noopener">send feedback</a> on GitHub. Reports are public, so please leave out sample IDs and any study data.</p>
   <p><b>Demo data.</b> From the public Student Microbiome Project (Flores et al. 2014, <i>Genome Biology</i>), with participant IDs replaced. The demo plate layout and its two errors are simulated.</p>
 </div><div class="wrap">
   <span>Made by <a href="https://bymankirat.github.io/myportfolio/" target="_blank" rel="noopener">Mankirat Singh</a>, a human from Earth.</span>
@@ -1004,7 +1005,11 @@ const $=id=>document.getElementById(id);
 const st={table:null,meta:null,tableName:'',metaName:''};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtPct=v=>Number.isFinite(v)?Math.round(v*100)+'%':'–';
-function setStatus(msg,err){$('status').innerHTML=err?`<span class="err">${esc(msg)}</span>`:esc(msg)}
+// prefilled GitHub issue: error text, browser and version only, never the user's data
+function reportLink(msg){const ua=navigator.userAgent.replace(/\s+/g,' ').slice(0,180);
+  const u='https://github.com/bymankirat/swapseq/issues/new?template=bug_report.yml&title='+encodeURIComponent('Problem: '+msg.slice(0,60))+'&error='+encodeURIComponent(msg)+'&browser='+encodeURIComponent(ua)+'&version=v1.0.0';
+  return ` <a href="${u}" target="_blank" rel="noopener">Report this problem</a>`}
+function setStatus(msg,err){$('status').innerHTML=err?`<span class="err">${esc(msg)}</span>${/^(Open |No samples have)/.test(msg)?'':reportLink(msg)}`:esc(msg)}
 
 // ---------- parsing ----------
 // A table is either {kind:'sparse', feats, samples:[{id,idx,val}]} or {kind:'grid', rowIds, colIds, get(r,c)} (orientation decided later)

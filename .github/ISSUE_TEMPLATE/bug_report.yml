@@ -1,0 +1,49 @@
+name: Report a problem
+description: Something in SwapSeq did not work, or a result looks wrong.
+title: "Problem: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting this. **Issues are public.** Please do not paste sample IDs, metadata, counts or anything about study participants.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what you saw instead.
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Error message
+      description: Copied from the page, if there was one.
+      render: text
+  - type: dropdown
+    id: filetype
+    attributes:
+      label: Type of feature table
+      options: [QIIME 2 .qza, BIOM 2 (HDF5), BIOM 1 (JSON), TSV or CSV text table, The demo study, Other]
+  - type: input
+    id: size
+    attributes:
+      label: Rough size of the study
+      description: For example "300 samples, 40 people". No IDs, please.
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and system
+      description: For example "Firefox 132 on Windows 11".
+  - type: input
+    id: version
+    attributes:
+      label: SwapSeq version
+      value: v1.0.0
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy
+      options:
+        - label: I have not pasted any personal, patient or unpublished data here.
+          required: true

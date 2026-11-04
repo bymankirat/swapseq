@@ -5,7 +5,11 @@ const $=id=>document.getElementById(id);
 const st={table:null,meta:null,tableName:'',metaName:''};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmtPct=v=>Number.isFinite(v)?Math.round(v*100)+'%':'–';
-function setStatus(msg,err){$('status').innerHTML=err?`<span class="err">${esc(msg)}</span>`:esc(msg)}
+// prefilled GitHub issue: error text, browser and version only, never the user's data
+function reportLink(msg){const ua=navigator.userAgent.replace(/\s+/g,' ').slice(0,180);
+  const u='https://github.com/bymankirat/swapseq/issues/new?template=bug_report.yml&title='+encodeURIComponent('Problem: '+msg.slice(0,60))+'&error='+encodeURIComponent(msg)+'&browser='+encodeURIComponent(ua)+'&version=v1.0.0';
+  return ` <a href="${u}" target="_blank" rel="noopener">Report this problem</a>`}
+function setStatus(msg,err){$('status').innerHTML=err?`<span class="err">${esc(msg)}</span>${/^(Open |No samples have)/.test(msg)?'':reportLink(msg)}`:esc(msg)}
 
 // ---------- parsing ----------
 // A table is either {kind:'sparse', feats, samples:[{id,idx,val}]} or {kind:'grid', rowIds, colIds, get(r,c)} (orientation decided later)
