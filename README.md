@@ -84,6 +84,8 @@ used for diagnosis or clinical decisions.
 
 Singh M. (2026). *SwapSeq: a sample mix-up checker for longitudinal microbiome studies* (v1.0.1). Zenodo. https://doi.org/10.5281/zenodo.23963612
 
+Author: Mankirat Singh, ORCID [0009-0005-3375-2123](https://orcid.org/0009-0005-3375-2123)
+
 ## Licence
 
 Copyright (C) 2026 Mankirat Singh. SwapSeq is free software under the GNU General Public License,

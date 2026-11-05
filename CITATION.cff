@@ -5,6 +5,7 @@ type: software
 authors:
   - family-names: Singh
     given-names: Mankirat
+    orcid: "https://orcid.org/0009-0005-3375-2123"
 version: 1.0.1
 doi: 10.5281/zenodo.23963612
 date-released: 2026-11-05
