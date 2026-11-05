@@ -7,7 +7,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const fmtPct=v=>Number.isFinite(v)?Math.round(v*100)+'%':'–';
 // prefilled GitHub issue: error text, browser and version only, never the user's data
 function reportLink(msg){const ua=navigator.userAgent.replace(/\s+/g,' ').slice(0,180);
-  const u='https://github.com/bymankirat/swapseq/issues/new?template=bug_report.yml&title='+encodeURIComponent('Problem: '+msg.slice(0,60))+'&error='+encodeURIComponent(msg)+'&browser='+encodeURIComponent(ua)+'&version=v1.0.0';
+  const u='https://github.com/bymankirat/swapseq/issues/new?template=bug_report.yml&title='+encodeURIComponent('Problem: '+msg.slice(0,60))+'&error='+encodeURIComponent(msg)+'&browser='+encodeURIComponent(ua)+'&version=v1.0.1';
   return ` <a href="${u}" target="_blank" rel="noopener">Report this problem</a>`}
 function setStatus(msg,err){$('status').innerHTML=err?`<span class="err">${esc(msg)}</span>${/^(Open |No samples have)/.test(msg)?'':reportLink(msg)}`:esc(msg)}
 

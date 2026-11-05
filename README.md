@@ -2,6 +2,8 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23963612.svg)](https://doi.org/10.5281/zenodo.23963612)
 
+<p align="center"><a href="https://bymankirat.github.io/swapseq/"><img src="assets/swapseq-demo.gif" width="720" alt="SwapSeq scans a 96-well plate, opens row E as tubes and marks the swapped pair and a wrong label"></a></p>
+
 **A sample mix-up checker for longitudinal microbiome studies.** SwapSeq finds swapped tubes,
 wrong labels and sample-sheet shifts from each person's microbial fingerprint. It runs entirely
 in your browser: files you open are never sent anywhere.
@@ -67,6 +69,11 @@ Node.js 22, no other software. Clone the source repositories listed in `method/l
 folder, point `SWAPSEQ_DATA` at it, then run for example
 `SWAPSEQ_DATA=~/swapseq-data SETS=gut,tongue node method/bench.mjs 30 0.01`.
 
+## Changes
+
+- **v1.0.1** – Public Methods & validation page, feedback and problem-report forms, citation details. Method unchanged (method v3).
+- **v1.0.0** – First release.
+
 ## Privacy and use
 
 SwapSeq has no server, sets no cookies and uses no analytics. Fonts are served from this site,
@@ -75,7 +82,7 @@ used for diagnosis or clinical decisions.
 
 ## How to cite
 
-Singh M. (2026). *SwapSeq: a sample mix-up checker for longitudinal microbiome studies* (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.23963612
+Singh M. (2026). *SwapSeq: a sample mix-up checker for longitudinal microbiome studies* (v1.0.1). Zenodo. https://doi.org/10.5281/zenodo.23963612
 
 ## Licence
 

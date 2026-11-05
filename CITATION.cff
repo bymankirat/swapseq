@@ -5,9 +5,9 @@ type: software
 authors:
   - family-names: Singh
     given-names: Mankirat
-version: 1.0.0
+version: 1.0.1
 doi: 10.5281/zenodo.23963612
-date-released: 2026-11-04
+date-released: 2026-11-05
 license: GPL-3.0-or-later
 repository-code: "https://github.com/bymankirat/swapseq"
 url: "https://bymankirat.github.io/swapseq/"
