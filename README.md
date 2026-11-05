@@ -6,7 +6,10 @@
 wrong labels and sample-sheet shifts from each person's microbial fingerprint. It runs entirely
 in your browser: files you open are never sent anywhere.
 
-**Use it:** open `index.html`, or the hosted page. Load a feature table (QIIME 2 `.qza`, BIOM 1 or 2,
+**Use it:** open `index.html`, or the [hosted page](https://bymankirat.github.io/swapseq/). Full method and
+every benchmark result: [Methods & validation](https://bymankirat.github.io/swapseq/validation.html).
+
+Load a feature table (QIIME 2 `.qza`, BIOM 1 or 2,
 or a text table) and the sample metadata, choose the column that says who each sample came from,
 and press *Check samples*. Try the built-in demo first.
 

@@ -113,7 +113,7 @@ for o,bc in zip(val['ours'],val['bc']):
   w=o['withReview'];rws+=f"<tr><td>{o['dataset']}</td><td class='num'>{o['samples']}</td><td class='num'>{o['people']}</td><td class='num best'>{pc(o['swappedSamplesCaught'])}</td><td class='num'>{pc(w['swaps'])}</td><td class='num'>{pc(bc['swappedSamplesCaught'])}</td><td class='num'>{pc(o['oneWayCaught'])}</td><td class='num'>{pc(w['oneWay'])}</td><td class='num'>{o['falseFlagsPer1000']:.1f}</td><td class='num'>{w['falsePer1000']:.1f}</td></tr>"
 th="<thead><tr><th>Dataset</th><th class='num'>Samples</th><th class='num'>People</th><th class='num'>Swaps flagged</th><th class='num'>+ check list</th><th class='num'>Bray-Curtis</th><th class='num'>Mislabels flagged</th><th class='num'>+ check list</th><th class='num'>False flags / 1000</th><th class='num'>False checks / 1000</th></tr></thead>"
 old='<table class="val" id="valTable"></table>';assert t.count(old)==1;t=t.replace(old,'<table class="val" id="valTable">'+th+'<tbody>'+rws+'</tbody></table>')
-open(B+'swapseq.html','w').write(t);print(len(t))
+open(B+'swapseq.html','w').write(t.replace('href="validation.html"','href="https://bymankirat.github.io/swapseq/validation.html" target="_blank" rel="noopener"'));print(len(t))
 # GitHub Pages build: same page, fonts served from its own folder instead of Google (no visitor IP goes to Google)
 import re as _re
 gh=_re.sub(r'<link rel="preconnect"[^>]*>(<link rel="preconnect"[^>]*>)?\n?','',t)

@@ -1,0 +1,331 @@
+<title>SwapSeq Methods</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="How SwapSeq finds swapped tubes, wrong labels and sample-sheet shifts in longitudinal microbiome studies, and how it was tested on 4,732 samples from five public studies.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/*CSS*/
+/* ---- methods page ---- */
+.doc{display:grid;grid-template-columns:200px minmax(0,1fr);gap:56px;padding-block:20px 72px}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 86px);align-self:start;display:flex;flex-direction:column;gap:2px;font-size:14.5px}
+.toc b{font:700 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.toc a{color:var(--muted);text-decoration:none;padding:6px 0 6px 12px;border-left:2px solid var(--line)}
+.toc a:hover{color:var(--ink)}.toc a.on{color:var(--accent);border-left-color:var(--accent);font-weight:600}
+article{min-width:0;display:flex;flex-direction:column;gap:0}
+article > section{padding-block:40px 8px;border-top:1px solid var(--line);scroll-margin-top:80px}
+article > section:first-of-type{border-top:0}
+.prose{max-width:68ch;display:flex;flex-direction:column;gap:14px}
+.prose p,.prose li{color:var(--ink);font-size:17px}
+.prose .muted{color:var(--muted)}
+.prose ul,.prose ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px}
+.secno{font:600 13px/1 var(--mono);color:var(--accent);letter-spacing:.04em}
+article h2{margin:8px 0 18px;font-size:clamp(26px,3vw,34px)}
+article h3{margin-top:14px}
+.dhero{padding-block:56px 28px;display:flex;flex-direction:column;gap:18px}
+.dhero h1,.dhero > p{max-width:20em}.dhero > p{max-width:40em}
+.eyebrow{font:600 13px/1 var(--mono);letter-spacing:.06em;color:var(--accent);text-transform:uppercase}
+.dhero h1{font-size:clamp(38px,5vw,60px);line-height:1.04;font-weight:700;letter-spacing:-.022em}
+.dhero p{font-size:19px;line-height:1.55;color:var(--muted);max-width:40em}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:10px}
+.stat{padding:18px;min-width:0}
+.stat .v{font:700 36px/1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .d{font-size:14.5px;color:var(--muted);margin-top:10px;line-height:1.45}
+.eq{font-family:var(--mono);font-size:15px;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;white-space:nowrap;color:var(--ink);line-height:1.7}
+.eq sub,.eq sup{font-size:.72em}
+.where{font-size:15.5px;color:var(--muted)}
+.kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:6px}
+.kind{padding:18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.kind p{font-size:15.5px;color:var(--muted)}
+.kind svg{width:100%;max-width:220px;height:auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:30px}
+.steps > li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:14px}
+.steps > li::before{counter-increment:s;content:counter(s);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font:700 14px/1 var(--display)}
+.steps > li > div{min-width:0;display:flex;flex-direction:column;gap:10px}
+.steps h3{margin:3px 0 0}
+.box{padding:18px 20px;margin-top:6px}
+.levels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.levels .box{margin:0}
+.levels b{display:block;font-family:var(--display);font-size:17px;margin-bottom:4px}
+.levels p{font-size:15.5px;color:var(--muted)}
+.dtab td.num,.dtab th.num{text-align:right;font-variant-numeric:tabular-nums}
+.dtab td{font-size:14.5px;line-height:1.6}
+.dtab td small{color:var(--muted);display:block;font-size:13px}
+.chartwrap{margin-top:22px}
+.scatter .pt{fill:var(--accent);stroke:var(--surface);stroke-width:1.5}
+.scatter .hit{fill:transparent;cursor:default}
+.scatter g.on .pt{fill:var(--swap)}
+.callout{padding:16px 20px;border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 12px 12px 0;font-size:16px;color:var(--ink);max-width:68ch}
+.callout.warn{border-left-color:var(--mis);background:var(--mis-soft)}
+.dropped{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;list-style:none;padding:0;margin:6px 0 0}
+.dropped li{padding:14px 16px;font-size:15px;color:var(--muted)}
+.dropped b{display:block;color:var(--ink);font-size:15.5px;margin-bottom:2px}
+pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink);line-height:1.6}
+.refs{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;font-size:15.5px;color:var(--muted);max-width:76ch}
+.refs i{color:var(--ink)}
+.cite{padding:18px 20px;display:flex;flex-direction:column;gap:12px;align-items:flex-start;max-width:76ch}
+.cite p{font-size:16px}
+.copied{font-size:14px;color:var(--ok)}
+.rs-ev{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:4px}
+.rs-ev .box{margin:0}.rs-ev .v{font:700 28px/1 var(--display);font-variant-numeric:tabular-nums}.rs-ev p{font-size:14.5px;color:var(--muted);margin-top:8px}
+@media (max-width:980px){.doc{grid-template-columns:1fr;gap:0}.toc{display:none}}
+@media (max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.kinds,.levels,.dropped,.rs-ev{grid-template-columns:1fr}}
+</style>
+
+<header><div class="wrap">
+  <a class="brand" href="/*TOOLURL*/" aria-label="SwapSeq tool">
+    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1.5" y="1.5" width="25" height="25" rx="6" fill="none" stroke="var(--ink)" stroke-width="1.6" opacity=".35"/><circle cx="9" cy="14" r="4.6" fill="var(--accent)"/><circle cx="19" cy="14" r="4.6" fill="var(--swap)"/><path d="M8 7.2c3-3 9-3 12 0M20 20.8c-3 3-9 3-12 0" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <span>SwapSeq <small>methods &amp; validation</small></span></a>
+  <nav aria-label="Sections"><a href="#method">Method</a><a href="#results">Results</a><a href="#limits">Limits</a><a href="#cite">Cite</a><a href="/*TOOLURL*/">Open the tool</a></nav>
+</div></header>
+
+<main><div class="wrap">
+<div class="dhero">
+  <span class="eyebrow">SwapSeq v1.0.0 · Methods and validation</span>
+  <h1>How SwapSeq works, and how well</h1>
+  <p>SwapSeq checks whether each sample in a longitudinal microbiome study came from the person on its label. This page sets out the method, the public data it was tested on, how errors were planted, and every result, including where it does poorly.</p>
+  <div class="stats">
+    <div class="panel stat"><div class="v">4,732</div><div class="d">samples from 10 public tables in 5 studies, 16S and shotgun, people and mice</div></div>
+    <div class="panel stat"><div class="v">92%</div><div class="d">of swapped samples strongly flagged in adult gut 16S, against 23% with Bray-Curtis</div></div>
+    <div class="panel stat"><div class="v">≤ 0.4</div><div class="d">false strong flags per 1,000 untouched samples, in every table</div></div>
+    <div class="panel stat"><div class="v">1.00</div><div class="d">probability given, blind, to a real tube swap that a study's authors had corrected</div></div>
+  </div>
+</div>
+
+<div class="doc">
+<aside class="toc" aria-label="On this page"><b>On this page</b>
+  <a href="#checks">What it checks</a><a href="#method">Method</a><a href="#data">Data</a><a href="#design">Test design</a><a href="#results">Results</a><a href="#plate">Plate errors</a><a href="#real">A real swap</a><a href="#untouched">Untouched data</a><a href="#dropped">Tried and dropped</a><a href="#limits">Limits</a><a href="#reproduce">Reproduce</a><a href="#cite">Cite</a>
+</aside>
+<article>
+
+<section id="checks">
+  <span class="secno">01</span><h2>What it checks</h2>
+  <div class="prose">
+    <p>In a study that samples the same people over time, each person's microbiome is a fingerprint. Their own samples resemble each other more than they resemble anyone else's. A sample that resembles somebody else better than its own person is a sign that something went wrong between the bench and the spreadsheet.</p>
+    <p class="muted">You give SwapSeq a feature table (ASVs, OTUs or taxa, as counts) and the sample sheet with a column saying who each sample came from. A plate and well column, a household column and a visit column are optional. Every person needs at least two samples.</p>
+  </div>
+  <div class="kinds">
+    <div class="panel kind"><svg viewBox="0 0 220 70" aria-hidden="true"><rect x="40" y="10" width="40" height="50" rx="8" fill="var(--tubeA)" opacity=".85"/><rect x="140" y="10" width="40" height="50" rx="8" fill="var(--tubeB)" opacity=".85"/><text x="60" y="40" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="#fff">B</text><text x="160" y="40" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="#fff">A</text><path d="M86 26h48l-6-5M134 44H86l6 5" fill="none" stroke="var(--swap)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><h3>Swapped tubes</h3><p>Two samples carry each other's labels. SwapSeq names both and the pair.</p></div>
+    <div class="panel kind"><svg viewBox="0 0 220 70" aria-hidden="true"><rect x="40" y="10" width="40" height="50" rx="8" fill="var(--tubeA)" opacity=".85"/><rect x="90" y="10" width="40" height="50" rx="8" fill="var(--tubeA)" opacity=".85"/><rect x="140" y="10" width="40" height="50" rx="8" fill="var(--tubeB)" opacity=".85" stroke="var(--mis)" stroke-width="3"/><text x="60" y="40" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="#fff">A</text><text x="110" y="40" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="#fff">A</text><text x="160" y="40" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="#fff">A</text></svg><h3>Wrong labels</h3><p>One sample carries someone else's label. SwapSeq says who it looks like.</p></div>
+    <div class="panel kind"><svg viewBox="0 0 220 70" aria-hidden="true"><g font-family="var(--mono)" font-size="12" fill="#fff" text-anchor="middle"><rect x="8" y="14" width="36" height="42" rx="7" fill="var(--tubeA)" opacity=".85"/><text x="26" y="40">A</text><rect x="50" y="14" width="36" height="42" rx="7" fill="var(--tubeA)" opacity=".85" stroke="var(--mis)" stroke-width="3"/><text x="68" y="40">B</text><rect x="92" y="14" width="36" height="42" rx="7" fill="var(--tubeB)" opacity=".85" stroke="var(--mis)" stroke-width="3"/><text x="110" y="40">C</text><rect x="134" y="14" width="36" height="42" rx="7" fill="#8C6BB8" opacity=".85" stroke="var(--mis)" stroke-width="3"/><text x="152" y="40">D</text><rect x="176" y="14" width="36" height="42" rx="7" fill="#B8566B" opacity=".85"/><text x="194" y="40">E</text></g></svg><h3>Sample-sheet shifts</h3><p>A run of tubes each carries its neighbour's label. SwapSeq reports the run and its wells.</p></div>
+  </div>
+</section>
+
+<section id="method">
+  <span class="secno">02</span><h2>Method</h2>
+  <div class="prose"><p>Everything runs in the browser, in plain JavaScript with no server. The same code (<span class="mono">method/core.mjs</span>) runs the benchmarks below.</p></div>
+  <ol class="steps">
+    <li><div><h3>Two fingerprints of every sample</h3>
+      <p class="where">Soft Jaccard keeps the presence of low-abundance strains, the part of a microbiome most specific to a person, and removes the effect of unequal sequencing depth without random rarefaction. Each feature gets its expected presence after subsampling to <i>r</i> reads:</p>
+      <div class="eq">e<sub>k</sub> = 1 − (1 − r / N)<sup>c<sub>k</sub></sup> &nbsp;&nbsp; r = median depth ÷ 8<br>d<sub>J</sub>(a,b) = 1 − Σ min(e<sub>a</sub>, e<sub>b</sub>) ⁄ Σ max(e<sub>a</sub>, e<sub>b</sub>)</div>
+      <p class="where"><i>N</i> is the sample's depth and <i>c<sub>k</sub></i> its count for feature <i>k</i>. The second fingerprint is the Aitchison distance: Euclidean distance after a centred log-ratio transform of counts + 0.5, on features present in at least 5% of samples (up to the 3,000 most common).</p></div></li>
+    <li><div><h3>Does a sample fit its own person?</h3>
+      <div class="eq">s<sub>i</sub> = log( d<sub>own</sub> ⁄ d<sub>other</sub> )</div>
+      <p class="where"><i>d<sub>own</sub></i> is the soft Jaccard distance from sample <i>i</i> to the nearest other sample with the same label, and <i>d<sub>other</sub></i> the distance to the nearest sample of anyone else. A score above zero means the sample sits closer to someone else; that person is reported as who it looks like.</p></div></li>
+    <li><div><h3>Would swapping two labels fix both?</h3>
+      <div class="eq">w<sub>ij</sub> = log( own<sub>i</sub> ⁄ d(i, person of j) ) + log( own<sub>j</sub> ⁄ d(j, person of i) )</div>
+      <p class="where">Averaged over both fingerprints, with the two samples themselves left out of each person's set. The maximum over every <i>j</i> with a different label is the swap score, and that <i>j</i> is the likely partner. A swap is reported only when two samples name each other and both carry swap evidence.</p></div></li>
+    <li><div><h3>Learn what an error looks like in this study</h3>
+      <p class="where">The same score means different things on tongue swabs and on stool, or with daily and monthly sampling. So SwapSeq plants errors in a copy of the user's own labels, between 300 and 1,500 one-way relabels and as many reciprocal swaps, and records their scores. With <i>f<sub>1</sub></i> the density of planted-error scores and <i>g</i> the density of all observed scores:</p>
+      <div class="eq">P(error | s) = min( 1, π · f<sub>1</sub>(s) ⁄ g(s) ) &nbsp;&nbsp; π = 1% expected error rate</div>
+      <p class="where">Densities are Gaussian kernel estimates. P is made non-decreasing in the score, but only where observed scores actually lie, so a gap in the tail cannot create a false spike. The share of planted errors that would reach a strong flag is reported as the study's power, so a user knows when a clean result means little.</p>
+      <div class="levels"><div class="panel box"><b>Strong flag</b><p>Kernel probability ≥ 0.5. Built for near-zero false alarms.</p></div><div class="panel box"><b>Check list</b><p>A logistic fit of the same ratio ≥ 0.5, or kernel probability ≥ 0.2. Catches more, with some natural look-alikes. Hidden when fewer than 8 people have two or more samples.</p></div></div></div></li>
+    <li><div><h3>Evidence for each flag</h3>
+      <ul>
+        <li><b>Rare features.</b> Of a flagged sample's rare features (in ≤ 5% of samples, with at least 2 reads), how many are also found in its own person and how many in the person it looks like.</li>
+        <li><b>Households.</b> If the look-alike lives in the same household, a strong flag moves to the check list.</li>
+        <li><b>Wells.</b> For a swap pair on one plate: adjacent, mirrored across the plate, diagonal or apart.</li>
+        <li><b>Sheet shifts.</b> Tubes are ordered down plate columns, along rows, or by a plating-order number. A run of three or more consecutive tubes, each closer to someone else and that someone being the person on its neighbour's label, is reported as a shift, and its tubes join the check list.</li>
+      </ul></div></li>
+  </ol>
+</section>
+
+<section id="data">
+  <span class="secno">03</span><h2>Data</h2>
+  <div class="prose"><p>Five public longitudinal studies, chosen to range from strong individual signal (adults, daily stool, shotgun) to almost none (newborns, mice all given one donor's stool). The last two act as negative controls: a good tool should say it cannot see, not invent flags.</p></div>
+  <div class="tablewrap chartwrap"><table class="dtab">
+    <thead><tr><th>Study</th><th>Data</th><th>Tables used</th><th class="num">Samples</th><th class="num">People</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>Student Microbiome Project<small>Flores et al. 2014</small></td><td>16S OTUs, rarefied, weekly</td><td>gut<br>tongue<br>palm<br>forehead</td><td class="num">638<br>692<br>515<br>675</td><td class="num">75<br>80<br>61<br>80</td><td><a href="https://github.com/caporaso-lab/student-microbiome-project" target="_blank" rel="noopener">caporaso-lab</a></td></tr>
+      <tr><td>Immigration Microbiome Project<small>Vangay et al. 2018</small></td><td>16S de novo OTUs, monthly</td><td>gut, people with 2+ samples</td><td class="num">110</td><td class="num">18</td><td><a href="https://github.com/knights-lab/IMP_analyses" target="_blank" rel="noopener">knights-lab</a></td></tr>
+      <tr><td>Minnesota diet study<small>Johnson et al. 2019</small></td><td>shallow shotgun, daily stool</td><td>strain level<br>species</td><td class="num">526<br>483</td><td class="num">37<br>34</td><td><a href="https://github.com/knights-lab/dietstudy_analyses" target="_blank" rel="noopener">knights-lab</a></td></tr>
+      <tr><td>ECAM<small>Bokulich et al. 2016</small></td><td>16S, infants from birth</td><td>stool</td><td class="num">875</td><td class="num">43</td><td><a href="https://github.com/qiime2/q2-longitudinal" target="_blank" rel="noopener">q2-longitudinal</a></td></tr>
+      <tr><td>MDSINE2 mice<small>Gibson et al. 2025</small></td><td>16S, dense time series, one donor per group</td><td>healthy donor<br>UC donor</td><td class="num">320<br>381</td><td class="num">5<br>5</td><td><a href="https://github.com/gerberlab/MDSINE2_Paper" target="_blank" rel="noopener">gerberlab</a></td></tr>
+    </tbody></table></div>
+  <div class="prose" style="margin-top:16px"><p class="muted">The species table of the diet study holds a subset of the strain-level samples, so the distinct total is 4,732 samples. Three before/after designs were also built by keeping only the first and last sample of each person in SMP gut, SMP forehead and the diet study. Blank and control samples were removed.</p></div>
+</section>
+
+<section id="design">
+  <span class="secno">04</span><h2>Test design</h2>
+  <div class="prose">
+    <ul>
+      <li><b>Errors at about a 1% rate.</b> In each repeat, 3 reciprocal swaps and 2 one-way relabels were planted in a copy of the labels; tables under 300 samples got 1 of each, and before/after designs 1 swap.</li>
+      <li><b>30 repeats</b> per table with different random seeds (60 for the smaller IMP table).</li>
+      <li><b>Clean ground truth.</b> Errors were planted only into people with at least three samples, and never into samples SwapSeq already flagged on the untouched data.</li>
+      <li><b>What was counted.</b> The share of planted samples that reached a strong flag, and a flag or the check list. The share of swap pairs named exactly. False alarms per 1,000 untouched samples.</li>
+      <li><b>Same settings throughout.</b> The defaults the tool ships with: 1% expected error rate, flag at probability 0.5.</li>
+      <li><b>A baseline.</b> The identical pipeline with Bray-Curtis distance in place of the two fingerprints, the distance used by a recent mislabel detector for shotgun data. This isolates what the fingerprints add.</li>
+    </ul>
+  </div>
+  <div class="callout warn" style="margin-top:18px">SwapSeq's settings were chosen while working on these tables, so the numbers below are development results, not a held-out test. New studies are the real test, which is why feedback is wanted.</div>
+</section>
+
+<section id="results">
+  <span class="secno">05</span><h2>Results</h2>
+  <div class="prose">
+    <p>On 16S data from adults, SwapSeq strongly flagged 40–92% of swapped samples, against 0–38% for Bray-Curtis in the same pipeline. On daily shotgun data, where every distance works well, the gap is small: 88–94% against 84–92%. Single mislabels are harder because there is no partner to confirm them; the check list recovers many of them.</p>
+  </div>
+  <div class="panel valchart chartwrap" id="valChart"></div>
+  <details class="full"><summary>Show the full results table</summary>
+    <div class="tablewrap"><table class="val" id="valTable"></table></div>
+  </details>
+
+  <h3 style="margin-top:36px">The power estimate tells the truth</h3>
+  <div class="prose" style="margin-top:8px"><p class="muted">Every run reports how many swaps SwapSeq could catch in that study. Across the 13 tables, that self-estimate sits close to the catch rate measured independently with the planted errors above. In the infant and mouse controls both are near zero, so a clean report there comes with a warning rather than false comfort.</p></div>
+  <div class="panel valchart chartwrap" id="powerChart"></div>
+
+  <h3 style="margin-top:36px">Where it is weaker</h3>
+  <div class="prose" style="margin-top:8px"><ul>
+    <li><b>Tongue and palm.</b> Single mislabels: 13% and 10% strongly flagged, 60% and 47% with the check list.</li>
+    <li><b>IMP mislabels.</b> 12% strongly flagged, 48% with the check list, where Bray-Curtis flagged 23%. One of the few places the baseline does better.</li>
+    <li><b>Before/after with two samples each.</b> With only two samples, a swap makes both people inconsistent and SwapSeq can name the two people more reliably than the tube. In the diet study's two-per-person design nothing reached a strong flag; 42% reached the check list.</li>
+    <li><b>Check list in low-signal data.</b> In infants and mice the check list carries 13–16 false entries per 1,000 samples. The power estimate is near zero there, and the tool says so.</li>
+  </ul></div>
+</section>
+
+<section id="plate">
+  <span class="secno">06</span><h2>Plate errors</h2>
+  <div class="prose"><p>Lab errors follow the plate. Neighbouring tubes get swapped, and a sample sheet that slips by one row shifts every label after it. These patterns were planted on the real plating order of the diet study (526 tubes over 6 plates), 30 repeats each.</p></div>
+  <div class="panel valchart chartwrap" id="plateChart"></div>
+  <div class="prose" style="margin-top:16px"><p class="muted">Runs of five or more tubes were named as a shift in 90–100% of repeats. Three-tube runs were still flagged tube by tube (82%) but not named as a shift. No repeat produced a false shift report.</p></div>
+</section>
+
+<section id="real">
+  <span class="secno">07</span><h2>A real swap, found blind</h2>
+  <div class="prose">
+    <p>In the Minnesota diet study the authors found two swapped stool tubes, <span class="mono">MCT.f.0086</span> and <span class="mono">MCT.f.0417</span>, between participants MCTs06 and MCTs25, and corrected the labels in their published data. Restoring the original labels and running SwapSeq with its defaults, without telling it where to look:</p>
+  </div>
+  <div class="rs-ev">
+    <div class="panel box"><div class="v">1.00</div><p>Swap probability for the pair, in both the strain-level and the species table. The pair was the top result.</p></div>
+    <div class="panel box"><div class="v">15 of 20</div><p>Rare strains of <span class="mono">MCT.f.0417</span> also found in the person it was swapped with, against 3 in the person on its label.</p></div>
+    <div class="panel box"><div class="v">0</div><p>Flags on the strain-level table once the authors' correction is put back.</p></div>
+  </div>
+  <div class="prose" style="margin-top:16px"><p class="muted">With the original labels the strain-level table also gave one more strong flag and two check-list entries, all within the two people involved, whose sample sets the swap had disturbed.</p></div>
+</section>
+
+<section id="untouched">
+  <span class="secno">08</span><h2>On the untouched data</h2>
+  <div class="prose">
+    <p>Run on the published tables as they are, SwapSeq gave 12 strong flags among 4,732 samples. Ten were in the SMP tongue table, one in gut and one in palm; none in the IMP, diet, infant or mouse tables.</p>
+    <p class="muted">These may be real mix-ups or natural look-alikes. Tongue swabs carry the weakest individual signal of the four SMP sites, so its flags deserve the most caution. They have not been checked against lab records, so they are reported here as counts only. The SMP authors list samples they removed for suspected mix-ups; those samples are not in any published table, so they could not be used as a check.</p>
+  </div>
+</section>
+
+<section id="dropped">
+  <span class="secno">09</span><h2>Tried and dropped</h2>
+  <div class="prose"><p class="muted">Each idea below was built and run on the same benchmark. None caught more errors at the same false-alarm rate, or it broke a study design, so none shipped.</p></div>
+  <ul class="dropped">
+    <li class="panel"><b>Weighting rare features (IDF)</b>Rare features already drive soft Jaccard; extra weight added noise.</li>
+    <li class="panel"><b>Whole-person count model</b>A negative binomial model of each person's counts. Slower and no better.</li>
+    <li class="panel"><b>Isotonic and tail-area calibration</b>Less smooth than the kernel, with worse false-alarm control at a 1% prior.</li>
+    <li class="panel"><b>Estimating the error rate (EM)</b>Unstable when errors are rare, which is exactly the normal case.</li>
+    <li class="panel"><b>Ignoring same-visit look-alikes</b>Helps when one batch makes samples look alike, but breaks before/after designs with two samples each.</li>
+    <li class="panel"><b>Blending nearest and median distance</b>Diluted the nearest-neighbour signal that a swap leaves.</li>
+  </ul>
+</section>
+
+<section id="limits">
+  <span class="secno">10</span><h2>Limits</h2>
+  <div class="prose"><ul>
+    <li><b>One confirmed real error.</b> Everything else is planted. Planted errors are clean label exchanges; real mix-ups can also be partial, such as cross-contamination or a split sample.</li>
+    <li><b>Narrow evidence base.</b> Adult 16S results come from two studies, shotgun from one, and plate patterns from one real plating order.</li>
+    <li><b>Development results.</b> Settings were chosen on these tables.</li>
+    <li><b>Needs repeat samples.</b> At least two per person, better three. People who live together, antibiotics and illness all blur the fingerprint.</li>
+    <li><b>Memory.</b> All pairwise distances are held in the browser, so tables of many thousands of samples need a lot of memory. The largest table tested had 875 samples.</li>
+    <li><b>A flag is a reason to check.</b> Compare it with plate maps, extraction batches and sample sheets before relabelling or dropping anything. SwapSeq is a research QC tool, not a medical device.</li>
+  </ul></div>
+</section>
+
+<section id="reproduce">
+  <span class="secno">11</span><h2>Reproduce</h2>
+  <div class="prose">
+    <p>Node.js 22 and nothing else. Clone the five source repositories into one folder (the layout is in <span class="mono">method/load.mjs</span>), then:</p>
+  </div>
+  <pre class="cmd chartwrap">git clone https://github.com/bymankirat/swapseq
+cd swapseq
+export SWAPSEQ_DATA=~/swapseq-data
+
+# planted-error benchmark: 30 repeats, 1% prior
+SETS=gut,tongue,palm,forehead,ecam,gut2,forehead2 node method/bench.mjs 30 0.01
+SETS=diet,dietsp,mdh,mdu,diet2 node method/bench.mjs 30 0.01
+SETS=imp node method/bench.mjs 60 0.01
+
+# same pipeline with Bray-Curtis
+SETS=gut,tongue,palm,forehead,ecam,gut2,forehead2 node method/bench.mjs 30 0.01 bc
+
+for L in 3 5 8; do node method/platebench.mjs burst 30 $L; done   # plate swaps and sheet shifts
+node method/realswap.mjs       # the real diet-study swap</pre>
+  <div class="prose" style="margin-top:14px"><p class="muted">Every number on this page is in the <a href="https://github.com/bymankirat/swapseq/tree/main/validation" target="_blank" rel="noopener">validation folder</a> as JSON.</p></div>
+</section>
+
+<section id="cite">
+  <span class="secno">12</span><h2>Cite and references</h2>
+  <div class="panel cite">
+    <p id="citeText">Singh M. (2026). <i>SwapSeq: a sample mix-up checker for longitudinal microbiome studies</i> (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.23963612</p>
+    <div class="actions"><button class="btn ghost small" type="button" id="copyCite">Copy citation</button><span class="copied" id="copied" hidden>Copied</span><a href="https://doi.org/10.5281/zenodo.23963612" target="_blank" rel="noopener">doi:10.5281/zenodo.23963612</a></div>
+  </div>
+  <h3 style="margin-top:28px;margin-bottom:12px">Studies and methods</h3>
+  <ul class="refs">
+    <li>Flores GE et al. (2014). Temporal variability is a personalized feature of the human microbiome. <i>Genome Biology</i> 15:531. <a href="https://doi.org/10.1186/s13059-014-0531-y" target="_blank" rel="noopener">doi</a></li>
+    <li>Vangay P et al. (2018). US immigration westernizes the human gut microbiome. <i>Cell</i> 175:962–972. <a href="https://doi.org/10.1016/j.cell.2018.10.029" target="_blank" rel="noopener">doi</a></li>
+    <li>Johnson AJ et al. (2019). Daily sampling reveals personalized diet-microbiome associations in humans. <i>Cell Host &amp; Microbe</i> 25:789–802. <a href="https://doi.org/10.1016/j.chom.2019.05.005" target="_blank" rel="noopener">doi</a></li>
+    <li>Bokulich NA et al. (2016). Antibiotics, birth mode, and diet shape microbiome maturation during early life. <i>Science Translational Medicine</i> 8:343ra82. <a href="https://doi.org/10.1126/scitranslmed.aad7121" target="_blank" rel="noopener">doi</a></li>
+    <li>Gibson TE et al. (2025). Learning ecosystem-scale dynamics from microbiome data with MDSINE2. <i>Nature Microbiology</i>. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12488492/" target="_blank" rel="noopener">PMC</a></li>
+    <li>Aitchison J. (1986). <i>The Statistical Analysis of Compositional Data</i>. Chapman &amp; Hall.</li>
+  </ul>
+  <div class="callout" style="margin-top:28px">Tried it on your own study? <a href="https://github.com/bymankirat/swapseq/issues/new?template=feedback.yml" target="_blank" rel="noopener">Tell me how it went</a>, or <a href="https://github.com/bymankirat/swapseq/issues/new?template=bug_report.yml" target="_blank" rel="noopener">report a problem</a>. Issues are public, so please leave out sample IDs and study data.</div>
+</section>
+
+</article>
+</div>
+</div></main>
+
+<footer><div class="wrap">
+  <span>Made by <a href="https://bymankirat.github.io/myportfolio/" target="_blank" rel="noopener">Mankirat Singh</a>, a human from Earth. Free software under <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPL-3.0-or-later</a>.</span>
+  <span>No cookies, no analytics. <a href="/*TOOLURL*/">Open SwapSeq</a></span>
+</div></footer>
+
+<script>
+const VAL=/*VAL*/;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+/*CHARTS*/
+// self-estimated power against measured catch rate
+(function(){const host=document.getElementById('powerChart');if(!host)return;
+  const NAME={'IMP adults (16S)':'IMP gut','SMP gut (2 per person)':'SMP gut, 2 per person','SMP forehead (2 per person)':'SMP forehead, 2 per person','Diet study (species)':'Diet, species','Diet study (strain-level)':'Diet, strain level','Diet study (strain-level) (2 per person)':'Diet, 2 per person','MDSINE2 mice (healthy donor)':'Mice, healthy donor','MDSINE2 mice (uc donor)':'Mice, UC donor','ECAM infants':'ECAM infants'};
+  const pts=VAL.ours.map(o=>({name:NAME[o.dataset]||o.dataset,x:o.selfEstimatedPower.swap,y:o.swappedSamplesCaught,n:o.samples}));
+  const W=760,H=420,L=64,R=24,T=20,B=56,X=v=>L+v*(W-L-R),Y=v=>T+(1-v)*(H-T-B),P=v=>Math.round(v*100)+'%';
+  const mad=pts.reduce((a,p)=>a+Math.abs(p.x-p.y),0)/pts.length;
+  let g='';[0,.25,.5,.75,1].forEach(t=>{g+=`<line x1="${X(0)}" x2="${X(1)}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--grid)"/><text x="${L-10}" y="${Y(t)+4}" text-anchor="end" fill="var(--faint)">${P(t)}</text><line x1="${X(t)}" x2="${X(t)}" y1="${Y(0)}" y2="${Y(1)}" stroke="var(--grid)"/><text x="${X(t)}" y="${Y(0)+20}" text-anchor="middle" fill="var(--faint)">${P(t)}</text>`});
+  g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(1)}" y2="${Y(1)}" stroke="var(--line2)" stroke-width="1.5" stroke-dasharray="5 5"/><text x="${X(.62)}" y="${Y(.68)-6}" fill="var(--muted)" font-size="12.5" transform="rotate(-${Math.atan((H-T-B)/(W-L-R))*180/Math.PI} ${X(.62)} ${Y(.68)-6})">estimate = measured</text>`;
+  g+=`<text x="${(L+W-R)/2}" y="${H-10}" text-anchor="middle" fill="var(--muted)">Power SwapSeq reported for the study</text><text transform="translate(16 ${(T+H-B)/2}) rotate(-90)" text-anchor="middle" fill="var(--muted)">Swapped samples actually flagged</text>`;
+  const lab=new Set(['SMP gut','ECAM infants','IMP gut','Diet, 2 per person','SMP forehead, 2 per person']);
+  for(const p of pts){g+=`<g class="sp" data-name="${esc(p.name)}" data-x="${P(p.x)}" data-y="${P(p.y)}" data-n="${p.n}"><circle class="hit" cx="${X(p.x)}" cy="${Y(p.y)}" r="14"/><circle class="pt" cx="${X(p.x)}" cy="${Y(p.y)}" r="6.5"/>${lab.has(p.name)?`<text x="${X(p.x)+(p.name==='IMP gut'?-11:11)}" y="${Y(p.y)+(p.name==='ECAM infants'?-10:4)}" text-anchor="${p.name==='IMP gut'?'end':'start'}" fill="var(--ink)" font-size="12.5">${esc(p.name)}</text>`:''}</g>`}
+  host.innerHTML=`<h3>Estimated power matches measured power, on average within ${Math.round(mad*100)} points</h3><p class="hint">One point per table. Point at one for its numbers.</p><div class="map-wrap scatter"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Self-estimated power against measured swap detection for 13 tables" font-family="var(--sans)" font-size="13">${g}</svg><div class="tip" hidden></div></div>`;
+  const tip=host.querySelector('.tip'),wrap=host.querySelector('.map-wrap');
+  wrap.addEventListener('pointermove',e=>{const r=e.target.closest('.sp');wrap.querySelectorAll('.sp.on').forEach(x=>x!==r&&x.classList.remove('on'));if(!r){tip.hidden=true;return}r.classList.add('on');
+    tip.innerHTML=`<b>${r.dataset.name}</b><br>${r.dataset.n} samples<br>Reported power: ${r.dataset.x}<br>Measured: ${r.dataset.y} flagged`;tip.hidden=false;
+    const bb=wrap.getBoundingClientRect();tip.style.left=Math.min(bb.width-220,e.clientX-bb.left+14)+'px';tip.style.top=Math.max(0,e.clientY-bb.top-80)+'px'});
+  wrap.addEventListener('pointerleave',()=>{tip.hidden=true;wrap.querySelectorAll('.sp.on').forEach(x=>x.classList.remove('on'))});
+})();
+// table of contents: highlight the section on screen
+(function(){const links=[...document.querySelectorAll('.toc a')];if(!links.length||!('IntersectionObserver' in window))return;
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){links.forEach(a=>a.classList.remove('on'));const a=map.get(e.target.id);if(a)a.classList.add('on')}},{rootMargin:'-30% 0px -60% 0px'});
+  document.querySelectorAll('article > section').forEach(s=>io.observe(s));
+})();
+// copy citation
+(function(){const b=document.getElementById('copyCite');if(!b)return;const t=document.getElementById('citeText'),ok=document.getElementById('copied');
+  b.addEventListener('click',()=>{const txt=t.textContent.trim();const done=()=>{ok.hidden=false;setTimeout(()=>ok.hidden=true,2000)};
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(t);const s=getSelection();s.removeAllRanges();s.addRange(r)};
+    try{navigator.clipboard.writeText(txt).then(done,sel)}catch(e){sel()}});
+})();
+</script>

@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SwapSeq Methods</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="How SwapSeq finds swapped tubes, wrong labels and sample-sheet shifts in longitudinal microbiome studies, and how it was tested on 4,732 samples from five public studies.">
+
+<style>
+@font-face{font-family:"Bricolage Grotesque";src:url("fonts/BricolageGrotesque.ttf") format("truetype");font-weight:200 800;font-stretch:75% 100%;font-display:swap}
+@font-face{font-family:"Instrument Sans";src:url("fonts/InstrumentSans.ttf") format("truetype");font-weight:400 700;font-stretch:75% 100%;font-display:swap}
+@font-face{font-family:"Instrument Sans";src:url("fonts/InstrumentSans-Italic.ttf") format("truetype");font-weight:400 700;font-style:italic;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url("fonts/JetBrainsMono.ttf") format("truetype");font-weight:100 800;font-display:swap}
+</style>
+<style>
+
+:root{
+  --bg:#F3F5F8;--surface:#FFFFFF;--sunk:#E9EDF3;--plate:#FBFCFE;--rim:#C9D1DD;
+  --ink:#172036;--muted:#56617A;--faint:#8992A6;--line:#DCE1E9;--line2:#C4CBD8;
+  --accent:#2B47C9;--accent-ink:#FFFFFF;--accent-soft:#E6EAFB;
+  --swap:#D2304A;--swap-soft:#FBE7EA;--mis:#A86200;--mis-soft:#FCF0DC;--ok:#1E8458;--ok-soft:#E2F3EA;
+  --obs:#8B95AA;--plant:#D2304A;--grid:#E4E8EF;--tubeA:#C9864C;--tubeB:#4E968A;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --sans:"Instrument Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1424;--surface:#151D31;--sunk:#10172A;--plate:#18213A;--rim:#33405F;
+  --ink:#E9EDF6;--muted:#A0AAC0;--faint:#76809A;--line:#263049;--line2:#36425F;
+  --accent:#93A4FF;--accent-ink:#0E1424;--accent-soft:#1F2A4C;
+  --swap:#FF6F80;--swap-soft:#3A1C27;--mis:#F3B24C;--mis-soft:#352914;--ok:#56D195;--ok-soft:#14302A;
+  --obs:#76809A;--plant:#FF6F80;--grid:#222C44;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1424;--surface:#151D31;--sunk:#10172A;--plate:#18213A;--rim:#33405F;
+  --ink:#E9EDF6;--muted:#A0AAC0;--faint:#76809A;--line:#263049;--line2:#36425F;
+  --accent:#93A4FF;--accent-ink:#0E1424;--accent-soft:#1F2A4C;
+  --swap:#FF6F80;--swap-soft:#3A1C27;--mis:#F3B24C;--mis-soft:#352914;--ok:#56D195;--ok-soft:#14302A;
+  --obs:#76809A;--plant:#FF6F80;--grid:#222C44;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:17px/1.6 var(--sans);margin:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1140px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+a{color:var(--accent);text-underline-offset:3px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;color:var(--ink)}
+h2{font-size:clamp(28px,3.4vw,38px);line-height:1.08;font-weight:700;letter-spacing:-.02em}
+h3{font-size:19px;line-height:1.25;font-weight:700;letter-spacing:-.005em}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:.88em}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.label{font-size:14px;color:var(--muted)}
+
+/* header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--bg)}
+header .wrap{display:flex;align-items:center;gap:26px;padding-block:14px}
+.brand{display:flex;align-items:center;gap:10px;font:700 21px/1 var(--display);letter-spacing:-.02em;color:var(--ink);text-decoration:none}
+nav{display:flex;gap:22px;margin-left:auto}
+nav a{color:var(--muted);text-decoration:none;font-size:15px}
+nav a:hover{color:var(--ink)}
+.privacy{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--muted)}
+.privacy svg{flex:none}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:center;padding-block:64px 40px}
+.hero h1{font-size:clamp(42px,5.4vw,68px);line-height:1.02;font-weight:700;letter-spacing:-.022em}
+.lede{margin-top:22px;font-size:19px;line-height:1.55;color:var(--muted);max-width:34em}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;align-items:center}
+.proof{margin-top:26px;font-size:15px;color:var(--muted);max-width:36em;padding-left:14px;border-left:3px solid var(--accent)}
+.plate-card{position:relative;margin:0}
+.plate-card svg{width:100%;height:auto;display:block;overflow:visible}
+.key{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:18px;font-size:15px;color:var(--muted)}
+.key span{display:inline-flex;align-items:center;gap:9px}
+.key svg{flex:none;width:auto;display:inline}
+.plate-cap{margin-top:10px;font-size:15px;color:var(--muted);min-height:3em}
+.plate-cap b{color:var(--ink)}
+.liq{transform-box:fill-box;transform-origin:50% 100%}
+.flagbox,.flagtxt,.swaparc,.pring{opacity:0;transition:opacity .45s ease}
+.plate-card.found .flagbox,.plate-card.found .flagtxt,.plate-card.found .swaparc,.plate-card.found .pring{opacity:1}
+.pw{transform-box:fill-box;transform-origin:center;transition:opacity .5s ease}
+.plate-card.zoomed .pw:not(.inrow){opacity:.35}
+.scanbox{opacity:0}.plate-card.zoomed .scanbox{opacity:1;transform:translateY(136px)}
+.zoom{opacity:0;transition:opacity .5s ease}.plate-card.zoomed .zoom{opacity:1}
+
+/* buttons */
+.btn{font:700 16px/1 var(--sans);border-radius:10px;padding:14px 20px;border:1.5px solid transparent;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.primary:disabled{opacity:.4;cursor:not-allowed;filter:none}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2)}
+.btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn.small{font-size:14px;padding:9px 13px;border-radius:8px}
+.linkbtn{background:none;border:0;padding:0;font:inherit;font-size:15px;color:var(--accent);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* sections */
+section{padding-block:56px;scroll-margin-top:70px}
+.sec-h{display:flex;flex-direction:column;gap:10px;margin-bottom:26px;max-width:46em}
+.sec-h p{color:var(--muted);font-size:17px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+
+/* check your data */
+#check{padding-top:28px}
+.load{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:hidden}
+.step{padding:24px;border-right:1px solid var(--line);min-width:0;display:flex;flex-direction:column;gap:14px}
+.step:nth-child(2){border-right:0}
+.step3{grid-column:1/-1;border-right:0;border-top:1px solid var(--line);background:var(--sunk);gap:16px}
+.s3-top{display:flex;flex-wrap:wrap;align-items:center;gap:14px 34px}
+.ready{display:flex;flex-wrap:wrap;gap:10px 26px;list-style:none;margin:0;padding:0;font-size:15px;color:var(--muted)}
+.ready li{display:flex;align-items:center;gap:9px}.ready b{color:var(--ink);font-weight:600}
+.tick{width:18px;height:18px;border-radius:50%;border:2px solid var(--line2);flex:none;display:grid;place-items:center}
+.ready li.ok .tick{background:var(--ok);border-color:var(--ok)}
+.ready li.ok .tick::after{content:"";width:8px;height:4.5px;border-left:2px solid var(--surface);border-bottom:2px solid var(--surface);transform:rotate(-45deg) translate(1px,-1px)}
+.s3-row{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end}
+.s3-row .field{flex:1 1 210px;min-width:0}
+.s3-go{display:flex;align-items:center;gap:14px;flex:0 0 auto}
+.step-h{display:flex;align-items:center;gap:12px}
+.n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--accent-soft);color:var(--accent);font:700 14px/1 var(--display)}
+.drop{border:2px dashed var(--line2);border-radius:12px;padding:20px 16px;text-align:center;cursor:pointer;background:var(--bg);transition:border-color .15s,background .15s;min-height:132px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop svg{color:var(--faint);margin-bottom:4px}
+.drop strong{font-weight:700;font-size:16px}
+.drop small{color:var(--muted);font-size:14px}
+.drop.done{border-style:solid;border-color:var(--ok);background:var(--ok-soft)}
+.drop.done svg{color:var(--ok)}
+.drop input{display:none}
+.hint{font-size:14px;color:var(--muted);margin:0;line-height:1.5}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:14px;font-weight:700;color:var(--ink)}
+select{font:16px var(--sans);padding:10px 12px;border-radius:9px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);width:100%}
+select:disabled{opacity:.6}
+.more{border-top:1px solid var(--line);padding-top:12px}
+.catches{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px;padding:0;list-style:none}
+.catches li{display:flex;align-items:center;gap:9px;padding:9px 14px 9px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:15px;font-weight:600;color:var(--ink)}
+.catches svg{flex:none}
+.brand small{font:500 13px/1.2 var(--sans);color:var(--muted);letter-spacing:0;margin-left:2px}
+.more summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--muted)}
+.more[open]{display:flex;flex-direction:column;gap:12px}
+.actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.status{font-size:14px;color:var(--muted);min-height:1.5em}
+.err{color:var(--swap)}
+.progress{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:6px}.progress i{display:block;height:100%;width:30%;background:var(--accent);animation:slide 1.1s ease-in-out infinite}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(340%)}}
+
+/* results */
+#results{padding-top:20px}
+.group{margin-bottom:34px}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.tile{padding:18px;min-width:0}
+.tile .v{font:700 34px/1 var(--display);letter-spacing:-.02em;margin-top:10px;font-variant-numeric:tabular-nums}
+.tile .d{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.45}
+.verdict{padding:16px 20px;border-radius:12px;margin-bottom:14px;font-size:16px;border-left:5px solid var(--line2);background:var(--surface)}
+.verdict.good{border-left-color:var(--ok);background:var(--ok-soft)}
+.verdict.warn{border-left-color:var(--swap);background:var(--swap-soft)}
+.verdict.weak{border-left-color:var(--mis);background:var(--mis-soft)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:760px}
+th{font-size:13px;font-weight:700;color:var(--muted);text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--sunk);white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.id{font-family:var(--mono);font-size:14px;white-space:nowrap}
+.tag{font-size:13px;font-weight:700;padding:4px 9px;border-radius:999px;display:inline-block;white-space:nowrap}
+.tag.swap{background:var(--swap-soft);color:var(--swap)}.tag.mismatch{background:var(--mis-soft);color:var(--mis)}.tag.review{background:var(--sunk);color:var(--muted);border:1px solid var(--line2)}
+.prob{display:flex;align-items:center;gap:9px;font-size:14px;white-space:nowrap}
+.bar{width:64px;height:7px;border-radius:4px;background:var(--sunk);overflow:hidden;flex:none}.bar i{display:block;height:100%;background:var(--swap);border-radius:4px}
+.why{color:var(--muted);font-size:14.5px;max-width:48ch}
+.ev{display:block;margin-top:6px;color:var(--ink);font-size:14px}.ev.warnc{color:var(--mis)}
+.empty{padding:20px;color:var(--muted)}
+.chart{padding:18px 18px 12px;margin-top:16px}
+.chart svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-bottom:8px}
+.legend span{display:inline-flex;align-items:center;gap:7px}.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.tools .btn,.methods .btn{font-size:14px;padding:10px 14px}
+.methods{padding:18px 20px;margin-top:14px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}.mtext{margin:0;font-size:15px;max-width:80ch}
+
+/* how it works */
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px}
+.how > div{min-width:0;display:flex;flex-direction:column;gap:10px}
+.how svg{width:100%;height:auto;max-width:300px;margin-bottom:8px}
+.how p{color:var(--muted);font-size:16px}
+
+/* validation */
+.valchart{padding:22px 22px 14px}
+.valchart svg{width:100%;height:auto;display:block}
+details.full{margin-top:16px}
+details.full summary{cursor:pointer;font-weight:700;font-size:15px;color:var(--accent);margin-bottom:12px}
+.val td.num,.val th.num{text-align:right;font-variant-numeric:tabular-nums}
+.val td.best{color:var(--accent);font-weight:700}
+.val td:first-child{white-space:nowrap}.val th{white-space:normal;vertical-align:bottom}
+.realswap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center;padding:20px 22px;margin-top:18px}
+.realswap .pair{display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:14px}
+.realswap .pair b{padding:8px 10px;border-radius:8px;border:2px solid var(--swap);background:var(--swap-soft);font-weight:500}
+.realswap p{color:var(--muted);font-size:16px}
+.notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 40px;color:var(--muted);font-size:16px;margin:18px 0 0;padding:0;list-style:none}
+.notes li{padding-left:18px;position:relative}
+.notes li::before{content:"";position:absolute;left:0;top:.65em;width:7px;height:7px;border-radius:50%;background:var(--line2)}
+.notes b{color:var(--ink)}
+footer{border-top:1px solid var(--line)}
+.tip{position:absolute;z-index:5;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13.5px;line-height:1.45;padding:9px 11px;border-radius:9px;max-width:230px;box-shadow:0 6px 20px rgba(10,16,32,.18)}
+.map-wrap{position:relative}
+.smap .map-h{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.smap .pt{fill:var(--obs);fill-opacity:.55;stroke:var(--surface);stroke-width:1;cursor:pointer;transition:opacity .15s}
+.smap .pt.f-swap{fill:var(--swap);fill-opacity:1;stroke-width:1.6}.smap .pt.f-mis,.smap .pt.f-check{fill:var(--mis);fill-opacity:1;stroke-width:1.6}
+.smap .pt.dim{opacity:.18}.smap .pt.hl{fill:var(--accent);fill-opacity:1;opacity:1}.smap .pt.sel{stroke:var(--ink);stroke-width:2.5;opacity:1}
+.smap .pt.other{fill:var(--surface);fill-opacity:1;stroke:var(--ok);stroke-width:2.5;opacity:1}
+.map-sel{margin-top:8px;font-size:15px;color:var(--muted);min-height:1.5em}.map-sel b{color:var(--ink)}
+tr[data-sid]{cursor:pointer}tr[data-sid]:hover td{background:var(--sunk)}
+.vtabs{display:inline-flex;gap:4px;padding:4px;border-radius:11px;background:var(--sunk);margin-bottom:16px;flex-wrap:wrap}
+.vtabs button{font:600 14px var(--sans);border:0;background:transparent;color:var(--muted);padding:8px 14px;border-radius:8px;cursor:pointer}
+.vtabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(10,16,32,.12)}
+.valchart h3{margin-bottom:4px}.valchart .legend{margin-top:10px}
+.legal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;border-bottom:1px solid var(--line)}.legal p{font-size:13.5px;line-height:1.55}.legal b{color:var(--ink)}
+footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;color:var(--muted);font-size:14px}
+
+@media (prefers-reduced-motion:reduce){.progress i{animation:none;width:100%}.flagbox,.flagtxt,.swaparc,.pring,.pw,.zoom{transition:none}}
+@media (max-width:900px){
+  nav{display:none}.privacy{margin-left:auto}
+  .hero{grid-template-columns:1fr;gap:34px;padding-block:40px 24px}
+  .load{grid-template-columns:1fr}.step{border-right:0;border-bottom:1px solid var(--line)}.step:last-child{border-bottom:0}.s3-go{flex:1 1 100%;flex-wrap:wrap}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.how{grid-template-columns:1fr;gap:30px}.notes{grid-template-columns:1fr}
+  .realswap{grid-template-columns:1fr}.legal{grid-template-columns:1fr}
+}
+@media (max-width:480px){.privacy span{display:none}.tile .v{font-size:28px}.lede{font-size:17px}.btn{width:100%;justify-content:center}.cta .linkbtn{width:100%;text-align:center}}
+
+/* ---- methods page ---- */
+.doc{display:grid;grid-template-columns:200px minmax(0,1fr);gap:56px;padding-block:20px 72px}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 86px);align-self:start;display:flex;flex-direction:column;gap:2px;font-size:14.5px}
+.toc b{font:700 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.toc a{color:var(--muted);text-decoration:none;padding:6px 0 6px 12px;border-left:2px solid var(--line)}
+.toc a:hover{color:var(--ink)}.toc a.on{color:var(--accent);border-left-color:var(--accent);font-weight:600}
+article{min-width:0;display:flex;flex-direction:column;gap:0}
+article > section{padding-block:40px 8px;border-top:1px solid var(--line);scroll-margin-top:80px}
+article > section:first-of-type{border-top:0}
+.prose{max-width:68ch;display:flex;flex-direction:column;gap:14px}
+.prose p,.prose li{color:var(--ink);font-size:17px}
+.prose .muted{color:var(--muted)}
+.prose ul,.prose ol{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px}
+.secno{font:600 13px/1 var(--mono);color:var(--accent);letter-spacing:.04em}
+article h2{margin:8px 0 18px;font-size:clamp(26px,3vw,34px)}
+article h3{margin-top:14px}
+.dhero{padding-block:56px 28px;display:flex;flex-direction:column;gap:18px}
+.dhero h1,.dhero > p{max-width:20em}.dhero > p{max-width:40em}
+.eyebrow{font:600 13px/1 var(--mono);letter-spacing:.06em;color:var(--accent);text-transform:uppercase}
+.dhero h1{font-size:clamp(38px,5vw,60px);line-height:1.04;font-weight:700;letter-spacing:-.022em}
+.dhero p{font-size:19px;line-height:1.55;color:var(--muted);max-width:40em}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:10px}
+.stat{padding:18px;min-width:0}
+.stat .v{font:700 36px/1 var(--display);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat .d{font-size:14.5px;color:var(--muted);margin-top:10px;line-height:1.45}
+.eq{font-family:var(--mono);font-size:15px;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;white-space:nowrap;color:var(--ink);line-height:1.7}
+.eq sub,.eq sup{font-size:.72em}
+.where{font-size:15.5px;color:var(--muted)}
+.kinds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:6px}
+.kind{padding:18px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.kind p{font-size:15.5px;color:var(--muted)}
+.kind svg{width:100%;max-width:220px;height:auto}
+.steps{counter-reset:s;list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:30px}
+.steps > li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:14px}
+.steps > li::before{counter-increment:s;content:counter(s);width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);font:700 14px/1 var(--display)}
+.steps > li > div{min-width:0;display:flex;flex-direction:column;gap:10px}
+.steps h3{margin:3px 0 0}
+.box{padding:18px 20px;margin-top:6px}
+.levels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.levels .box{margin:0}
+.levels b{display:block;font-family:var(--display);font-size:17px;margin-bottom:4px}
+.levels p{font-size:15.5px;color:var(--muted)}
+.dtab td.num,.dtab th.num{text-align:right;font-variant-numeric:tabular-nums}
+.dtab td{font-size:14.5px;line-height:1.6}
+.dtab td small{color:var(--muted);display:block;font-size:13px}
+.chartwrap{margin-top:22px}
+.scatter .pt{fill:var(--accent);stroke:var(--surface);stroke-width:1.5}
+.scatter .hit{fill:transparent;cursor:default}
+.scatter g.on .pt{fill:var(--swap)}
+.callout{padding:16px 20px;border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 12px 12px 0;font-size:16px;color:var(--ink);max-width:68ch}
+.callout.warn{border-left-color:var(--mis);background:var(--mis-soft)}
+.dropped{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;list-style:none;padding:0;margin:6px 0 0}
+.dropped li{padding:14px 16px;font-size:15px;color:var(--muted)}
+.dropped b{display:block;color:var(--ink);font-size:15.5px;margin-bottom:2px}
+pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow-x:auto;margin:0;color:var(--ink);line-height:1.6}
+.refs{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px;font-size:15.5px;color:var(--muted);max-width:76ch}
+.refs i{color:var(--ink)}
+.cite{padding:18px 20px;display:flex;flex-direction:column;gap:12px;align-items:flex-start;max-width:76ch}
+.cite p{font-size:16px}
+.copied{font-size:14px;color:var(--ok)}
+.rs-ev{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:4px}
+.rs-ev .box{margin:0}.rs-ev .v{font:700 28px/1 var(--display);font-variant-numeric:tabular-nums}.rs-ev p{font-size:14.5px;color:var(--muted);margin-top:8px}
+@media (max-width:980px){.doc{grid-template-columns:1fr;gap:0}.toc{display:none}}
+@media (max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.kinds,.levels,.dropped,.rs-ev{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+
+<header><div class="wrap">
+  <a class="brand" href="./" aria-label="SwapSeq tool">
+    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1.5" y="1.5" width="25" height="25" rx="6" fill="none" stroke="var(--ink)" stroke-width="1.6" opacity=".35"/><circle cx="9" cy="14" r="4.6" fill="var(--accent)"/><circle cx="19" cy="14" r="4.6" fill="var(--swap)"/><path d="M8 7.2c3-3 9-3 12 0M20 20.8c-3 3-9 3-12 0" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <span>SwapSeq <small>methods &amp; validation</small></span></a>
+  <nav aria-label="Sections"><a href="#method">Method</a><a href="#results">Results</a><a href="#limits">Limits</a><a href="#cite">Cite</a><a href="./">Open the tool</a></nav>
+</div></header>
+
+<main><div class="wrap">
+<div class="dhero">
+  <span class="eyebrow">SwapSeq v1.0.0 · Methods and validation</span>
+  <h1>How SwapSeq works, and how well</h1>
+  <p>SwapSeq checks whether each sample in a longitudinal microbiome study came from the person on its label. This page sets out the method, the public data it was tested on, how errors were planted, and every result, including where it does poorly.</p>
+  <div class="stats">
+    <div class="panel stat"><div class="v">4,732</div><div class="d">samples from 10 public tables in 5 studies, 16S and shotgun, people and mice</div></div>
+    <div class="panel stat"><div class="v">92%</div><div class="d">of swapped samples strongly flagged in adult gut 16S, against 23% with Bray-Curtis</div></div>
+    <div class="panel stat"><div class="v">≤ 0.4</div><div class="d">false strong flags per 1,000 untouched samples, in every table</div></div>
+    <div class="panel stat"><div class="v">1.00</div><div class="d">probability given, blind, to a real tube swap that a study's authors had corrected</div></div>
+  </div>
+</div>
+
+<div class="doc">
+<aside class="toc" aria-label="On this page"><b>On this page</b>
+  <a href="#checks">What it checks</a><a href="#method">Method</a><a href="#data">Data</a><a href="#design">Test design</a><a href="#results">Results</a><a href="#plate">Plate errors</a><a href="#real">A real swap</a><a href="#untouched">Untouched data</a><a href="#dropped">Tried and dropped</a><a href="#limits">Limits</a><a href="#reproduce">Reproduce</a><a href="#cite">Cite</a>
+</aside>
+<article>
+
+<section id="checks">
+  <span class="secno">01</span><h2>What it checks</h2>
+  <div class="prose">
+    <p>In a study that samples the same people over time, each person's microbiome is a fingerprint. Their own samples resemble each other more than they resemble anyone else's. A sample that resembles somebody else better than its own person is a sign that something went wrong between the bench and the spreadsheet.</p>
+    <p class="muted">You give SwapSeq a feature table (ASVs, OTUs or taxa, as counts) and the sample sheet with a column saying who each sample came from. A plate and well column, a household column and a visit column are optional. Every person needs at least two samples.</p>
+  </div>
+  <div class="kinds">
+    <div class="panel kind"><svg viewBox="0 0 220 70" aria-hidden="true"><rect x="40" y="10" width="40" height="50" rx="8" fill="var(--tubeA)" opacity=".85"/><rect x="140" y="10" width="40" height="50" rx="8" fill="var(--tubeB)" opacity=".85"/><text x="60" y="40" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="#fff">B</text><text x="160" y="40" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="#fff">A</text><path d="M86 26h48l-6-5M134 44H86l6 5" fill="none" stroke="var(--swap)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><h3>Swapped tubes</h3><p>Two samples carry each other's labels. SwapSeq names both and the pair.</p></div>
+    <div class="panel kind"><svg viewBox="0 0 220 70" aria-hidden="true"><rect x="40" y="10" width="40" height="50" rx="8" fill="var(--tubeA)" opacity=".85"/><rect x="90" y="10" width="40" height="50" rx="8" fill="var(--tubeA)" opacity=".85"/><rect x="140" y="10" width="40" height="50" rx="8" fill="var(--tubeB)" opacity=".85" stroke="var(--mis)" stroke-width="3"/><text x="60" y="40" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="#fff">A</text><text x="110" y="40" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="#fff">A</text><text x="160" y="40" text-anchor="middle" font-family="var(--mono)" font-size="13" fill="#fff">A</text></svg><h3>Wrong labels</h3><p>One sample carries someone else's label. SwapSeq says who it looks like.</p></div>
+    <div class="panel kind"><svg viewBox="0 0 220 70" aria-hidden="true"><g font-family="var(--mono)" font-size="12" fill="#fff" text-anchor="middle"><rect x="8" y="14" width="36" height="42" rx="7" fill="var(--tubeA)" opacity=".85"/><text x="26" y="40">A</text><rect x="50" y="14" width="36" height="42" rx="7" fill="var(--tubeA)" opacity=".85" stroke="var(--mis)" stroke-width="3"/><text x="68" y="40">B</text><rect x="92" y="14" width="36" height="42" rx="7" fill="var(--tubeB)" opacity=".85" stroke="var(--mis)" stroke-width="3"/><text x="110" y="40">C</text><rect x="134" y="14" width="36" height="42" rx="7" fill="#8C6BB8" opacity=".85" stroke="var(--mis)" stroke-width="3"/><text x="152" y="40">D</text><rect x="176" y="14" width="36" height="42" rx="7" fill="#B8566B" opacity=".85"/><text x="194" y="40">E</text></g></svg><h3>Sample-sheet shifts</h3><p>A run of tubes each carries its neighbour's label. SwapSeq reports the run and its wells.</p></div>
+  </div>
+</section>
+
+<section id="method">
+  <span class="secno">02</span><h2>Method</h2>
+  <div class="prose"><p>Everything runs in the browser, in plain JavaScript with no server. The same code (<span class="mono">method/core.mjs</span>) runs the benchmarks below.</p></div>
+  <ol class="steps">
+    <li><div><h3>Two fingerprints of every sample</h3>
+      <p class="where">Soft Jaccard keeps the presence of low-abundance strains, the part of a microbiome most specific to a person, and removes the effect of unequal sequencing depth without random rarefaction. Each feature gets its expected presence after subsampling to <i>r</i> reads:</p>
+      <div class="eq">e<sub>k</sub> = 1 − (1 − r / N)<sup>c<sub>k</sub></sup> &nbsp;&nbsp; r = median depth ÷ 8<br>d<sub>J</sub>(a,b) = 1 − Σ min(e<sub>a</sub>, e<sub>b</sub>) ⁄ Σ max(e<sub>a</sub>, e<sub>b</sub>)</div>
+      <p class="where"><i>N</i> is the sample's depth and <i>c<sub>k</sub></i> its count for feature <i>k</i>. The second fingerprint is the Aitchison distance: Euclidean distance after a centred log-ratio transform of counts + 0.5, on features present in at least 5% of samples (up to the 3,000 most common).</p></div></li>
+    <li><div><h3>Does a sample fit its own person?</h3>
+      <div class="eq">s<sub>i</sub> = log( d<sub>own</sub> ⁄ d<sub>other</sub> )</div>
+      <p class="where"><i>d<sub>own</sub></i> is the soft Jaccard distance from sample <i>i</i> to the nearest other sample with the same label, and <i>d<sub>other</sub></i> the distance to the nearest sample of anyone else. A score above zero means the sample sits closer to someone else; that person is reported as who it looks like.</p></div></li>
+    <li><div><h3>Would swapping two labels fix both?</h3>
+      <div class="eq">w<sub>ij</sub> = log( own<sub>i</sub> ⁄ d(i, person of j) ) + log( own<sub>j</sub> ⁄ d(j, person of i) )</div>
+      <p class="where">Averaged over both fingerprints, with the two samples themselves left out of each person's set. The maximum over every <i>j</i> with a different label is the swap score, and that <i>j</i> is the likely partner. A swap is reported only when two samples name each other and both carry swap evidence.</p></div></li>
+    <li><div><h3>Learn what an error looks like in this study</h3>
+      <p class="where">The same score means different things on tongue swabs and on stool, or with daily and monthly sampling. So SwapSeq plants errors in a copy of the user's own labels, between 300 and 1,500 one-way relabels and as many reciprocal swaps, and records their scores. With <i>f<sub>1</sub></i> the density of planted-error scores and <i>g</i> the density of all observed scores:</p>
+      <div class="eq">P(error | s) = min( 1, π · f<sub>1</sub>(s) ⁄ g(s) ) &nbsp;&nbsp; π = 1% expected error rate</div>
+      <p class="where">Densities are Gaussian kernel estimates. P is made non-decreasing in the score, but only where observed scores actually lie, so a gap in the tail cannot create a false spike. The share of planted errors that would reach a strong flag is reported as the study's power, so a user knows when a clean result means little.</p>
+      <div class="levels"><div class="panel box"><b>Strong flag</b><p>Kernel probability ≥ 0.5. Built for near-zero false alarms.</p></div><div class="panel box"><b>Check list</b><p>A logistic fit of the same ratio ≥ 0.5, or kernel probability ≥ 0.2. Catches more, with some natural look-alikes. Hidden when fewer than 8 people have two or more samples.</p></div></div></div></li>
+    <li><div><h3>Evidence for each flag</h3>
+      <ul>
+        <li><b>Rare features.</b> Of a flagged sample's rare features (in ≤ 5% of samples, with at least 2 reads), how many are also found in its own person and how many in the person it looks like.</li>
+        <li><b>Households.</b> If the look-alike lives in the same household, a strong flag moves to the check list.</li>
+        <li><b>Wells.</b> For a swap pair on one plate: adjacent, mirrored across the plate, diagonal or apart.</li>
+        <li><b>Sheet shifts.</b> Tubes are ordered down plate columns, along rows, or by a plating-order number. A run of three or more consecutive tubes, each closer to someone else and that someone being the person on its neighbour's label, is reported as a shift, and its tubes join the check list.</li>
+      </ul></div></li>
+  </ol>
+</section>
+
+<section id="data">
+  <span class="secno">03</span><h2>Data</h2>
+  <div class="prose"><p>Five public longitudinal studies, chosen to range from strong individual signal (adults, daily stool, shotgun) to almost none (newborns, mice all given one donor's stool). The last two act as negative controls: a good tool should say it cannot see, not invent flags.</p></div>
+  <div class="tablewrap chartwrap"><table class="dtab">
+    <thead><tr><th>Study</th><th>Data</th><th>Tables used</th><th class="num">Samples</th><th class="num">People</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>Student Microbiome Project<small>Flores et al. 2014</small></td><td>16S OTUs, rarefied, weekly</td><td>gut<br>tongue<br>palm<br>forehead</td><td class="num">638<br>692<br>515<br>675</td><td class="num">75<br>80<br>61<br>80</td><td><a href="https://github.com/caporaso-lab/student-microbiome-project" target="_blank" rel="noopener">caporaso-lab</a></td></tr>
+      <tr><td>Immigration Microbiome Project<small>Vangay et al. 2018</small></td><td>16S de novo OTUs, monthly</td><td>gut, people with 2+ samples</td><td class="num">110</td><td class="num">18</td><td><a href="https://github.com/knights-lab/IMP_analyses" target="_blank" rel="noopener">knights-lab</a></td></tr>
+      <tr><td>Minnesota diet study<small>Johnson et al. 2019</small></td><td>shallow shotgun, daily stool</td><td>strain level<br>species</td><td class="num">526<br>483</td><td class="num">37<br>34</td><td><a href="https://github.com/knights-lab/dietstudy_analyses" target="_blank" rel="noopener">knights-lab</a></td></tr>
+      <tr><td>ECAM<small>Bokulich et al. 2016</small></td><td>16S, infants from birth</td><td>stool</td><td class="num">875</td><td class="num">43</td><td><a href="https://github.com/qiime2/q2-longitudinal" target="_blank" rel="noopener">q2-longitudinal</a></td></tr>
+      <tr><td>MDSINE2 mice<small>Gibson et al. 2025</small></td><td>16S, dense time series, one donor per group</td><td>healthy donor<br>UC donor</td><td class="num">320<br>381</td><td class="num">5<br>5</td><td><a href="https://github.com/gerberlab/MDSINE2_Paper" target="_blank" rel="noopener">gerberlab</a></td></tr>
+    </tbody></table></div>
+  <div class="prose" style="margin-top:16px"><p class="muted">The species table of the diet study holds a subset of the strain-level samples, so the distinct total is 4,732 samples. Three before/after designs were also built by keeping only the first and last sample of each person in SMP gut, SMP forehead and the diet study. Blank and control samples were removed.</p></div>
+</section>
+
+<section id="design">
+  <span class="secno">04</span><h2>Test design</h2>
+  <div class="prose">
+    <ul>
+      <li><b>Errors at about a 1% rate.</b> In each repeat, 3 reciprocal swaps and 2 one-way relabels were planted in a copy of the labels; tables under 300 samples got 1 of each, and before/after designs 1 swap.</li>
+      <li><b>30 repeats</b> per table with different random seeds (60 for the smaller IMP table).</li>
+      <li><b>Clean ground truth.</b> Errors were planted only into people with at least three samples, and never into samples SwapSeq already flagged on the untouched data.</li>
+      <li><b>What was counted.</b> The share of planted samples that reached a strong flag, and a flag or the check list. The share of swap pairs named exactly. False alarms per 1,000 untouched samples.</li>
+      <li><b>Same settings throughout.</b> The defaults the tool ships with: 1% expected error rate, flag at probability 0.5.</li>
+      <li><b>A baseline.</b> The identical pipeline with Bray-Curtis distance in place of the two fingerprints, the distance used by a recent mislabel detector for shotgun data. This isolates what the fingerprints add.</li>
+    </ul>
+  </div>
+  <div class="callout warn" style="margin-top:18px">SwapSeq's settings were chosen while working on these tables, so the numbers below are development results, not a held-out test. New studies are the real test, which is why feedback is wanted.</div>
+</section>
+
+<section id="results">
+  <span class="secno">05</span><h2>Results</h2>
+  <div class="prose">
+    <p>On 16S data from adults, SwapSeq strongly flagged 40–92% of swapped samples, against 0–38% for Bray-Curtis in the same pipeline. On daily shotgun data, where every distance works well, the gap is small: 88–94% against 84–92%. Single mislabels are harder because there is no partner to confirm them; the check list recovers many of them.</p>
+  </div>
+  <div class="panel valchart chartwrap" id="valChart"></div>
+  <details class="full"><summary>Show the full results table</summary>
+    <div class="tablewrap"><table class="val" id="valTable"><thead><tr><th>Dataset</th><th class='num'>Samples</th><th class='num'>People</th><th class='num'>Swaps flagged</th><th class='num'>+ check list</th><th class='num'>Bray-Curtis</th><th class='num'>Pairs named</th><th class='num'>Mislabels flagged</th><th class='num'>+ check list</th><th class='num'>Bray-Curtis</th><th class='num'>False flags / 1000</th><th class='num'>False checks / 1000</th><th class='num'>Reported power</th></tr></thead><tbody><tr><td>SMP gut</td><td class='num'>638</td><td class='num'>75</td><td class='num best'>92%</td><td class='num'>97%</td><td class='num'>23%</td><td class='num'>91%</td><td class='num'>77%</td><td class='num'>88%</td><td class='num'>12%</td><td class='num'>0.1</td><td class='num'>0.4</td><td class='num'>94%</td></tr><tr><td>SMP tongue</td><td class='num'>692</td><td class='num'>80</td><td class='num best'>43%</td><td class='num'>61%</td><td class='num'>3%</td><td class='num'>47%</td><td class='num'>13%</td><td class='num'>60%</td><td class='num'>2%</td><td class='num'>0.1</td><td class='num'>2.8</td><td class='num'>62%</td></tr><tr><td>SMP palm</td><td class='num'>515</td><td class='num'>61</td><td class='num best'>52%</td><td class='num'>82%</td><td class='num'>2%</td><td class='num'>68%</td><td class='num'>10%</td><td class='num'>47%</td><td class='num'>2%</td><td class='num'>0.4</td><td class='num'>2.2</td><td class='num'>55%</td></tr><tr><td>SMP forehead</td><td class='num'>675</td><td class='num'>80</td><td class='num best'>89%</td><td class='num'>98%</td><td class='num'>38%</td><td class='num'>84%</td><td class='num'>62%</td><td class='num'>68%</td><td class='num'>8%</td><td class='num'>0.3</td><td class='num'>1.3</td><td class='num'>80%</td></tr><tr><td>ECAM infants</td><td class='num'>875</td><td class='num'>43</td><td class='num best'>2%</td><td class='num'>24%</td><td class='num'>0%</td><td class='num'>10%</td><td class='num'>0%</td><td class='num'>25%</td><td class='num'>0%</td><td class='num'>0.3</td><td class='num'>14.6</td><td class='num'>7%</td></tr><tr><td>SMP gut (2 per person)</td><td class='num'>150</td><td class='num'>75</td><td class='num best'>53%</td><td class='num'>65%</td><td class='num'>0%</td><td class='num'>63%</td><td class='num'>–</td><td class='num'>–</td><td class='num'>–</td><td class='num'>0.0</td><td class='num'>0.7</td><td class='num'>54%</td></tr><tr><td>SMP forehead (2 per person)</td><td class='num'>160</td><td class='num'>80</td><td class='num best'>40%</td><td class='num'>80%</td><td class='num'>3%</td><td class='num'>80%</td><td class='num'>–</td><td class='num'>–</td><td class='num'>–</td><td class='num'>0.0</td><td class='num'>0.2</td><td class='num'>25%</td></tr><tr><td>Diet study (strain-level)</td><td class='num'>526</td><td class='num'>37</td><td class='num best'>88%</td><td class='num'>97%</td><td class='num'>84%</td><td class='num'>78%</td><td class='num'>78%</td><td class='num'>93%</td><td class='num'>77%</td><td class='num'>0.4</td><td class='num'>1.0</td><td class='num'>84%</td></tr><tr><td>Diet study (species)</td><td class='num'>483</td><td class='num'>34</td><td class='num best'>94%</td><td class='num'>99%</td><td class='num'>92%</td><td class='num'>93%</td><td class='num'>83%</td><td class='num'>95%</td><td class='num'>73%</td><td class='num'>0.1</td><td class='num'>1.8</td><td class='num'>90%</td></tr><tr><td>MDSINE2 mice (healthy donor)</td><td class='num'>320</td><td class='num'>5</td><td class='num best'>3%</td><td class='num'>48%</td><td class='num'>0%</td><td class='num'>17%</td><td class='num'>0%</td><td class='num'>32%</td><td class='num'>0%</td><td class='num'>0.1</td><td class='num'>13.2</td><td class='num'>3%</td></tr><tr><td>MDSINE2 mice (uc donor)</td><td class='num'>381</td><td class='num'>5</td><td class='num best'>0%</td><td class='num'>16%</td><td class='num'>0%</td><td class='num'>2%</td><td class='num'>0%</td><td class='num'>18%</td><td class='num'>0%</td><td class='num'>0.0</td><td class='num'>15.7</td><td class='num'>0%</td></tr><tr><td>Diet study (strain-level) (2 per person)</td><td class='num'>74</td><td class='num'>37</td><td class='num best'>0%</td><td class='num'>42%</td><td class='num'>0%</td><td class='num'>17%</td><td class='num'>–</td><td class='num'>–</td><td class='num'>–</td><td class='num'>0.0</td><td class='num'>7.1</td><td class='num'>19%</td></tr><tr><td>IMP adults (16S)</td><td class='num'>110</td><td class='num'>18</td><td class='num best'>43%</td><td class='num'>84%</td><td class='num'>28%</td><td class='num'>72%</td><td class='num'>12%</td><td class='num'>48%</td><td class='num'>23%</td><td class='num'>0.0</td><td class='num'>0.8</td><td class='num'>57%</td></tr></tbody></table></div>
+  </details>
+
+  <h3 style="margin-top:36px">The power estimate tells the truth</h3>
+  <div class="prose" style="margin-top:8px"><p class="muted">Every run reports how many swaps SwapSeq could catch in that study. Across the 13 tables, that self-estimate sits close to the catch rate measured independently with the planted errors above. In the infant and mouse controls both are near zero, so a clean report there comes with a warning rather than false comfort.</p></div>
+  <div class="panel valchart chartwrap" id="powerChart"></div>
+
+  <h3 style="margin-top:36px">Where it is weaker</h3>
+  <div class="prose" style="margin-top:8px"><ul>
+    <li><b>Tongue and palm.</b> Single mislabels: 13% and 10% strongly flagged, 60% and 47% with the check list.</li>
+    <li><b>IMP mislabels.</b> 12% strongly flagged, 48% with the check list, where Bray-Curtis flagged 23%. One of the few places the baseline does better.</li>
+    <li><b>Before/after with two samples each.</b> With only two samples, a swap makes both people inconsistent and SwapSeq can name the two people more reliably than the tube. In the diet study's two-per-person design nothing reached a strong flag; 42% reached the check list.</li>
+    <li><b>Check list in low-signal data.</b> In infants and mice the check list carries 13–16 false entries per 1,000 samples. The power estimate is near zero there, and the tool says so.</li>
+  </ul></div>
+</section>
+
+<section id="plate">
+  <span class="secno">06</span><h2>Plate errors</h2>
+  <div class="prose"><p>Lab errors follow the plate. Neighbouring tubes get swapped, and a sample sheet that slips by one row shifts every label after it. These patterns were planted on the real plating order of the diet study (526 tubes over 6 plates), 30 repeats each.</p></div>
+  <div class="panel valchart chartwrap" id="plateChart"></div>
+  <div class="prose" style="margin-top:16px"><p class="muted">Runs of five or more tubes were named as a shift in 90–100% of repeats. Three-tube runs were still flagged tube by tube (82%) but not named as a shift. No repeat produced a false shift report.</p></div>
+</section>
+
+<section id="real">
+  <span class="secno">07</span><h2>A real swap, found blind</h2>
+  <div class="prose">
+    <p>In the Minnesota diet study the authors found two swapped stool tubes, <span class="mono">MCT.f.0086</span> and <span class="mono">MCT.f.0417</span>, between participants MCTs06 and MCTs25, and corrected the labels in their published data. Restoring the original labels and running SwapSeq with its defaults, without telling it where to look:</p>
+  </div>
+  <div class="rs-ev">
+    <div class="panel box"><div class="v">1.00</div><p>Swap probability for the pair, in both the strain-level and the species table. The pair was the top result.</p></div>
+    <div class="panel box"><div class="v">15 of 20</div><p>Rare strains of <span class="mono">MCT.f.0417</span> also found in the person it was swapped with, against 3 in the person on its label.</p></div>
+    <div class="panel box"><div class="v">0</div><p>Flags on the strain-level table once the authors' correction is put back.</p></div>
+  </div>
+  <div class="prose" style="margin-top:16px"><p class="muted">With the original labels the strain-level table also gave one more strong flag and two check-list entries, all within the two people involved, whose sample sets the swap had disturbed.</p></div>
+</section>
+
+<section id="untouched">
+  <span class="secno">08</span><h2>On the untouched data</h2>
+  <div class="prose">
+    <p>Run on the published tables as they are, SwapSeq gave 12 strong flags among 4,732 samples. Ten were in the SMP tongue table, one in gut and one in palm; none in the IMP, diet, infant or mouse tables.</p>
+    <p class="muted">These may be real mix-ups or natural look-alikes. Tongue swabs carry the weakest individual signal of the four SMP sites, so its flags deserve the most caution. They have not been checked against lab records, so they are reported here as counts only. The SMP authors list samples they removed for suspected mix-ups; those samples are not in any published table, so they could not be used as a check.</p>
+  </div>
+</section>
+
+<section id="dropped">
+  <span class="secno">09</span><h2>Tried and dropped</h2>
+  <div class="prose"><p class="muted">Each idea below was built and run on the same benchmark. None caught more errors at the same false-alarm rate, or it broke a study design, so none shipped.</p></div>
+  <ul class="dropped">
+    <li class="panel"><b>Weighting rare features (IDF)</b>Rare features already drive soft Jaccard; extra weight added noise.</li>
+    <li class="panel"><b>Whole-person count model</b>A negative binomial model of each person's counts. Slower and no better.</li>
+    <li class="panel"><b>Isotonic and tail-area calibration</b>Less smooth than the kernel, with worse false-alarm control at a 1% prior.</li>
+    <li class="panel"><b>Estimating the error rate (EM)</b>Unstable when errors are rare, which is exactly the normal case.</li>
+    <li class="panel"><b>Ignoring same-visit look-alikes</b>Helps when one batch makes samples look alike, but breaks before/after designs with two samples each.</li>
+    <li class="panel"><b>Blending nearest and median distance</b>Diluted the nearest-neighbour signal that a swap leaves.</li>
+  </ul>
+</section>
+
+<section id="limits">
+  <span class="secno">10</span><h2>Limits</h2>
+  <div class="prose"><ul>
+    <li><b>One confirmed real error.</b> Everything else is planted. Planted errors are clean label exchanges; real mix-ups can also be partial, such as cross-contamination or a split sample.</li>
+    <li><b>Narrow evidence base.</b> Adult 16S results come from two studies, shotgun from one, and plate patterns from one real plating order.</li>
+    <li><b>Development results.</b> Settings were chosen on these tables.</li>
+    <li><b>Needs repeat samples.</b> At least two per person, better three. People who live together, antibiotics and illness all blur the fingerprint.</li>
+    <li><b>Memory.</b> All pairwise distances are held in the browser, so tables of many thousands of samples need a lot of memory. The largest table tested had 875 samples.</li>
+    <li><b>A flag is a reason to check.</b> Compare it with plate maps, extraction batches and sample sheets before relabelling or dropping anything. SwapSeq is a research QC tool, not a medical device.</li>
+  </ul></div>
+</section>
+
+<section id="reproduce">
+  <span class="secno">11</span><h2>Reproduce</h2>
+  <div class="prose">
+    <p>Node.js 22 and nothing else. Clone the five source repositories into one folder (the layout is in <span class="mono">method/load.mjs</span>), then:</p>
+  </div>
+  <pre class="cmd chartwrap">git clone https://github.com/bymankirat/swapseq
+cd swapseq
+export SWAPSEQ_DATA=~/swapseq-data
+
+# planted-error benchmark: 30 repeats, 1% prior
+SETS=gut,tongue,palm,forehead,ecam,gut2,forehead2 node method/bench.mjs 30 0.01
+SETS=diet,dietsp,mdh,mdu,diet2 node method/bench.mjs 30 0.01
+SETS=imp node method/bench.mjs 60 0.01
+
+# same pipeline with Bray-Curtis
+SETS=gut,tongue,palm,forehead,ecam,gut2,forehead2 node method/bench.mjs 30 0.01 bc
+
+for L in 3 5 8; do node method/platebench.mjs burst 30 $L; done   # plate swaps and sheet shifts
+node method/realswap.mjs       # the real diet-study swap</pre>
+  <div class="prose" style="margin-top:14px"><p class="muted">Every number on this page is in the <a href="https://github.com/bymankirat/swapseq/tree/main/validation" target="_blank" rel="noopener">validation folder</a> as JSON.</p></div>
+</section>
+
+<section id="cite">
+  <span class="secno">12</span><h2>Cite and references</h2>
+  <div class="panel cite">
+    <p id="citeText">Singh M. (2026). <i>SwapSeq: a sample mix-up checker for longitudinal microbiome studies</i> (v1.0.0). Zenodo. https://doi.org/10.5281/zenodo.23963612</p>
+    <div class="actions"><button class="btn ghost small" type="button" id="copyCite">Copy citation</button><span class="copied" id="copied" hidden>Copied</span><a href="https://doi.org/10.5281/zenodo.23963612" target="_blank" rel="noopener">doi:10.5281/zenodo.23963612</a></div>
+  </div>
+  <h3 style="margin-top:28px;margin-bottom:12px">Studies and methods</h3>
+  <ul class="refs">
+    <li>Flores GE et al. (2014). Temporal variability is a personalized feature of the human microbiome. <i>Genome Biology</i> 15:531. <a href="https://doi.org/10.1186/s13059-014-0531-y" target="_blank" rel="noopener">doi</a></li>
+    <li>Vangay P et al. (2018). US immigration westernizes the human gut microbiome. <i>Cell</i> 175:962–972. <a href="https://doi.org/10.1016/j.cell.2018.10.029" target="_blank" rel="noopener">doi</a></li>
+    <li>Johnson AJ et al. (2019). Daily sampling reveals personalized diet-microbiome associations in humans. <i>Cell Host &amp; Microbe</i> 25:789–802. <a href="https://doi.org/10.1016/j.chom.2019.05.005" target="_blank" rel="noopener">doi</a></li>
+    <li>Bokulich NA et al. (2016). Antibiotics, birth mode, and diet shape microbiome maturation during early life. <i>Science Translational Medicine</i> 8:343ra82. <a href="https://doi.org/10.1126/scitranslmed.aad7121" target="_blank" rel="noopener">doi</a></li>
+    <li>Gibson TE et al. (2025). Learning ecosystem-scale dynamics from microbiome data with MDSINE2. <i>Nature Microbiology</i>. <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC12488492/" target="_blank" rel="noopener">PMC</a></li>
+    <li>Aitchison J. (1986). <i>The Statistical Analysis of Compositional Data</i>. Chapman &amp; Hall.</li>
+  </ul>
+  <div class="callout" style="margin-top:28px">Tried it on your own study? <a href="https://github.com/bymankirat/swapseq/issues/new?template=feedback.yml" target="_blank" rel="noopener">Tell me how it went</a>, or <a href="https://github.com/bymankirat/swapseq/issues/new?template=bug_report.yml" target="_blank" rel="noopener">report a problem</a>. Issues are public, so please leave out sample IDs and study data.</div>
+</section>
+
+</article>
+</div>
+</div></main>
+
+<footer><div class="wrap">
+  <span>Made by <a href="https://bymankirat.github.io/myportfolio/" target="_blank" rel="noopener">Mankirat Singh</a>, a human from Earth. Free software under <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPL-3.0-or-later</a>.</span>
+  <span>No cookies, no analytics. <a href="./">Open SwapSeq</a></span>
+</div></footer>
+
+<script>
+const VAL={"ours": [{"dataset": "SMP gut", "samples": 638, "people": 75, "swappedSamplesCaught": 0.922, "swapPairsNamedExactly": 0.911, "oneWayCaught": 0.767, "falseFlagsPer1000": 0.05, "withReview": {"swaps": 0.967, "oneWay": 0.883, "falsePer1000": 0.37}, "selfEstimatedPower": {"single": 0.762, "swap": 0.936}, "flagsOnOriginal": 1, "checksOnOriginal": 0, "reps": 30, "prior": 0.01}, {"dataset": "SMP tongue", "samples": 692, "people": 80, "swappedSamplesCaught": 0.428, "swapPairsNamedExactly": 0.467, "oneWayCaught": 0.133, "falseFlagsPer1000": 0.15, "withReview": {"swaps": 0.611, "oneWay": 0.6, "falsePer1000": 2.82}, "selfEstimatedPower": {"single": 0.022, "swap": 0.616}, "flagsOnOriginal": 10, "checksOnOriginal": 4, "reps": 30, "prior": 0.01}, {"dataset": "SMP palm", "samples": 515, "people": 61, "swappedSamplesCaught": 0.517, "swapPairsNamedExactly": 0.678, "oneWayCaught": 0.1, "falseFlagsPer1000": 0.4, "withReview": {"swaps": 0.822, "oneWay": 0.467, "falsePer1000": 2.17}, "selfEstimatedPower": {"single": 0.269, "swap": 0.551}, "flagsOnOriginal": 1, "checksOnOriginal": 0, "reps": 30, "prior": 0.01}, {"dataset": "SMP forehead", "samples": 675, "people": 80, "swappedSamplesCaught": 0.894, "swapPairsNamedExactly": 0.844, "oneWayCaught": 0.617, "falseFlagsPer1000": 0.3, "withReview": {"swaps": 0.978, "oneWay": 0.683, "falsePer1000": 1.3}, "selfEstimatedPower": {"single": 0.622, "swap": 0.805}, "flagsOnOriginal": 0, "checksOnOriginal": 1, "reps": 30, "prior": 0.01}, {"dataset": "ECAM infants", "samples": 875, "people": 43, "swappedSamplesCaught": 0.022, "swapPairsNamedExactly": 0.1, "oneWayCaught": 0, "falseFlagsPer1000": 0.31, "withReview": {"swaps": 0.239, "oneWay": 0.25, "falsePer1000": 14.57}, "selfEstimatedPower": {"single": 0.009, "swap": 0.072}, "flagsOnOriginal": 0, "checksOnOriginal": 16, "reps": 30, "prior": 0.01}, {"dataset": "SMP gut (2 per person)", "samples": 150, "people": 75, "swappedSamplesCaught": 0.533, "swapPairsNamedExactly": 0.633, "oneWayCaught": null, "falseFlagsPer1000": 0, "withReview": {"swaps": 0.65, "oneWay": null, "falsePer1000": 0.68}, "selfEstimatedPower": {"single": 0.031, "swap": 0.536}, "peopleInSwapFlagged": 0.533, "uninvolvedPeopleFlagged": 0, "flagsOnOriginal": 0, "checksOnOriginal": 1, "reps": 30, "prior": 0.01}, {"dataset": "SMP forehead (2 per person)", "samples": 160, "people": 80, "swappedSamplesCaught": 0.4, "swapPairsNamedExactly": 0.8, "oneWayCaught": null, "falseFlagsPer1000": 0, "withReview": {"swaps": 0.8, "oneWay": null, "falsePer1000": 0.21}, "selfEstimatedPower": {"single": 0.02, "swap": 0.249}, "peopleInSwapFlagged": 0.417, "uninvolvedPeopleFlagged": 0, "flagsOnOriginal": 0, "checksOnOriginal": 0, "reps": 30, "prior": 0.01}, {"dataset": "Diet study (strain-level)", "samples": 526, "people": 37, "swappedSamplesCaught": 0.883, "swapPairsNamedExactly": 0.778, "oneWayCaught": 0.783, "falseFlagsPer1000": 0.39, "withReview": {"swaps": 0.967, "oneWay": 0.933, "falsePer1000": 1.03}, "selfEstimatedPower": {"single": 0.798, "swap": 0.835}, "flagsOnOriginal": 0, "checksOnOriginal": 0, "reps": 30, "prior": 0.01}, {"dataset": "Diet study (species)", "samples": 483, "people": 34, "swappedSamplesCaught": 0.939, "swapPairsNamedExactly": 0.933, "oneWayCaught": 0.833, "falseFlagsPer1000": 0.14, "withReview": {"swaps": 0.989, "oneWay": 0.95, "falsePer1000": 1.75}, "selfEstimatedPower": {"single": 0.811, "swap": 0.9}, "flagsOnOriginal": 0, "checksOnOriginal": 1, "reps": 30, "prior": 0.01}, {"dataset": "MDSINE2 mice (healthy donor)", "samples": 320, "people": 5, "swappedSamplesCaught": 0.028, "swapPairsNamedExactly": 0.167, "oneWayCaught": 0, "falseFlagsPer1000": 0.11, "withReview": {"swaps": 0.483, "oneWay": 0.317, "falsePer1000": 13.25}, "selfEstimatedPower": {"single": 0.004, "swap": 0.029}, "flagsOnOriginal": 0, "checksOnOriginal": 7, "reps": 30, "prior": 0.01}, {"dataset": "MDSINE2 mice (uc donor)", "samples": 381, "people": 5, "swappedSamplesCaught": 0, "swapPairsNamedExactly": 0.022, "oneWayCaught": 0, "falseFlagsPer1000": 0, "withReview": {"swaps": 0.156, "oneWay": 0.183, "falsePer1000": 15.73}, "selfEstimatedPower": {"single": 0, "swap": 0.002}, "flagsOnOriginal": 0, "checksOnOriginal": 7, "reps": 30, "prior": 0.01}, {"dataset": "Diet study (strain-level) (2 per person)", "samples": 74, "people": 37, "swappedSamplesCaught": 0, "swapPairsNamedExactly": 0.167, "oneWayCaught": null, "falseFlagsPer1000": 0, "withReview": {"swaps": 0.417, "oneWay": null, "falsePer1000": 7.14}, "selfEstimatedPower": {"single": 0, "swap": 0.192}, "peopleInSwapFlagged": 0, "uninvolvedPeopleFlagged": 0, "flagsOnOriginal": 0, "checksOnOriginal": 2, "reps": 30, "prior": 0.01}, {"dataset": "IMP adults (16S)", "samples": 110, "people": 18, "swappedSamplesCaught": 0.433, "swapPairsNamedExactly": 0.717, "oneWayCaught": 0.117, "falseFlagsPer1000": 0, "withReview": {"swaps": 0.842, "oneWay": 0.483, "falsePer1000": 0.78}, "selfEstimatedPower": {"single": 0.134, "swap": 0.567}, "flagsOnOriginal": 0, "checksOnOriginal": 1, "reps": 60, "prior": 0.01}], "bc": [{"dataset": "SMP gut", "samples": 638, "people": 75, "swappedSamplesCaught": 0.228, "swapPairsNamedExactly": 0.289, "oneWayCaught": 0.117, "falseFlagsPer1000": 0.16, "withReview": {"swaps": 0.661, "oneWay": 0.667, "falsePer1000": 8.83}, "selfEstimatedPower": {"single": 0.2, "swap": 0.237}, "flagsOnOriginal": 7, "checksOnOriginal": 8, "reps": 30, "prior": 0.01}, {"dataset": "SMP tongue", "samples": 692, "people": 80, "swappedSamplesCaught": 0.028, "swapPairsNamedExactly": 0.056, "oneWayCaught": 0.017, "falseFlagsPer1000": 0.1, "withReview": {"swaps": 0.194, "oneWay": 0.183, "falsePer1000": 24.12}, "selfEstimatedPower": {"single": 0, "swap": 0.038}, "flagsOnOriginal": 0, "checksOnOriginal": 18, "reps": 30, "prior": 0.01}, {"dataset": "SMP palm", "samples": 515, "people": 61, "swappedSamplesCaught": 0.022, "swapPairsNamedExactly": 0.156, "oneWayCaught": 0.017, "falseFlagsPer1000": 0.13, "withReview": {"swaps": 0.4, "oneWay": 0.3, "falsePer1000": 18.87}, "selfEstimatedPower": {"single": 0, "swap": 0.054}, "flagsOnOriginal": 0, "checksOnOriginal": 16, "reps": 30, "prior": 0.01}, {"dataset": "SMP forehead", "samples": 675, "people": 80, "swappedSamplesCaught": 0.383, "swapPairsNamedExactly": 0.656, "oneWayCaught": 0.083, "falseFlagsPer1000": 0.15, "withReview": {"swaps": 0.767, "oneWay": 0.45, "falsePer1000": 9.95}, "selfEstimatedPower": {"single": 0.156, "swap": 0.408}, "flagsOnOriginal": 0, "checksOnOriginal": 6, "reps": 30, "prior": 0.01}, {"dataset": "ECAM infants", "samples": 875, "people": 43, "swappedSamplesCaught": 0, "swapPairsNamedExactly": 0, "oneWayCaught": 0, "falseFlagsPer1000": 0, "withReview": {"swaps": 0.039, "oneWay": 0.067, "falsePer1000": 16.76}, "selfEstimatedPower": {"single": 0, "swap": 0}, "flagsOnOriginal": 0, "checksOnOriginal": 17, "reps": 30, "prior": 0.01}, {"dataset": "SMP gut (2 per person)", "samples": 150, "people": 75, "swappedSamplesCaught": 0, "swapPairsNamedExactly": 0.1, "oneWayCaught": null, "falseFlagsPer1000": 0, "withReview": {"swaps": 0.133, "oneWay": null, "falsePer1000": 22.83}, "selfEstimatedPower": {"single": 0, "swap": 0}, "peopleInSwapFlagged": 0, "uninvolvedPeopleFlagged": 0, "flagsOnOriginal": 0, "checksOnOriginal": 4, "reps": 30, "prior": 0.01}, {"dataset": "SMP forehead (2 per person)", "samples": 160, "people": 80, "swappedSamplesCaught": 0.033, "swapPairsNamedExactly": 0.2, "oneWayCaught": null, "falseFlagsPer1000": 0, "withReview": {"swaps": 0.2, "oneWay": null, "falsePer1000": 0}, "selfEstimatedPower": {"single": 0, "swap": 0.186}, "peopleInSwapFlagged": 0.033, "uninvolvedPeopleFlagged": 0, "flagsOnOriginal": 0, "checksOnOriginal": 0, "reps": 30, "prior": 0.01}, {"dataset": "Diet study (strain-level)", "samples": 526, "people": 37, "swappedSamplesCaught": 0.844, "swapPairsNamedExactly": 0.833, "oneWayCaught": 0.767, "falseFlagsPer1000": 0.58, "withReview": {"swaps": 0.967, "oneWay": 0.933, "falsePer1000": 1.03}, "selfEstimatedPower": {"single": 0.839, "swap": 0.874}, "flagsOnOriginal": 1, "checksOnOriginal": 0, "reps": 30, "prior": 0.01}, {"dataset": "Diet study (species)", "samples": 483, "people": 34, "swappedSamplesCaught": 0.917, "swapPairsNamedExactly": 0.878, "oneWayCaught": 0.733, "falseFlagsPer1000": 0.21, "withReview": {"swaps": 0.978, "oneWay": 0.917, "falsePer1000": 0.84}, "selfEstimatedPower": {"single": 0.869, "swap": 0.899}, "flagsOnOriginal": 0, "checksOnOriginal": 0, "reps": 30, "prior": 0.01}, {"dataset": "MDSINE2 mice (healthy donor)", "samples": 320, "people": 5, "swappedSamplesCaught": 0, "swapPairsNamedExactly": 0, "oneWayCaught": 0, "falseFlagsPer1000": 0, "withReview": {"swaps": 0.094, "oneWay": 0.017, "falsePer1000": 6.94}, "selfEstimatedPower": {"single": 0, "swap": 0}, "flagsOnOriginal": 0, "checksOnOriginal": 4, "reps": 30, "prior": 0.01}, {"dataset": "MDSINE2 mice (uc donor)", "samples": 381, "people": 5, "swappedSamplesCaught": 0, "swapPairsNamedExactly": 0, "oneWayCaught": 0, "falseFlagsPer1000": 0, "withReview": {"swaps": 0, "oneWay": 0, "falsePer1000": 4.83}, "selfEstimatedPower": {"single": 0, "swap": 0}, "flagsOnOriginal": 0, "checksOnOriginal": 2, "reps": 30, "prior": 0.01}, {"dataset": "Diet study (strain-level) (2 per person)", "samples": 74, "people": 37, "swappedSamplesCaught": 0, "swapPairsNamedExactly": 0.3, "oneWayCaught": null, "falseFlagsPer1000": 0, "withReview": {"swaps": 0.45, "oneWay": null, "falsePer1000": 0}, "selfEstimatedPower": {"single": 0, "swap": 0.064}, "peopleInSwapFlagged": 0, "uninvolvedPeopleFlagged": 0, "flagsOnOriginal": 0, "checksOnOriginal": 1, "reps": 30, "prior": 0.01}, {"dataset": "IMP adults (16S)", "samples": 110, "people": 18, "swappedSamplesCaught": 0.283, "swapPairsNamedExactly": 0.367, "oneWayCaught": 0.233, "falseFlagsPer1000": 0, "withReview": {"swaps": 0.625, "oneWay": 0.567, "falsePer1000": 0.31}, "selfEstimatedPower": {"single": 0.325, "swap": 0.555}, "flagsOnOriginal": 1, "checksOnOriginal": 0, "reps": 60, "prior": 0.01}], "plate": {"neighbour": {"samplesFlagged": 0.872, "withCheck": 0.922, "falseShiftReportsPerRepeat": 0, "falseFlagsPer1000": 0.45, "falseChecksPer1000": 1.22, "errorsPlanted": 180, "shiftNamed": null}, "L3": {"samplesFlagged": 0.822, "withCheck": 0.878, "runsWithHalfCaught": 0.933, "shiftNamed": 0, "runLength": 3, "falseShiftReportsPerRepeat": 0, "falseFlagsPer1000": 0.51, "falseChecksPer1000": 1.47, "errorsPlanted": 90}, "L5": {"samplesFlagged": 0.8, "withCheck": 0.933, "runsWithHalfCaught": 1, "shiftNamed": 0.9, "runLength": 5, "falseShiftReportsPerRepeat": 0, "falseFlagsPer1000": 0.7, "falseChecksPer1000": 1.47, "errorsPlanted": 150}, "L8": {"samplesFlagged": 0.778, "withCheck": 0.937, "runsWithHalfCaught": 1, "shiftNamed": 1, "runLength": 8, "falseShiftReportsPerRepeat": 0, "falseFlagsPer1000": 1.03, "falseChecksPer1000": 1.61, "errorsPlanted": 239}}};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// ---------- validation charts (public benchmark) ----------
+(function(){if(typeof VAL==='undefined')return;
+  const ORDER=['SMP gut','SMP forehead','SMP palm','IMP adults (16S)','SMP tongue','SMP gut (2 per person)','SMP forehead (2 per person)','Diet study (species)','Diet study (strain-level)','Diet study (strain-level) (2 per person)','ECAM infants','MDSINE2 mice (healthy donor)','MDSINE2 mice (uc donor)'];
+  const NAME={'IMP adults (16S)':'IMP gut, monthly','SMP gut (2 per person)':'SMP gut, 2 per person','SMP forehead (2 per person)':'SMP forehead, 2 per person','Diet study (species)':'Diet study, species','Diet study (strain-level)':'Diet study, strain level','Diet study (strain-level) (2 per person)':'Diet study, 2 per person','MDSINE2 mice (healthy donor)':'Mice, healthy donor','MDSINE2 mice (uc donor)':'Mice, UC donor'};
+  const grp=d=>/2 per person/.test(d)?(/Diet/.test(d)?'Shotgun, adults sampled daily':'Before/after, 2 samples per person'):/^(SMP|IMP)/.test(d)?'16S, adults':/^Diet/.test(d)?'Shotgun, adults sampled daily':'Little individual signal (controls)';
+  const by=new Map(VAL.ours.map((o,k)=>[o.dataset,[o,VAL.bc[k]]]));
+  const rows=ORDER.filter(d=>by.has(d)).map(d=>{const [o,b]=by.get(d);return {d,name:NAME[d]||d,group:grp(d),n:o.samples,people:o.people,
+    swaps:[o.swappedSamplesCaught,o.withReview.swaps,b.swappedSamplesCaught],mis:[o.oneWayCaught,o.withReview.oneWay,b.oneWayCaught],fa:[o.falseFlagsPer1000,o.withReview.falsePer1000,b.falseFlagsPer1000]}});
+  const is16=r=>r.group==='16S, adults'||r.group==='Before/after, 2 samples per person';
+  const rng=(k,i)=>{const v=rows.filter(is16).map(r=>r[k][i]).filter(x=>x!=null);return [Math.min(...v),Math.max(...v)]};
+  const P=v=>Math.round(v*100)+'%';
+  const M={
+    swaps:{title:()=>{const a=rng('swaps',0),b=rng('swaps',2);return `On 16S data SwapSeq flags ${Math.round(a[0]*100)}–${P(a[1])} of swapped samples, Bray-Curtis ${Math.round(b[0]*100)}–${P(b[1])}`},max:1,fmt:P,unit:'of swapped samples caught',ticks:[0,.25,.5,.75,1]},
+    mis:{title:()=>'Single mislabels are harder: SwapSeq flags up to 83%, and the check list adds more',max:1,fmt:P,unit:'of one-way mislabels caught',ticks:[0,.25,.5,.75,1]},
+    fa:{title:()=>`Strong flags give at most ${Math.max(...rows.map(r=>r.fa[0])).toFixed(1)} false alarms per 1,000 samples in every dataset`,max:16,fmt:v=>Number.isInteger(v)?String(v):v.toFixed(1),unit:'false alarms per 1,000 untouched samples',ticks:[0,4,8,12,16]}};
+  const host=document.getElementById('valChart');if(!host)return;let cur='swaps';
+  const draw=()=>{const m=M[cur],x0=270,x1=736,y0=60,rh=26,gh=34,X=v=>x0+Math.min(1,v/m.max)*(x1-x0);
+    let y=y0,g=null,parts=[];
+    for(const r of rows){if(r.group!==g){if(g!==null)y+=gh;g=r.group;parts.push(`<text x="0" y="${y-22}" font-weight="700" fill="var(--ink)">${esc(g)}</text>`)}
+      const [a,b,c]=r[cur];const lbl=`<text x="14" y="${y+4}" fill="var(--ink)">${esc(r.name)}</text>`;
+      if(a==null){parts.push(lbl+`<text x="${x0}" y="${y+4}" fill="var(--faint)">not tested (two samples per person)</text>`);y+=rh;continue}
+      const lo=Math.min(a,b,c),hi=Math.max(a,b,c);
+      parts.push(`<g class="vrow" data-name="${esc(r.name)}" data-a="${m.fmt(a)}" data-b="${m.fmt(b)}" data-c="${m.fmt(c)}" data-n="${r.n}" data-p="${r.people}">${lbl}<rect x="0" y="${y-12}" width="760" height="24" fill="transparent"/><line x1="${X(lo)}" x2="${X(hi)}" y1="${y}" y2="${y}" stroke="var(--line2)" stroke-width="2.5" stroke-linecap="round"/>`+
+        `<circle cx="${X(c)}" cy="${y}" r="5.5" fill="var(--obs)"/><circle cx="${X(b)}" cy="${y}" r="6.5" fill="var(--surface)" stroke="var(--accent)" stroke-width="2.2"/><circle cx="${X(a)}" cy="${y}" r="6.5" fill="var(--accent)"/></g>`);y+=rh}
+    const H=y+30;
+    const ax=m.ticks.map(t=>`<line x1="${X(t)}" x2="${X(t)}" y1="${y0-26}" y2="${y-6}" stroke="var(--grid)"/><text x="${X(t)}" y="${y+14}" text-anchor="middle" fill="var(--faint)">${m.fmt(t)}</text>`).join('');
+    const lg=cur==='fa'?['Bray-Curtis strong flags','SwapSeq strong flags','SwapSeq flags + check list']:['Bray-Curtis, same pipeline','SwapSeq strong flag','SwapSeq flag or check list'];
+    host.querySelector('.vtitle').textContent=m.title();host.querySelector('.vunit').textContent=`Shown: ${m.unit}. Point at a row for its numbers.`;
+    host.querySelector('.vlegend').innerHTML=`<span><i style="background:var(--obs);border-radius:50%"></i>${lg[0]}</span><span><i style="background:var(--accent);border-radius:50%"></i>${lg[1]}</span><span><i style="border:2px solid var(--accent);border-radius:50%"></i>${lg[2]}</span>`;
+    host.querySelector('.vsvg').innerHTML=`<svg viewBox="0 0 760 ${H}" role="img" aria-label="${esc(m.title())}" font-family="var(--sans)" font-size="13">${ax}${parts.join('')}</svg>`};
+  host.innerHTML=`<div class="vtabs" role="group" aria-label="What to show"><button type="button" data-m="swaps" aria-pressed="true">Swaps caught</button><button type="button" data-m="mis" aria-pressed="false">Mislabels caught</button><button type="button" data-m="fa" aria-pressed="false">False alarms</button></div>
+    <h3 class="vtitle"></h3><p class="hint vunit"></p><div class="legend vlegend"></div><div class="map-wrap"><div class="vsvg"></div><div class="tip" hidden></div></div>`;
+  host.querySelector('.vtabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;cur=b.dataset.m;host.querySelectorAll('.vtabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));draw()});
+  const tip=host.querySelector('.tip'),wrap=host.querySelector('.map-wrap');
+  wrap.addEventListener('pointermove',e=>{const r=e.target.closest('.vrow');if(!r){tip.hidden=true;return}
+    const fa=cur==='fa';tip.innerHTML=`<b>${r.dataset.name}</b><br>${r.dataset.n} samples, ${r.dataset.p} people<br>SwapSeq: ${r.dataset.a} strong${fa?'':', '+r.dataset.b+' with check list'}${fa?', '+r.dataset.b+' with check list':''}<br>Bray-Curtis: ${r.dataset.c}`;tip.hidden=false;
+    const bb=wrap.getBoundingClientRect();tip.style.left=Math.min(bb.width-220,e.clientX-bb.left+14)+'px';tip.style.top=Math.max(0,e.clientY-bb.top-70)+'px'});
+  wrap.addEventListener('pointerleave',()=>tip.hidden=true);
+  draw();
+  // plate-pattern errors on a real plating order
+  const ph=document.getElementById('plateChart');if(!ph||!VAL.plate)return;
+  const pr=VAL.plate,W=760,x0=250,x1=560,X=v=>x0+v*(x1-x0);let y=70,out='';
+  const items=[['Neighbouring tubes swapped',pr.neighbour],['Sheet slips by 3 tubes',pr.L3],['Sheet slips by 5 tubes',pr.L5],['Sheet slips by 8 tubes',pr.L8]];
+  for(const [lab,r] of items){const a=r.samplesFlagged,b=r.withCheck,c=r.shiftNamed;
+    out+=`<g class="vrow" data-name="${lab}" data-a="${P(a)}" data-b="${P(b)}" data-c="${c==null?'–':P(c)}" data-f="${r.falseFlagsPer1000.toFixed(1)}"><rect x="0" y="${y-14}" width="760" height="40" fill="transparent"/><text x="0" y="${y+4}" fill="var(--ink)">${lab}</text>
+      <rect x="${x0}" y="${y-9}" width="${X(b)-x0}" height="18" rx="4" fill="var(--accent)" fill-opacity=".25"/><rect x="${x0}" y="${y-9}" width="${X(a)-x0}" height="18" rx="4" fill="var(--accent)"/>
+      <text x="${X(b)+10}" y="${y+4}" fill="var(--ink)" font-weight="600">${P(a)}</text><text x="${X(b)+46}" y="${y+4}" fill="var(--muted)">${P(b)} with check list</text>${c!=null?`<text x="0" y="${y+22}" fill="var(--muted)" font-size="12.5">shift named as a shift in ${P(c)} of runs</text>`:''}</g>`;y+=c!=null?56:46}
+  ph.innerHTML=`<h3>Lab-style plate errors are caught too</h3><p class="hint">Errors planted on the real plating order of the diet study (526 tubes, 6 plates), 30 repeats each. No false shift report in any repeat.</p>
+    <div class="legend"><span><i style="background:var(--accent)"></i>Strong flag</span><span><i style="background:var(--accent);opacity:.3"></i>Added by the check list</span></div>
+    <div class="map-wrap"><svg viewBox="0 0 ${W} ${y}" role="img" aria-label="Plate-pattern errors caught" font-family="var(--sans)" font-size="13">${[0,.5,1].map(t=>`<line x1="${X(t)}" x2="${X(t)}" y1="44" y2="${y-20}" stroke="var(--grid)"/><text x="${X(t)}" y="40" text-anchor="middle" fill="var(--faint)">${P(t)}</text>`).join('')}${out}</svg><div class="tip" hidden></div></div>`;
+  const t2=ph.querySelector('.tip'),w2=ph.querySelector('.map-wrap');
+  w2.addEventListener('pointermove',e=>{const r=e.target.closest('.vrow');if(!r){t2.hidden=true;return}t2.innerHTML=`<b>${r.dataset.name}</b><br>${r.dataset.a} of planted errors flagged<br>${r.dataset.b} with the check list<br>Shift named: ${r.dataset.c}<br>False flags: ${r.dataset.f} per 1,000`;t2.hidden=false;
+    const bb=w2.getBoundingClientRect();t2.style.left=Math.min(bb.width-220,e.clientX-bb.left+14)+'px';t2.style.top=Math.max(0,e.clientY-bb.top-80)+'px'});
+  w2.addEventListener('pointerleave',()=>t2.hidden=true);
+})();
+// self-estimated power against measured catch rate
+(function(){const host=document.getElementById('powerChart');if(!host)return;
+  const NAME={'IMP adults (16S)':'IMP gut','SMP gut (2 per person)':'SMP gut, 2 per person','SMP forehead (2 per person)':'SMP forehead, 2 per person','Diet study (species)':'Diet, species','Diet study (strain-level)':'Diet, strain level','Diet study (strain-level) (2 per person)':'Diet, 2 per person','MDSINE2 mice (healthy donor)':'Mice, healthy donor','MDSINE2 mice (uc donor)':'Mice, UC donor','ECAM infants':'ECAM infants'};
+  const pts=VAL.ours.map(o=>({name:NAME[o.dataset]||o.dataset,x:o.selfEstimatedPower.swap,y:o.swappedSamplesCaught,n:o.samples}));
+  const W=760,H=420,L=64,R=24,T=20,B=56,X=v=>L+v*(W-L-R),Y=v=>T+(1-v)*(H-T-B),P=v=>Math.round(v*100)+'%';
+  const mad=pts.reduce((a,p)=>a+Math.abs(p.x-p.y),0)/pts.length;
+  let g='';[0,.25,.5,.75,1].forEach(t=>{g+=`<line x1="${X(0)}" x2="${X(1)}" y1="${Y(t)}" y2="${Y(t)}" stroke="var(--grid)"/><text x="${L-10}" y="${Y(t)+4}" text-anchor="end" fill="var(--faint)">${P(t)}</text><line x1="${X(t)}" x2="${X(t)}" y1="${Y(0)}" y2="${Y(1)}" stroke="var(--grid)"/><text x="${X(t)}" y="${Y(0)+20}" text-anchor="middle" fill="var(--faint)">${P(t)}</text>`});
+  g+=`<line x1="${X(0)}" y1="${Y(0)}" x2="${X(1)}" y2="${Y(1)}" stroke="var(--line2)" stroke-width="1.5" stroke-dasharray="5 5"/><text x="${X(.62)}" y="${Y(.68)-6}" fill="var(--muted)" font-size="12.5" transform="rotate(-${Math.atan((H-T-B)/(W-L-R))*180/Math.PI} ${X(.62)} ${Y(.68)-6})">estimate = measured</text>`;
+  g+=`<text x="${(L+W-R)/2}" y="${H-10}" text-anchor="middle" fill="var(--muted)">Power SwapSeq reported for the study</text><text transform="translate(16 ${(T+H-B)/2}) rotate(-90)" text-anchor="middle" fill="var(--muted)">Swapped samples actually flagged</text>`;
+  const lab=new Set(['SMP gut','ECAM infants','IMP gut','Diet, 2 per person','SMP forehead, 2 per person']);
+  for(const p of pts){g+=`<g class="sp" data-name="${esc(p.name)}" data-x="${P(p.x)}" data-y="${P(p.y)}" data-n="${p.n}"><circle class="hit" cx="${X(p.x)}" cy="${Y(p.y)}" r="14"/><circle class="pt" cx="${X(p.x)}" cy="${Y(p.y)}" r="6.5"/>${lab.has(p.name)?`<text x="${X(p.x)+(p.name==='IMP gut'?-11:11)}" y="${Y(p.y)+(p.name==='ECAM infants'?-10:4)}" text-anchor="${p.name==='IMP gut'?'end':'start'}" fill="var(--ink)" font-size="12.5">${esc(p.name)}</text>`:''}</g>`}
+  host.innerHTML=`<h3>Estimated power matches measured power, on average within ${Math.round(mad*100)} points</h3><p class="hint">One point per table. Point at one for its numbers.</p><div class="map-wrap scatter"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Self-estimated power against measured swap detection for 13 tables" font-family="var(--sans)" font-size="13">${g}</svg><div class="tip" hidden></div></div>`;
+  const tip=host.querySelector('.tip'),wrap=host.querySelector('.map-wrap');
+  wrap.addEventListener('pointermove',e=>{const r=e.target.closest('.sp');wrap.querySelectorAll('.sp.on').forEach(x=>x!==r&&x.classList.remove('on'));if(!r){tip.hidden=true;return}r.classList.add('on');
+    tip.innerHTML=`<b>${r.dataset.name}</b><br>${r.dataset.n} samples<br>Reported power: ${r.dataset.x}<br>Measured: ${r.dataset.y} flagged`;tip.hidden=false;
+    const bb=wrap.getBoundingClientRect();tip.style.left=Math.min(bb.width-220,e.clientX-bb.left+14)+'px';tip.style.top=Math.max(0,e.clientY-bb.top-80)+'px'});
+  wrap.addEventListener('pointerleave',()=>{tip.hidden=true;wrap.querySelectorAll('.sp.on').forEach(x=>x.classList.remove('on'))});
+})();
+// table of contents: highlight the section on screen
+(function(){const links=[...document.querySelectorAll('.toc a')];if(!links.length||!('IntersectionObserver' in window))return;
+  const map=new Map(links.map(a=>[a.getAttribute('href').slice(1),a]));
+  const io=new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){links.forEach(a=>a.classList.remove('on'));const a=map.get(e.target.id);if(a)a.classList.add('on')}},{rootMargin:'-30% 0px -60% 0px'});
+  document.querySelectorAll('article > section').forEach(s=>io.observe(s));
+})();
+// copy citation
+(function(){const b=document.getElementById('copyCite');if(!b)return;const t=document.getElementById('citeText'),ok=document.getElementById('copied');
+  b.addEventListener('click',()=>{const txt=t.textContent.trim();const done=()=>{ok.hidden=false;setTimeout(()=>ok.hidden=true,2000)};
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(t);const s=getSelection();s.removeAllRanges();s.addRange(r)};
+    try{navigator.clipboard.writeText(txt).then(done,sel)}catch(e){sel()}});
+})();
+</script>
+
+</body>
+</html>
