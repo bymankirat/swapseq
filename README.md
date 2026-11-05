@@ -15,6 +15,14 @@ Load a feature table (QIIME 2 `.qza`, BIOM 1 or 2,
 or a text table) and the sample metadata, choose the column that says who each sample came from,
 and press *Check samples*. Try the built-in demo first.
 
+**In R:** the [swapseqr](https://github.com/bymankirat/swapseqr) package runs the same engine on a
+phyloseq object or a count matrix.
+
+```r
+remotes::install_github("bymankirat/swapseqr")
+res <- swapseqr::check_swaps(ps, subject = "subject_id")
+```
+
 ## What it reports
 
 - **Strong flags** – samples that very likely belong to someone else, with the likely swap partner.
