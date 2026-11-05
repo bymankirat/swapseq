@@ -1,6 +1,6 @@
 # SwapSeq
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23963612.svg)](https://doi.org/10.5281/zenodo.23963612)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23963612.svg)](https://doi.org/10.5281/zenodo.23963612) [![bio.tools](https://img.shields.io/badge/bio.tools-swapseq-1f6fa8)](https://bio.tools/swapseq)
 
 <p align="center"><a href="https://bymankirat.github.io/swapseq/"><img src="assets/swapseq-demo.gif" width="720" alt="SwapSeq scans a 96-well plate, opens row E as tubes and marks the swapped pair and a wrong label"></a></p>
 
@@ -83,6 +83,8 @@ used for diagnosis or clinical decisions.
 ## How to cite
 
 Singh M. (2026). *SwapSeq: a sample mix-up checker for longitudinal microbiome studies* (v1.0.1). Zenodo. https://doi.org/10.5281/zenodo.23963612
+
+Registered in bio.tools as [biotools:swapseq](https://bio.tools/swapseq).
 
 Author: Mankirat Singh, ORCID [0009-0005-3375-2123](https://orcid.org/0009-0005-3375-2123)
 
