@@ -8,6 +8,15 @@ authors:
     orcid: "https://orcid.org/0009-0005-3375-2123"
 version: 1.0.1
 doi: 10.5281/zenodo.23963612
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23963612
+  - type: other
+    value: "RRID:SCR_029248"
+    description: Research Resource Identifier (SciCrunch Registry)
+  - type: other
+    value: "biotools:swapseq"
+    description: bio.tools registry identifier
 date-released: 2026-11-05
 license: GPL-3.0-or-later
 repository-code: "https://github.com/bymankirat/swapseq"
