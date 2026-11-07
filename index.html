@@ -550,7 +550,7 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
       <details class="more"><summary>Host DNA from shotgun reads (optional, beta)</summary>
         <div class="hostbox">
           <label class="drop small" id="dropH"><input type="file" id="fileH" accept=".tsv,.txt,.csv"><strong>Open host_counts.tsv</strong><small>columns: sample, site, alt, total</small></label>
-          <p class="hint">Shotgun reads carry some of the person's own DNA. SwapSeq matches each sample's reads at common human SNPs to every person's other samples, which works even when microbes change too fast to identify anyone (newborns, antibiotics). Tested on simulated data so far; needs at least 2,000 covered SNP sites per sample. <b>This is human genetic data:</b> use it only within your ethics approval. Like everything here, it stays on this computer. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the file</a></p>
+          <p class="hint">Shotgun reads carry some of the person's own DNA. SwapSeq matches each sample's reads at common human SNPs to every person's other samples, which works even when microbes change too fast to identify anyone (newborns, antibiotics). Tested on simulated data so far; needs at least 1,500 covered SNP sites per sample and works best with 6 or more samples per person. <b>This is human genetic data:</b> use it only within your ethics approval. Like everything here, it stays on this computer. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the file</a></p>
           <p class="hint" id="infoH"></p>
         </div>
       </details>
@@ -624,7 +624,7 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
     <div class="panel">
       <span class="kicker">Shotgun data &middot; beta</span>
       <h3>Host DNA</h3>
-      <p>Shotgun reads carry some of the person's own DNA, which does not change when their microbes do. SwapSeq matches each sample's reads at common human SNPs to every person's other samples. In simulations it caught 95% of swaps at 2,000 covered sites per sample and all of them from 2,500, with no false flags. It is not yet tested on real samples, and it is human genetic data: use it within your ethics approval. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the input</a>.</p>
+      <p>Shotgun reads carry some of the person's own DNA, which does not change when their microbes do. SwapSeq matches each sample's reads at common human SNPs to every person's other samples. In a stress test on simulated people (uneven DNA, relatives, twins, contamination, mixed populations) it made almost no false flags and caught 85&ndash;100% of swaps with 2,000&ndash;4,000 covered SNP sites per sample and 6 samples per person, but few with only 2&ndash;3 samples per person. Identical twins cannot be told apart by DNA. It is not yet tested on real samples, and it is human genetic data: use it within your ethics approval. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the input</a>.</p>
     </div>
   </div>
 </div></section>
@@ -1177,29 +1177,70 @@ function markerDistances(data,opt={}){
 // Input G: one entry per sample (table order), a Map site -> [altReads, totalReads] (or a number in [0,1],
 // read as one read). Population allele frequencies are estimated from all samples unless opt.af is given.
 function hostCheck(G,lab,opt={}){
-  const n=lab.length,e=opt.errorRate??0.01,minSites=opt.minSites??2000;
+  // v2 (stress-tested): every person is judged against two levels read off the data itself, so the call
+  // does not depend on how many reads a sample or a person happens to have:
+  //   s(i,S) = mean over informative sites of [log-lik of i's read given S's pooled reads - log-lik given the
+  //            population frequency]; informative = S has pooled reads at that site (leave-one-out for S = own).
+  //   same level   = median of s over each sample's own label (most labels are right)
+  //   unrelated level = median of s over all other people
+  // Each s has a standard error from its own sites. A sample is called "other person" only when its own label
+  // is clearly not the same person (likelihood ratio e^3 against a relative or a stranger), another person clearly
+  // is (e^3 the other way), and that person explains the reads e^8 times better. When both the label and
+  // another person match (identical twins, or one person entered under two IDs), it says so instead of flagging.
+  const n=lab.length,e=opt.errorRate??0.01,minSites=opt.minSites??1500,A=opt.selfLR??3,minInf=opt.minInformative??30;
   const rd=v=>Array.isArray(v)?[+v[0],+v[1]]:[Number(v)>=.5?1:0,1];
   const people=[...new Set(lab)],pid=new Map(people.map((p,k)=>[p,k]));
-  const pool=people.map(()=>new Map()),glob=new Map();
+  const glob=new Map();let pool;
   const reads=G.map(g=>{const o=[];if(g)for(const [k,v] of g){const [a,t]=rd(v);if(t>0)o.push([+k,a,t])}return o});
-  reads.forEach((r,i)=>{const P=pool[pid.get(lab[i])];for(const [k,a,t] of r){const c=P.get(k)||[0,0];c[0]+=a;c[1]+=t;P.set(k,c);const g=glob.get(k)||[0,0];g[0]+=a;g[1]+=t;glob.set(k,g)}});
+  reads.forEach(r=>{for(const [k,a,t] of r){const g=glob.get(k)||[0,0];g[0]+=a;g[1]+=t;glob.set(k,g)}});
+  const buildPools=skip=>{pool=people.map(()=>new Map());reads.forEach((r,i)=>{if(skip.has(i))return;const P=pool[pid.get(lab[i])];for(const [k,a,t] of r){const c=P.get(k)||[0,0];c[0]+=a;c[1]+=t;P.set(k,c)}})};
   const afOf=k=>{if(opt.af&&opt.af.has(k))return Math.min(.99,Math.max(.01,opt.af.get(k)));const g=glob.get(k);return g?Math.min(.95,Math.max(.05,(g[0]+1)/(g[1]+2))):.5};
-  // predictive probability that a read from person S at site k shows the alt allele, given S's pooled reads (A of T)
   const pred=(k,A,T)=>{const f=afOf(k),pr=[(1-f)*(1-f),2*f*(1-f),f*f],q=[e,.5,1-e];let z=0,num=0;
     for(let g=0;g<3;g++){const w=pr[g]*Math.pow(q[g],A)*Math.pow(1-q[g],T-A);z+=w;num+=w*q[g]}return z>0?num/z:f};
-  const rows=[];let used=0;
-  for(let i=0;i<n;i++){const r=reads[i];if(r.length<minSites){rows.push({i,verdict:'unknown',sites:r.length});continue}used++;
-    const own=pid.get(lab[i]),LL=new Float64Array(people.length);
-    for(let S=0;S<people.length;S++){const P=pool[S];let ll=0;
-      for(const [k,a,t] of r){let A=0,T=0;const c=P.get(k);if(c){A=c[0];T=c[1];if(S===own){A-=a;T-=t}}const q=pred(k,A,T);ll+=a*Math.log(q)+(t-a)*Math.log(1-q)}
-      LL[S]=ll}
-    // only people with host reads of their own can be told apart from the population prior
-    let best=-Infinity,bS=-1;for(let S=0;S<people.length;S++){if(S===own)continue;if(LL[S]>best){best=LL[S];bS=S}}
-    const llr=best-LL[own];  // > 0: another person's DNA explains the reads better than the labelled person's
-    const verdict=llr>=(opt.cut??8)?'other person':llr<=-(opt.cut??8)?'same person':'unclear';
-    rows.push({i,verdict,llr,looksLike:bS>=0?people[bS]:null,sites:r.length})}
-  if(!used)return {ok:false,reason:'no sample has enough host reads',rows};
-  return {ok:true,rows,minSites,used};
+  const ll=(a,t,q)=>a*Math.log(q)+(t-a)*Math.log(1-q);
+  // per sample and person: mean and s.e. of the per-site gain over the population prior, plus the total (for the likelihood ratio)
+  const S=new Array(n);let used=0;
+  const score=skip=>{buildPools(skip);used=0;
+  for(let i=0;i<n;i++){const r=reads[i];if(r.length<minSites){S[i]=null;continue}used++;
+    const own=pid.get(lab[i]),stats=[];
+    for(let p=0;p<people.length;p++){const P=pool[p];let m=0,sum=0,sq=0;
+      for(const [k,a,t] of r){const c=P.get(k);if(!c)continue;let A=c[0],T=c[1];if(p===own&&!SKIP.has(i)){A-=a;T-=t}if(T<=0)continue;
+        const d=ll(a,t,pred(k,A,T))-ll(a,t,afOf(k));m++;sum+=d;sq+=d*d}
+      const mean=m?sum/m:0,sd=m>1?Math.sqrt(Math.max(1e-9,(sq-m*mean*mean)/(m-1))):1;
+      stats.push({p,m,mean,se:m?sd/Math.sqrt(m):Infinity,total:sum})}
+    S[i]={own,stats}}};
+  // pass 1 with every sample pooled; pass 2 leaves out of the pools the samples pass 1 found clearly not to be
+  // their labelled person, so a swapped-in sample no longer blurs the genotypes of the person it was put under
+  let SKIP=new Set();score(SKIP);
+  if(!used)return {ok:false,reason:'no sample has enough host reads',rows:G.map((_,i)=>({i,verdict:'unknown',sites:reads[i].length}))};
+  const judge=()=>{
+  const med=x=>{const y=x.filter(Number.isFinite).sort((a,b)=>a-b);return y.length?y[y.length>>1]:NaN};
+  const ownS=[],othS=[];for(const x of S){if(!x)continue;for(const st of x.stats){if(st.m<minInf)continue;(st.p===x.own?ownS:othS).push(st.mean)}}
+  const same=med(ownS),unrel=med(othS);
+  if(!(same>unrel))return {ok:false,reason:'host reads do not separate people (too few reads shared between samples)',rows:G.map((_,i)=>({i,verdict:'unknown',sites:reads[i].length}))};
+  const rows=[];
+  for(let i=0;i<n;i++){const x=S[i];if(!x){rows.push({i,verdict:'unknown',sites:reads[i].length});continue}
+    // position between the two levels: 0 = a stranger, 1 = the same person; relatives sit near 0.5
+    const ok=st=>st&&st.m>=minInf,span=same-unrel,f=st=>(st.mean-unrel)/span,sf=st=>st.se/span;
+    // three hypotheses for each person: the same person (1), a first-degree relative (0.5) or a stranger (0);
+    // selfLR = log likelihood of "same person" against the better of the other two, from the position and its s.e.
+    const selfLR=st=>{const x=f(st),v=2*sf(st)*sf(st);return (Math.min((x-.5)**2,x*x)-(x-1)**2)/v};
+    const isSame=st=>ok(st)&&selfLR(st)>=A;      // clearly the same person (not a relative, not a stranger)
+    const notSame=st=>ok(st)&&selfLR(st)<=-A;    // clearly not the same person
+    // the person a sample really comes from: clearly not a stranger, and closer to "same" than to "relative"
+    const vsStranger=st=>{const x=f(st);return (x*x-(x-1)**2)/(2*sf(st)*sf(st))};
+    const likelyOwner=st=>ok(st)&&f(st)>=.75&&vsStranger(st)>=A;
+    const o=x.stats.find(st=>st.p===x.own);
+    let best=null;for(const st of x.stats){if(st.p===x.own||!ok(st))continue;if(!best||st.mean>best.mean)best=st}
+    const llr=best&&o?best.total-o.total:NaN;let verdict='unclear',looks=null;
+    if(isSame(o)&&best&&isSame(best)){verdict='identical DNA';looks=people[best.p]}
+    else if((notSame(o)||!ok(o))&&best&&likelyOwner(best)&&llr>=(opt.cut??8)){verdict='other person';looks=people[best.p]}
+    else if(isSame(o))verdict='same person';
+    rows.push({i,verdict,llr,notSame:notSame(o),looksLike:looks??(best?people[best.p]:null),sites:reads[i].length,informative:o?o.m:0,ownPos:ok(o)?f(o):null,ownPosSE:ok(o)?sf(o):null,bestPos:ok(best)?f(best):null,bestPosSE:ok(best)?sf(best):null,all:opt.debug?x.stats.map(st=>({who:people[st.p],f:ok(st)?f(st):null,sf:ok(st)?sf(st):null,m:st.m})):undefined})}
+  return {ok:true,rows,minSites,used,sameLevel:same,unrelatedLevel:unrel}};
+  let out=judge();if(!out.ok||opt.passes===1)return out;
+  SKIP=new Set(out.rows.filter(r=>r.notSame).map(r=>r.i));if(!SKIP.size)return out;
+  score(SKIP);out=judge();out.setAside=SKIP.size;return out;
 }
 
 // Microbes and host DNA are independent witnesses. Host DNA, when it is there, settles identity.
@@ -1354,7 +1395,7 @@ wireDrop('dropH','fileH',async f=>{try{const txt=await f.text(),L=txt.split(/\r?
   const sites=new Map(),m=new Map();let n=0;for(const l of L.slice(1)){const c=l.split(sep),a=+c[ix[2]],t=+c[ix[3]];if(!(t>0)||!(a>=0)||a>t)continue;const s=c[ix[1]];if(!sites.has(s))sites.set(s,sites.size);
     const id=c[ix[0]];if(!m.has(id))m.set(id,[]);m.get(id).push([sites.get(s),a,t]);n++}
   st.host=m;st.hostName=f.name;$('dropH').classList.add('done');$('dropH').querySelector('strong').textContent=f.name;$('dropH').querySelector('small').textContent='click to choose another file';
-  const many=[...m.values()].filter(v=>v.length>=2000).length;$('infoH').innerHTML=`Read <b>${n.toLocaleString()}</b> allele counts for <b>${m.size.toLocaleString()}</b> samples; <b>${many.toLocaleString()}</b> have 2,000 or more covered sites.`}
+  const many=[...m.values()].filter(v=>v.length>=1500).length;$('infoH').innerHTML=`Read <b>${n.toLocaleString()}</b> allele counts for <b>${m.size.toLocaleString()}</b> samples; <b>${many.toLocaleString()}</b> have 1,500 or more covered sites.`}
   catch(e){setStatus('Could not read the host DNA file: '+e.message,true)}});
 
 // ---------- demo ----------
@@ -1427,7 +1468,7 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
         <div class="panel tile"><div class="label">Flagged, and to check</div><div class="v"><span style="color:${flagged.length?'var(--swap)':'var(--ok)'}">${flagged.length}</span> <span style="color:var(--mis);font-size:.7em">+ ${checks.length}</span></div><div class="d">${fPairs} flagged swap pair${fPairs===1?'':'s'}${cPairs?`, ${cPairs} possible`:''}</div></div>
         <div class="panel tile"><div class="label">Catches swaps</div><div class="v">${fmtPct(pwc)}</div><div class="d">${fmtPct(pw)} as strong flags. Measured: we hid ${g.power.tests?g.power.tests.swapped:'–'} swapped samples in copies of your labels</div></div>
         <div class="panel tile"><div class="label">Catches mislabels</div><div class="v">${fmtPct(pw1c)}</div><div class="d">${fmtPct(pw1)} as strong flags, for one sample under the wrong person (${g.power.tests?g.power.tests.relabelled:'–'} hidden tests)</div></div>
-      </div>${verdict}${g.host?(g.host.ok?`<div class="verdict ${g.rows.some(x=>x.byHost)?'warn':'good'}"><b>Host DNA (beta):</b> ${g.host.used.toLocaleString()} samples had enough host reads to check; ${g.rows.filter(x=>x.byHost).length} ${g.rows.filter(x=>x.byHost).length===1?'was':'were'} flagged because their DNA fits another person.</div>`:`<div class="verdict weak"><b>Host DNA not used:</b> ${esc(g.host.reason)}. Samples need at least 2,000 covered SNP sites.</div>`):''}${(g.shifts||[]).map(x=>`<div class="verdict warn"><b>Possible sample-sheet shift${x.plate?` on ${esc(x.plate)}`:''}:</b> ${x.n} tubes in a row, from position <span class="mono">${esc(x.from)}</span> to <span class="mono">${esc(x.to)}</span>, each look like the person written for the ${x.direction>0?'next':'previous'} tube. Check whether a row was skipped or added in the sample sheet.</div>`).join('')}`;
+      </div>${verdict}${g.host?(g.host.ok?`<div class="verdict ${g.rows.some(x=>x.byHost)?'warn':'good'}"><b>Host DNA (beta):</b> ${g.host.used.toLocaleString()} samples had enough host reads to check; ${g.rows.filter(x=>x.byHost).length} ${g.rows.filter(x=>x.byHost).length===1?'was':'were'} flagged because their DNA fits another person.${g.rows.some(x=>x.host&&x.host.verdict==='identical DNA')?` Some people share identical DNA (twins, or one person under two IDs); DNA cannot tell them apart.`:''}</div>`:`<div class="verdict weak"><b>Host DNA not used:</b> ${esc(g.host.reason)}. Samples need at least 1,500 covered SNP sites.</div>`):''}${(g.shifts||[]).map(x=>`<div class="verdict warn"><b>Possible sample-sheet shift${x.plate?` on ${esc(x.plate)}`:''}:</b> ${x.n} tubes in a row, from position <span class="mono">${esc(x.from)}</span> to <span class="mono">${esc(x.to)}</span>, each look like the person written for the ${x.direction>0?'next':'previous'} tube. Check whether a row was skipped or added in the sample sheet.</div>`).join('')}`;
     const list=flagged.concat(lowPower?[]:checks);
     const tw=document.createElement('div');tw.className='tablewrap';
     tw.innerHTML=list.length?`<table><thead><tr><th>Sample</th><th>Labelled as</th><th>Verdict</th><th>Evidence</th><th>Looks like</th><th>Why</th></tr></thead><tbody>${list.map(r=>{
@@ -1436,6 +1477,7 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
         :`Closest sample is <span class="mono">${esc(r.nearest)}</span> from ${esc(r.looksLike)}, not one of ${esc(r.subject)}'s own samples.`;
       if(r.rare&&r.rare.total)why+=`<span class="ev">Shares <b>${r.rare.withOther}</b> of its ${r.rare.total} rare ASVs with ${esc(r.rare.other)}'s other samples, and <b>${r.rare.withOwn}</b> with ${esc(r.subject)}'s.</span>`;
       if(r.host&&r.host.verdict==='other person')why+=`<span class="ev warnc">Host DNA: the reads at ${(r.host.sites||0).toLocaleString()} human SNP sites fit <b>${esc(r.host.looksLike)}</b> much better than ${esc(r.subject)} (log-likelihood ratio ${Number.isFinite(r.host.llr)?r.host.llr.toFixed(0):'?'}).</span>`;
+      else if(r.host&&r.host.verdict==='identical DNA')why+=`<span class="ev warnc">Host DNA: identical to <b>${esc(r.host.looksLike)}</b>. Identical twins, or one person entered under two IDs? DNA cannot tell twins apart.</span>`;
       else if(r.host&&r.host.verdict==='same person')why+=`<span class="ev">Host DNA: the reads fit ${esc(r.subject)}, the labelled person. Check whether the look-alike is a household member, a twin or a transplant donor.</span>`;
       if(r.shift)why+=`<span class="ev warnc">Part of a possible sample-sheet shift (positions ${esc(r.shift.from)} to ${esc(r.shift.to)}).</span>`;
       if(r.cohab)why+=`<span class="ev warnc">Same household (${esc(r.cohab)}) as ${esc(r.rare?r.rare.other:r.looksLike)}: people who live together share microbes${r.downgraded?', so this was moved to the check list':''}.</span>`;

@@ -6,14 +6,32 @@ fingerprint fails: newborns, heavy antibiotic use, and acute illness.
 
 SwapSeq scores each sample's host reads against every person's pooled reads from all their other samples,
 the same idea that single-cell demultiplexing uses. The person whose genotypes best explain the reads wins.
-A sample is flagged by host DNA when another person explains its reads at least e^8 (about 3,000) times
-better than the person on its label.
+Each person's match is placed between two levels read off the data itself, a stranger and the same person,
+with a first-degree relative in between. A sample is flagged only when its own label is clearly not the same
+person, another person clearly is, and that person explains its reads at least e^8 (about 3,000) times better.
+A second pass leaves samples that clearly do not fit their label out of the pools. When the label and another
+person both fit, SwapSeq reports "identical DNA" (identical twins, or one person under two IDs): DNA cannot
+tell identical twins apart.
 
-**Status.** Tested on simulated genotypes only, not yet on real samples. With a panel of 200,000 common SNPs
-and one read per covered site (40 people, 6 samples each), it caught 95% of swaps at 2,000 covered sites per
-sample and all of them from 2,500, with no false flags; at 1,500 sites it caught 25% and made one false flag in
-about 1,200 samples. SwapSeq therefore judges only samples with at least 2,000 covered sites. Treat results on
-real data as a strong lead and confirm them against lab records.
+**Status.** Tested on simulated genotypes only, not yet on real samples. A stress test (200,000-SNP panel, one
+read per covered site) covered uneven and low host DNA, few samples per person, mothers and infants, siblings,
+identical twins, two populations, a 3% read error, contamination and a 200-person cohort:
+
+| Simulated setting | Swaps caught | False flags per 1,000 |
+| --- | --- | --- |
+| 40 people x 6 samples, 3,000 covered sites | 95% | 0 |
+| Uneven host DNA (median 3,000 sites) | 45% | 0 |
+| Low host DNA (median 1,500 sites) | 15% | 0 |
+| Only 2 or 3 samples per person | 0-20% | 0 |
+| Mothers and infants, random swaps | 98% | 0.9 |
+| Swaps between mother and infant, or siblings | 53-58% | 0 |
+| Identical twins | 0% between twins | 3-7, shown as "identical DNA" |
+| Two populations, 3% read error, or contamination | 85-95% | 0 |
+| 200 people x 4 samples | 58% | 0 |
+
+With 40 people x 6 samples it caught 85% of swaps at 2,000 covered sites, 95% at 2,500-3,000 and all from 4,000.
+It works best with many samples per person and plenty of host reads; samples under 1,500 covered sites are
+not judged. Treat results on real data as a strong lead and confirm them against lab records.
 
 ## Before you start: privacy and ethics
 
@@ -75,4 +93,4 @@ res[res$flagged_by_host, c("sample", "subject", "host_looks_like", "host_llr", "
 
 The columns `host_verdict` (same person, other person, unclear or unknown), `host_looks_like`, `host_llr`
 (log likelihood ratio; above 8 means another person fits much better) and `host_sites` show the host
-evidence for every sample. A sample is judged only when it has at least 2,000 covered sites.
+evidence for every sample. A sample is judged only when it has at least 1,500 covered sites.

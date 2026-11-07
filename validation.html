@@ -509,13 +509,24 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
   <div class="prose">
     <p>Where people stop looking like themselves (newborns, heavy antibiotics, lab animals from one donor), no method based on a species or ASV table caught more than a few per cent of swaps. Shotgun data carry two more kinds of identity, and SwapSeq can now use both.</p>
     <p><b>Strain markers.</b> A presence table of strain markers, genes or SNVs (for example MetaPhlAn marker presence) is compared with the Jaccard distance, and with a second Jaccard distance in which each marker is weighted by &minus;log(prevalence), so that a shared rare marker counts for more. Only markers present in at least 2 samples and at most half of them are used. Scoring and calibration are unchanged. A test on public shotgun cohorts, including infants, is under way.</p>
-    <p><b>Host DNA (beta).</b> Shotgun reads carry some of the person's own DNA, usually one read at a few thousand common SNPs. Two single samples then rarely share sites, so, as in single-cell demultiplexing, each sample's reads are scored against every person's pooled reads from all their other samples, with Hardy&ndash;Weinberg genotype priors and a 1% read-error rate. A sample is flagged when another person explains its reads at least e<sup>8</sup> (about 3,000) times better than the labelled person.</p>
+    <p><b>Host DNA (beta).</b> Shotgun reads carry some of the person's own DNA, usually one read at a few thousand common SNPs. Two single samples then rarely share sites, so, as in single-cell demultiplexing, each sample's reads are scored against every person's pooled reads from all their other samples, with Hardy&ndash;Weinberg genotype priors and a 1% read-error rate. Each person's match is placed between two levels read off the data: a stranger and the same person, with a first-degree relative in between. A sample is flagged only when its own label is clearly not the same person, another person clearly is, and that person explains its reads at least e<sup>8</sup> (about 3,000) times better. Samples that clearly do not fit their label are left out of the pools in a second pass, so a swapped-in sample does not blur its new person&rsquo;s genotypes. When the label and another person both fit, SwapSeq reports &ldquo;identical DNA&rdquo; (identical twins, or one person under two IDs) instead of flagging.</p>
   </div>
   <div class="tablewrap" style="margin-top:14px"><table>
-    <thead><tr><th>Covered SNP sites per sample</th><th>Swaps caught</th><th>False flags per 1,000</th></tr></thead>
-    <tbody><tr><td>500 or 1,000</td><td>0%</td><td>0</td></tr><tr><td>1,500</td><td>25%</td><td>0.8</td></tr><tr><td>2,000</td><td>95%</td><td>0</td></tr><tr><td>2,500 or 4,000</td><td>100%</td><td>0</td></tr></tbody>
+    <thead><tr><th>Stress test (simulated)</th><th>Swaps caught</th><th>False flags per 1,000</th></tr></thead>
+    <tbody>
+    <tr><td>40 people &times; 6 samples, 3,000 covered sites</td><td>95%</td><td>0</td></tr>
+    <tr><td>Uneven host DNA (median 3,000 sites; 25% of samples under the minimum)</td><td>45%</td><td>0</td></tr>
+    <tr><td>Low host DNA (median 1,500 sites)</td><td>15%</td><td>0</td></tr>
+    <tr><td>Only 2 or 3 samples per person</td><td>0&ndash;20%</td><td>0</td></tr>
+    <tr><td>2 to 8 samples per person</td><td>73%</td><td>0</td></tr>
+    <tr><td>Mothers and infants, random swaps</td><td>98%</td><td>0.9</td></tr>
+    <tr><td>Swaps between mother and infant, or between siblings</td><td>53&ndash;58%</td><td>0</td></tr>
+    <tr><td>Identical twins</td><td>0% between twins</td><td>3&ndash;7; shown as &ldquo;identical DNA&rdquo;</td></tr>
+    <tr><td>Two populations; read error 3%; 10% of samples contaminated with 20&ndash;45% foreign DNA</td><td>85&ndash;95%</td><td>0</td></tr>
+    <tr><td>200 people &times; 4 samples</td><td>58%</td><td>0</td></tr>
+    </tbody>
   </table></div>
-  <div class="prose"><p class="muted">Simulation: 40 people sampled 6 times, a panel of 200,000 common SNPs, one read per covered site, 5 repeats per row. SwapSeq therefore judges only samples with at least 2,000 covered sites. Real host reads are less even than this, so treat these figures as an upper bound until the check is run on real samples. Host reads are human genetic data: use them only within your ethics approval; SwapSeq processes them on your own computer.</p></div>
+  <div class="prose"><p class="muted">Simulated genotypes at common SNPs (allele frequency 0.05&ndash;0.5, sites independent), a 200,000-SNP panel and one read per covered site, 5 repeats per row. With 40 people &times; 6 samples it caught 85% of swaps at 2,000 covered sites, 95% at 2,500&ndash;3,000 and all from 4,000, with no false flags. An earlier rule made up to 10 false flags per 1,000 with uneven DNA and few samples, and many with twins; the rule above was changed until they were gone. It works best with many samples per person and plenty of host reads, and samples under 1,500 covered sites are not judged. Real host reads are less even than this, so treat these figures as an upper bound until the check is run on real samples. Host reads are human genetic data: use them only within your ethics approval; SwapSeq processes them on your own computer.</p></div>
 </section>
 
 <section id="limits">

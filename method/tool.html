@@ -331,7 +331,7 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
       <details class="more"><summary>Host DNA from shotgun reads (optional, beta)</summary>
         <div class="hostbox">
           <label class="drop small" id="dropH"><input type="file" id="fileH" accept=".tsv,.txt,.csv"><strong>Open host_counts.tsv</strong><small>columns: sample, site, alt, total</small></label>
-          <p class="hint">Shotgun reads carry some of the person's own DNA. SwapSeq matches each sample's reads at common human SNPs to every person's other samples, which works even when microbes change too fast to identify anyone (newborns, antibiotics). Tested on simulated data so far; needs at least 2,000 covered SNP sites per sample. <b>This is human genetic data:</b> use it only within your ethics approval. Like everything here, it stays on this computer. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the file</a></p>
+          <p class="hint">Shotgun reads carry some of the person's own DNA. SwapSeq matches each sample's reads at common human SNPs to every person's other samples, which works even when microbes change too fast to identify anyone (newborns, antibiotics). Tested on simulated data so far; needs at least 1,500 covered SNP sites per sample and works best with 6 or more samples per person. <b>This is human genetic data:</b> use it only within your ethics approval. Like everything here, it stays on this computer. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the file</a></p>
           <p class="hint" id="infoH"></p>
         </div>
       </details>
@@ -405,7 +405,7 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
     <div class="panel">
       <span class="kicker">Shotgun data &middot; beta</span>
       <h3>Host DNA</h3>
-      <p>Shotgun reads carry some of the person's own DNA, which does not change when their microbes do. SwapSeq matches each sample's reads at common human SNPs to every person's other samples. In simulations it caught 95% of swaps at 2,000 covered sites per sample and all of them from 2,500, with no false flags. It is not yet tested on real samples, and it is human genetic data: use it within your ethics approval. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the input</a>.</p>
+      <p>Shotgun reads carry some of the person's own DNA, which does not change when their microbes do. SwapSeq matches each sample's reads at common human SNPs to every person's other samples. In a stress test on simulated people (uneven DNA, relatives, twins, contamination, mixed populations) it made almost no false flags and caught 85&ndash;100% of swaps with 2,000&ndash;4,000 covered SNP sites per sample and 6 samples per person, but few with only 2&ndash;3 samples per person. Identical twins cannot be told apart by DNA. It is not yet tested on real samples, and it is human genetic data: use it within your ethics approval. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the input</a>.</p>
     </div>
   </div>
 </div></section>

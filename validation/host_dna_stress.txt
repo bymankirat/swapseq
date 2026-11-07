@@ -1,0 +1,32 @@
+# Host-DNA stress test (method/host_stress.mjs), final rule
+Host-DNA check, stress test (simulated; 200,000-SNP panel; 5 repeats each)
+
+1 Baseline: 40 people x 6 samples, 3,000 sites caught  95%  right person  95%  false flags/1000   0.0  not judged 0%  identical-DNA notes 0
+2 Uneven host DNA: sites lognormal, median 3,000 caught  40%  right person  40%  false flags/1000   0.0  not judged 35%  identical-DNA notes 0
+3 Low host DNA: median 1,500 sites             caught  13%  right person  13%  false flags/1000   0.0  not judged 64%  identical-DNA notes 0
+4 Only 2 samples per person                    caught   0%  right person   0%  false flags/1000   0.0  not judged 0%  identical-DNA notes 0
+5 Only 3 samples per person                    caught  20%  right person  20%  false flags/1000   0.0  not judged 0%  identical-DNA notes 0
+6 Mixed: 2-8 samples per person                caught  73%  right person  73%  false flags/1000   0.0  not judged 0%  identical-DNA notes 0
+7 Mother-infant pairs, random swaps            caught  98%  right person  98%  false flags/1000   0.9  not judged 0%  identical-DNA notes 6
+8 Mother-infant pairs, swaps WITHIN families   caught  58%  right person  58%  false flags/1000   0.0  not judged 0%  identical-DNA notes 9
+9 Siblings, swaps within families              caught  53%  right person  53%  false flags/1000   0.0  not judged 0%  identical-DNA notes 4
+10 Identical twins, swaps within twins         caught   0%  right person   0%  false flags/1000   3.4  not judged 0%  identical-DNA notes 808
+11 Identical twins, random swaps (false flags?) caught  90%  right person  30%  false flags/1000   6.9  not judged 0%  identical-DNA notes 738
+12 Two populations (allele frequencies differ) caught  85%  right person  85%  false flags/1000   0.0  not judged 0%  identical-DNA notes 0
+13 Read error 3% (model assumes 1%)            caught  90%  right person  90%  false flags/1000   0.0  not judged 0%  identical-DNA notes 0
+14 Contamination: 10% of samples carry 20% foreign DNA caught  95%  right person  95%  false flags/1000   0.0  not judged 0%  identical-DNA notes 0
+15 Contamination: 10% of samples carry 45% foreign DNA caught  85%  right person  85%  false flags/1000   0.0  not judged 0%  identical-DNA notes 0
+16 Large cohort: 200 people x 4 samples        caught  58%  right person  58%  false flags/1000   0.0  not judged 0%  identical-DNA notes 0
+17 Bigger panel (1M SNPs), same 3,000 sites    caught  53%  right person  53%  false flags/1000   0.0  not judged 0%  identical-DNA notes 4
+
+# Uneven and low host DNA with the 1,500-site minimum
+2 Uneven host DNA: sites lognormal, median 3,000 caught  45%  right person  45%  false flags/1000   0.0  not judged 25%  identical-DNA notes 0
+3 Low host DNA: median 1,500 sites             caught  15%  right person  15%  false flags/1000   0.0  not judged 49%  identical-DNA notes 0
+
+# Coverage sweep: 40 people x 6 samples
+host coverage 1500 sites/sample (panel 200000): swaps caught 0%, false flags per 1000 0.0, unknown 1189
+host coverage 2000 sites/sample (panel 200000): swaps caught 85%, false flags per 1000 0.0, unknown 0
+host coverage 2500 sites/sample (panel 200000): swaps caught 95%, false flags per 1000 0.0, unknown 0
+host coverage 3000 sites/sample (panel 200000): swaps caught 95%, false flags per 1000 0.0, unknown 0
+host coverage 4000 sites/sample (panel 200000): swaps caught 100%, false flags per 1000 0.0, unknown 0
+host coverage 5000 sites/sample (panel 200000): swaps caught 100%, false flags per 1000 0.0, unknown 0
