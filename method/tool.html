@@ -54,7 +54,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 header .wrap{display:flex;align-items:center;gap:26px;padding-block:14px}
 .brand{display:flex;align-items:center;gap:10px;font:700 21px/1 var(--display);letter-spacing:-.02em;color:var(--ink);text-decoration:none}
 nav{display:flex;gap:22px;margin-left:auto}
-nav a{color:var(--muted);text-decoration:none;font-size:15px}
+nav a{color:var(--muted);text-decoration:none;font-size:15px;white-space:nowrap}
 nav a:hover{color:var(--ink)}
 .privacy{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--muted)}
 .privacy svg{flex:none}
@@ -64,6 +64,32 @@ nav a:hover{color:var(--ink)}
 .hero h1{font-size:clamp(42px,5.4vw,68px);line-height:1.02;font-weight:700;letter-spacing:-.022em}
 .lede{margin-top:22px;font-size:19px;line-height:1.55;color:var(--muted);max-width:34em}
 .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;align-items:center}
+.news{display:inline-flex;align-items:center;gap:10px;margin-bottom:22px;padding:6px 14px 6px 6px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-size:14px;box-shadow:0 1px 2px rgba(20,30,60,.05);max-width:100%}
+.news:hover{border-color:var(--accent)}
+.news-tag{background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:12px;padding:3px 9px;border-radius:999px;letter-spacing:.02em}
+.where{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:40px;align-items:start}
+.where-stats{display:grid;gap:14px}
+.where-stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.where-stat b{display:block;font:700 34px/1.05 var(--display);letter-spacing:-.02em}
+.where-stat span{font-size:15px;color:var(--muted)}
+.sites{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;display:grid;gap:14px}
+.site{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr) 3.2em;gap:12px;align-items:center;font-size:15px}
+.site small{display:block;color:var(--faint);font-size:12.5px}
+.sbar{height:12px;border-radius:6px;background:var(--grid);overflow:hidden;width:100%}
+.sbar i{display:block;height:100%;border-radius:6px;background:var(--accent);transform-origin:left;animation:grow 1s cubic-bezier(.2,.8,.2,1) both}
+.sbar.low i{background:var(--faint)}
+.site .pct{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.sbar i{animation:none}}
+.rbox{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:36px;align-items:center}
+.code{position:relative;background:#0F1526;color:#E6EAF5;border-radius:14px;padding:18px 20px;font:14px/1.7 var(--mono);overflow-x:auto;white-space:pre}
+.code .c{color:#8C97B4}.code .s{color:#9FE2B5}.code .f{color:#93A4FF}
+.code button{position:absolute;top:10px;right:10px;font:600 12px var(--sans);background:#1F2A4C;color:#E6EAF5;border:1px solid #34406A;border-radius:8px;padding:6px 10px;cursor:pointer}
+.versions{margin-top:28px;font-size:15px;color:var(--muted)}
+.versions summary{cursor:pointer;color:var(--ink);font-weight:600}
+.versions ul{margin:10px 0 0;padding-left:18px}
+.versions li{margin-bottom:6px}
+@media (max-width:860px){.where,.rbox{grid-template-columns:1fr;gap:24px}.site{grid-template-columns:minmax(0,1fr) 3.2em}.site .sbar{grid-column:1 / -1;grid-row:2}}
 .proof{margin-top:26px;font-size:15px;color:var(--muted);max-width:36em;padding-left:14px;border-left:3px solid var(--accent)}
 .plate-card{position:relative;margin:0}
 .plate-card svg{width:100%;height:auto;display:block;overflow:visible}
@@ -225,14 +251,15 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
   <a class="brand" href="#top" aria-label="SwapSeq home">
     <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1.5" y="1.5" width="25" height="25" rx="6" fill="none" stroke="var(--ink)" stroke-width="1.6" opacity=".35"/><circle cx="9" cy="14" r="4.6" fill="var(--accent)"/><circle cx="19" cy="14" r="4.6" fill="var(--swap)"/><path d="M8 7.2c3-3 9-3 12 0M20 20.8c-3 3-9 3-12 0" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/></svg>
     <span>SwapSeq <small>sample mix-up checker</small></span></a>
-  <nav aria-label="Sections"><a href="#check">Check your data</a><a href="#how">How it works</a><a href="#validation">Validation</a><a href="validation.html">Methods</a><a href="https://github.com/bymankirat/swapseq/issues/new/choose" target="_blank" rel="noopener">Feedback</a></nav>
-  <span class="privacy"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7.5" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.3 7V5.2a2.7 2.7 0 0 1 5.4 0V7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Your files never leave your computer</span></span>
+  <nav aria-label="Sections"><a href="#check">Check your data</a><a href="#how">How it works</a><a href="#validation">Validation</a><a href="atlas/">Atlas</a><a href="#r">R package</a><a href="validation.html">Methods</a></nav>
+  <span class="privacy"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7.5" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.3 7V5.2a2.7 2.7 0 0 1 5.4 0V7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Files stay on your computer</span></span>
 </div></header>
 
 <main id="top">
 <div class="wrap">
   <div class="hero">
     <div>
+      <a class="news" href="atlas/"><span class="news-tag">New</span><span>SwapSeq Atlas: 30 public datasets put to the test</span><span aria-hidden="true">&rarr;</span></a>
       <h1>Is every sample from the person on its label?</h1>
       <p class="lede">Tubes get swapped, labels get typed wrong, and sample sheets slip by a row. In a study where each person is sampled more than once, one mix-up quietly breaks every paired test. SwapSeq reads each person's microbial fingerprint and points to the samples that belong to someone else.</p>
       <ul class="catches" aria-label="What SwapSeq catches">
@@ -241,7 +268,7 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
         <li><svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true"><path d="M3 4h12M3 10h12M3 16h12" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/><path d="M19 5v10M19 15l-2.5-2.5M19 15l2.5-2.5" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Sample-sheet shifts</li>
       </ul>
       <div class="cta"><button class="btn primary" id="demoHero">Run the demo study</button><a class="btn ghost" href="#check">Check my own data</a></div>
-      <p class="proof">Tested on 4,732 samples from five public studies. In one of them it found a real tube swap without being told where to look.</p>
+      <p class="proof">Validated on 4,732 samples from five public studies and checked on 30 public datasets (16,336 samples) in the <a href="atlas/">SwapSeq Atlas</a>. In one study it found a real tube swap without being told where to look.</p>
     </div>
     <figure class="plate-card" id="plateCard">
       /*PLATE*/
@@ -372,6 +399,53 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
     <li><b>Your data stays on your computer.</b> Opening a file here reads it inside your browser. No server ever receives it.</li>
   </ul>
 </div></section>
+
+<section id="where"><div class="wrap">
+  <h2>Where it works</h2>
+  <p class="lede" style="max-width:46em">We hid swaps in 30 public datasets and counted how many SwapSeq caught. The answer depends mostly on where the samples come from: a person's microbes need to stay recognisable from one sample to the next.</p>
+  <div class="where" style="margin-top:26px">
+    <div class="where-stats">
+      <div class="where-stat"><b>80&ndash;100%</b><span>of hidden swaps caught in adult stool, forehead skin and vaginal swabs, with almost no false alarms</span></div>
+      <div class="where-stat"><b>12 of 30</b><span>public datasets SwapSeq can check well, catching half or more of hidden swaps</span></div>
+      <div class="where-stat"><b>&asymp;0%</b><span>in infant stool, patients on heavy antibiotics and lab mice from one donor, where no fingerprint survives. SwapSeq says so instead of guessing.</span></div>
+    </div>
+    <div class="sites" aria-label="Typical share of hidden swaps caught, by sample type">
+      <div class="site"><span>Same-stool aliquots<small>1 dataset, 1,300 samples</small></span><div class="sbar"><i style="width:90%"></i></div><span class="pct">90%</span></div>
+      <div class="site"><span>Adult stool<small>9 datasets, 2,819 samples</small></span><div class="sbar"><i style="width:80%;animation-delay:.08s"></i></div><span class="pct">80%</span></div>
+      <div class="site"><span>Vaginal swabs<small>1 dataset, 756 samples</small></span><div class="sbar"><i style="width:80%;animation-delay:.16s"></i></div><span class="pct">80%</span></div>
+      <div class="site"><span>Skin<small>2 datasets, 1,190 samples</small></span><div class="sbar"><i style="width:71%;animation-delay:.24s"></i></div><span class="pct">71%</span></div>
+      <div class="site"><span>Mouth<small>7 datasets, 3,222 samples</small></span><div class="sbar"><i style="width:47%;animation-delay:.32s"></i></div><span class="pct">47%</span></div>
+      <div class="site"><span>Hospital patients<small>1 dataset, 2,479 samples</small></span><div class="sbar low"><i style="width:1%;animation-delay:.4s"></i></div><span class="pct">1%</span></div>
+      <div class="site"><span>Infant stool<small>6 datasets, 3,773 samples</small></span><div class="sbar low"><i style="width:0.6%;animation-delay:.48s"></i></div><span class="pct">0%</span></div>
+      <div class="site"><span>Lab mice<small>3 datasets, 797 samples</small></span><div class="sbar low"><i style="width:0.6%;animation-delay:.56s"></i></div><span class="pct">0%</span></div>
+      <p class="hint" style="margin:4px 0 0">Middle dataset of each group, strong flags only. <a href="atlas/">Explore every dataset in the Atlas</a>.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="r"><div class="wrap">
+  <div class="rbox">
+    <div>
+      <h2>Use it in R</h2>
+      <p class="lede">The <a href="https://github.com/bymankirat/swapseqr" target="_blank" rel="noopener">swapseqr</a> package runs the same engine on a phyloseq object or a count matrix, so the check fits into an existing analysis script. Tested on Mac, Windows and Linux at every change.</p>
+    </div>
+    <div class="code" id="rcode"><button type="button" id="copyR">Copy</button><span class="c"># install once</span>
+<span class="f">remotes::install_github</span>(<span class="s">"bymankirat/swapseqr"</span>)
+
+<span class="c"># check a phyloseq object</span>
+res &lt;- swapseqr::<span class="f">check_swaps</span>(ps, subject = <span class="s">"subject_id"</span>)
+res[res$level != <span class="s">"ok"</span>, ]
+<span class="f">attr</span>(res, <span class="s">"power"</span>)   <span class="c"># measured on your own table</span></div>
+  </div>
+  <details class="versions"><summary>What changed in each version</summary>
+    <ul>
+      <li><b>1.1.1</b> &middot; Measured power no longer reads low when a table already holds errors.</li>
+      <li><b>1.1.0</b> &middot; Power is measured on your own table by hiding test errors in copies of your labels. Version 1.0 could show near 0% for tables it checks well.</li>
+      <li><b>1.0.1</b> &middot; Methods and validation page, feedback forms, citation details.</li>
+      <li><b>1.0.0</b> &middot; First release.</li>
+    </ul>
+  </details>
+</div></section>
 </main>
 
 <footer><div class="wrap legal">
@@ -392,6 +466,11 @@ const DEMO=/*DEMO*/;
 const VAL=/*VAL*/;
 // Hero: the plate fills column by column, a frame scans down to row E, row E opens up as tubes,
 // the tubes fill, then SwapSeq marks the tubes whose microbes do not match their cap.
+(function(){const b=document.getElementById('copyR'),box=document.getElementById('rcode');if(!b||!box)return;
+  b.addEventListener('click',()=>{const t=[...box.childNodes].filter(n=>n!==b).map(n=>n.textContent).join('').trim();
+    const ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1600)};
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(box);const s=getSelection();s.removeAllRanges();s.addRange(r)};
+    try{navigator.clipboard.writeText(t).then(ok,sel)}catch(e){sel()}})})();
 (function(){const card=document.getElementById('plateCard');if(!card)return;const svg=card.querySelector('svg');if(!svg)return;
   const wells=[...svg.querySelectorAll('.pw')],liq=[...svg.querySelectorAll('.liq')],box=svg.querySelector('.scanbox'),cap=document.getElementById('plateCap');
   const zoom=()=>card.classList.add('zoomed');
