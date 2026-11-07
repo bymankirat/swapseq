@@ -39,7 +39,7 @@ body:
     id: version
     attributes:
       label: SwapSeq version
-      value: v1.0.1
+      value: v1.1.0
   - type: checkboxes
     id: privacy
     attributes:

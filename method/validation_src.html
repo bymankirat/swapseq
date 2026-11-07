@@ -89,7 +89,7 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
 
 <main><div class="wrap">
 <div class="dhero">
-  <span class="eyebrow">SwapSeq v1.0.1 · Methods and validation</span>
+  <span class="eyebrow">SwapSeq v1.1.0 · Methods and validation</span>
   <h1>How SwapSeq works, and how well</h1>
   <p>SwapSeq checks whether each sample in a longitudinal microbiome study came from the person on its label. This page sets out the method, the public data it was tested on, how errors were planted, and every result, including where it does poorly.</p>
   <div class="stats">
@@ -136,7 +136,7 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
     <li><div><h3>Learn what an error looks like in this study</h3>
       <p class="where">The same score means different things on tongue swabs and on stool, or with daily and monthly sampling. So SwapSeq plants errors in a copy of the user's own labels, between 300 and 1,500 one-way relabels and as many reciprocal swaps, and records their scores. With <i>f<sub>1</sub></i> the density of planted-error scores and <i>g</i> the density of all observed scores:</p>
       <div class="eq">P(error | s) = min( 1, π · f<sub>1</sub>(s) ⁄ g(s) ) &nbsp;&nbsp; π = 1% expected error rate</div>
-      <p class="where">Densities are Gaussian kernel estimates. P is made non-decreasing in the score, but only where observed scores actually lie, so a gap in the tail cannot create a false spike. The share of planted errors that would reach a strong flag is reported as the study's power, so a user knows when a clean result means little.</p>
+      <p class="where">Densities are Gaussian kernel estimates. P is made non-decreasing in the score, but only where observed scores actually lie, so a gap in the tail cannot create a false spike. Version 1.0 reported the share of planted scores that would reach a strong flag as the study's power. Version 1.1 instead measures power by hiding test errors in copies of the labels and rerunning the check (see Validation).</p>
       <div class="levels"><div class="panel box"><b>Strong flag</b><p>Kernel probability ≥ 0.5. Built for near-zero false alarms.</p></div><div class="panel box"><b>Check list</b><p>A logistic fit of the same ratio ≥ 0.5, or kernel probability ≥ 0.2. Catches more, with some natural look-alikes. Hidden when fewer than 8 people have two or more samples.</p></div></div></div></li>
     <li><div><h3>Evidence for each flag</h3>
       <ul>
@@ -188,8 +188,9 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
     <div class="tablewrap"><table class="val" id="valTable"></table></div>
   </details>
 
-  <h3 style="margin-top:36px">The power estimate tells the truth</h3>
-  <div class="prose" style="margin-top:8px"><p class="muted">Every run reports how many swaps SwapSeq could catch in that study. Across the 13 tables, that self-estimate sits close to the catch rate measured independently with the planted errors above. In the infant and mouse controls both are near zero, so a clean report there comes with a warning rather than false comfort.</p></div>
+  <h3 style="margin-top:36px">Power is now measured on your own table (version 1.1)</h3>
+  <div class="prose" style="margin-top:8px"><p class="muted">Every run reports how many swaps SwapSeq could catch in that study. In version 1.0 this figure was read off the calibration. It matched the measured catch rate when a table already held errors (the 13 benchmark tables below, within 7 points on average), but on clean tables it could read close to 0% for a table SwapSeq checks well. The SwapSeq Atlas found this across 30 public tables in November 2026.</p>
+  <p class="muted">Version 1.1 measures power directly: it hides one swap or one relabel at a time in copies of the user's labels, reruns the full check on the same distances, and counts what is caught. Against a separate measurement on the same 30 tables, the average gap on clean labels fell from 31 to 9 points, and no table SwapSeq checks well is shown below 20%. When a table already holds 1-2% errors, the 1.1 figure reads a little low (average gap 11 points, against 7 for 1.0), because the hidden tests add to the errors already there. It adds a few seconds to a typical run of a few hundred samples, and one to two minutes for 2,000 or more.</p></div>
   <div class="panel valchart chartwrap" id="powerChart"></div>
 
   <h3 style="margin-top:36px">Where it is weaker</h3>
@@ -197,7 +198,7 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
     <li><b>Tongue and palm.</b> Single mislabels: 13% and 10% strongly flagged, 60% and 47% with the check list.</li>
     <li><b>IMP mislabels.</b> 12% strongly flagged, 48% with the check list, where Bray-Curtis flagged 23%. One of the few places the baseline does better.</li>
     <li><b>Before/after with two samples each.</b> With only two samples, a swap makes both people inconsistent and SwapSeq can name the two people more reliably than the tube. In the diet study's two-per-person design nothing reached a strong flag; 42% reached the check list.</li>
-    <li><b>Check list in low-signal data.</b> In infants and mice the check list carries 13–16 false entries per 1,000 samples. The power estimate is near zero there, and the tool says so.</li>
+    <li><b>Check list in low-signal data.</b> In infants and mice the check list carries 13–16 false entries per 1,000 samples. Measured power is near zero there, and the tool says so.</li>
   </ul></div>
 </section>
 
@@ -279,7 +280,7 @@ node method/realswap.mjs       # the real diet-study swap</pre>
 <section id="cite">
   <span class="secno">12</span><h2>Cite and references</h2>
   <div class="panel cite">
-    <p id="citeText">Singh M. (2026). <i>SwapSeq: a sample mix-up checker for longitudinal microbiome studies</i> (v1.0.1). Zenodo. https://doi.org/10.5281/zenodo.23963612</p>
+    <p id="citeText">Singh M. (2026). <i>SwapSeq: a sample mix-up checker for longitudinal microbiome studies</i> (v1.1.0). Zenodo. https://doi.org/10.5281/zenodo.23963612</p>
     <div class="actions"><button class="btn ghost small" type="button" id="copyCite">Copy citation</button><span class="copied" id="copied" hidden>Copied</span><a href="https://doi.org/10.5281/zenodo.23963612" target="_blank" rel="noopener">doi:10.5281/zenodo.23963612</a><a href="https://orcid.org/0009-0005-3375-2123" target="_blank" rel="noopener">ORCID 0009-0005-3375-2123</a><a href="https://bio.tools/swapseq" target="_blank" rel="noopener">biotools:swapseq</a><a href="https://scicrunch.org/resolver/RRID:SCR_029248" target="_blank" rel="noopener">RRID:SCR_029248</a></div>
   </div>
   <h3 style="margin-top:28px;margin-bottom:12px">Studies and methods</h3>
@@ -318,7 +319,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
   g+=`<text x="${(L+W-R)/2}" y="${H-10}" text-anchor="middle" fill="var(--muted)">Power SwapSeq reported for the study</text><text transform="translate(16 ${(T+H-B)/2}) rotate(-90)" text-anchor="middle" fill="var(--muted)">Swapped samples actually flagged</text>`;
   const lab=new Set(['SMP gut','ECAM infants','IMP gut','Diet, 2 per person','SMP forehead, 2 per person']);
   for(const p of pts){g+=`<g class="sp" data-name="${esc(p.name)}" data-x="${P(p.x)}" data-y="${P(p.y)}" data-n="${p.n}"><circle class="hit" cx="${X(p.x)}" cy="${Y(p.y)}" r="14"/><circle class="pt" cx="${X(p.x)}" cy="${Y(p.y)}" r="6.5"/>${lab.has(p.name)?`<text x="${X(p.x)+(p.name==='IMP gut'?-11:11)}" y="${Y(p.y)+(p.name==='ECAM infants'?-10:4)}" text-anchor="${p.name==='IMP gut'?'end':'start'}" fill="var(--ink)" font-size="12.5">${esc(p.name)}</text>`:''}</g>`}
-  host.innerHTML=`<h3>Estimated power matches measured power, on average within ${Math.round(mad*100)} points</h3><p class="hint">One point per table. Point at one for its numbers.</p><div class="map-wrap scatter"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Self-estimated power against measured swap detection for 13 tables" font-family="var(--sans)" font-size="13">${g}</svg><div class="tip" hidden></div></div>`;
+  host.innerHTML=`<h3>Version 1.0, tables holding planted errors: estimate within ${Math.round(mad*100)} points of measured power</h3><p class="hint">One point per table. Point at one for its numbers.</p><div class="map-wrap scatter"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Self-estimated power against measured swap detection for 13 tables" font-family="var(--sans)" font-size="13">${g}</svg><div class="tip" hidden></div></div>`;
   const tip=host.querySelector('.tip'),wrap=host.querySelector('.map-wrap');
   wrap.addEventListener('pointermove',e=>{const r=e.target.closest('.sp');wrap.querySelectorAll('.sp.on').forEach(x=>x!==r&&x.classList.remove('on'));if(!r){tip.hidden=true;return}r.classList.add('on');
     tip.innerHTML=`<b>${r.dataset.name}</b><br>${r.dataset.n} samples<br>Reported power: ${r.dataset.x}<br>Measured: ${r.dataset.y} flagged`;tip.hidden=false;

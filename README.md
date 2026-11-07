@@ -79,6 +79,7 @@ folder, point `SWAPSEQ_DATA` at it, then run for example
 
 ## Changes
 
+- **v1.1.0** – Power is now measured on your own table: SwapSeq hides one swap or relabel at a time in copies of your labels, reruns the check and reports how many it caught. In 1.0 the power figure could read near 0% on clean tables that SwapSeq checks well; across 30 public tables (the SwapSeq Atlas) the average gap to an independent measurement fell from 31 to 9 points. Flags and probabilities are unchanged (method v3).
 - **v1.0.1** – Public Methods & validation page, feedback and problem-report forms, citation details. Method unchanged (method v3).
 - **v1.0.0** – First release.
 
@@ -90,7 +91,7 @@ used for diagnosis or clinical decisions.
 
 ## How to cite
 
-Singh M. (2026). *SwapSeq: a sample mix-up checker for longitudinal microbiome studies* (v1.0.1). Zenodo. https://doi.org/10.5281/zenodo.23963612
+Singh M. (2026). *SwapSeq: a sample mix-up checker for longitudinal microbiome studies* (v1.1.0). Zenodo. https://doi.org/10.5281/zenodo.23963612
 
 Registered in bio.tools as [biotools:swapseq](https://bio.tools/swapseq) and in the SciCrunch Registry as [RRID:SCR_029248](https://scicrunch.org/resolver/RRID:SCR_029248). In papers, please cite it as *SwapSeq (RRID:SCR_029248)* together with the DOI.
 

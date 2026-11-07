@@ -231,6 +231,38 @@ export function analyse(data,lab,opt={},M=null){
   return {rows,pairs,power,prior,errorRate:{single:Ps.pi,swap:Pp.pi},threshold:thr,aitFeat:M.aitFeat,nSubjects:new Set(lab).size,nScorable:rows.filter(r=>r.scorable).length,planted:pl};
 }
 
+// ---------- measured power (v1.1) ----------
+// How often would SwapSeq catch an error in THIS table? Measured, not modelled: hide a few real
+// errors in a copy of the user's labels, rerun the full check on the same distances with the same
+// settings, and count what is caught. Each copy gets either swaps or one-way relabels (alternating),
+// about 0.2% of samples and at least one, so the copy stays close to the user's own table; they are
+// drawn from people with 3+ samples and never from samples already flagged. Fixed seeds, so the
+// answer is repeatable. Replaces the v1.0 estimate read off the planted-score calibration, which on
+// clean tables could show near 0% while the real catch rate was over 80% (SwapSeq Atlas, Nov 2026).
+export function measurePower(data,lab,res,M,opt={}){
+  const n=data.samples.length,ok=scorable(lab),reps=opt.reps??(n<300?40:n<1500?20:6);
+  const base=new Set(res.rows.filter(r=>r.level!=='ok').map(r=>r.i));
+  const cnt=new Map();lab.forEach(l=>cnt.set(l,(cnt.get(l)||0)+1));
+  const idx=[];for(let i=0;i<n;i++)if(ok[i]&&!base.has(i)&&cnt.get(lab[i])>=3)idx.push(i);
+  const k=Math.max(1,Math.round(n*.002));
+  if(idx.length<8*k||new Set(idx.map(i=>lab[i])).size<3)return null;
+  let s=0,s2=0,sN=0,o=0,o2=0,oN=0,fp=0,fpN=0;
+  for(let rep=0;rep<reps;rep++){
+    if(opt.progress)opt.progress(`Measuring power: hidden test ${rep+1} of ${reps}`);
+    const R=rng(9001+rep*7919),L=lab.slice(),used=new Set(),swaps=[],ones=[],doSwap=rep%2===0;
+    const pick=()=>{for(let t=0;t<100000;t++){const i=idx[Math.floor(R()*idx.length)];if(!used.has(i))return i}return -1};
+    let guard=0;
+    if(doSwap)while(swaps.length<k&&guard++<10000){const a=pick(),b=pick();if(a<0||b<0||a===b||L[a]===L[b])continue;[L[a],L[b]]=[L[b],L[a]];used.add(a);used.add(b);swaps.push([a,b])}
+    else while(ones.length<k&&guard++<10000){const a=pick(),b=pick();if(a<0||b<0||a===b||L[a]===L[b])continue;L[a]=L[b];used.add(a);used.add(b);ones.push(a)}
+    const r=analyse(data,L,{prior:res.prior,seed:rep+3,visit:opt.visit},M);
+    for(const [a,b] of swaps)for(const x of [a,b]){sN++;if(r.rows[x].flag)s++;if(r.rows[x].level!=='ok')s2++}
+    for(const a of ones){oN++;if(r.rows[a].flag)o++;if(r.rows[a].level!=='ok')o2++}
+    const planted=new Set(swaps.flat().concat(ones));
+    for(let i=0;i<n;i++){if(planted.has(i)||base.has(i)||!r.rows[i].scorable)continue;fpN++;if(r.rows[i].flag)fp++}}
+  if(!sN)return null;
+  return {single:oN?o/oN:NaN,swap:s/sN,singleWithCheck:oN?o2/oN:NaN,swapWithCheck:s2/sN,falseFlagsPer1000:fpN?1000*fp/fpN:NaN,reps,tests:{swapped:sN,relabelled:oN},measured:true};
+}
+
 // ---------- explaining flags ----------
 // Plate wells like A1, A01, h12 -> {r, c, name}
 export function parseWell(w){const m=String(w??'').trim().toUpperCase().match(/^([A-P])\s*0?(\d{1,2})$/);if(!m)return null;const c=+m[2];if(c<1||c>48)return null;return {r:m[1].charCodeAt(0)-65,c:c-1,name:m[1]+String(c).padStart(2,'0')}}

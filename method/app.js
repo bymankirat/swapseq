@@ -7,7 +7,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const fmtPct=v=>Number.isFinite(v)?Math.round(v*100)+'%':'–';
 // prefilled GitHub issue: error text, browser and version only, never the user's data
 function reportLink(msg){const ua=navigator.userAgent.replace(/\s+/g,' ').slice(0,180);
-  const u='https://github.com/bymankirat/swapseq/issues/new?template=bug_report.yml&title='+encodeURIComponent('Problem: '+msg.slice(0,60))+'&error='+encodeURIComponent(msg)+'&browser='+encodeURIComponent(ua)+'&version=v1.0.1';
+  const u='https://github.com/bymankirat/swapseq/issues/new?template=bug_report.yml&title='+encodeURIComponent('Problem: '+msg.slice(0,60))+'&error='+encodeURIComponent(msg)+'&browser='+encodeURIComponent(ua)+'&version=v1.1.0';
   return ` <a href="${u}" target="_blank" rel="noopener">Report this problem</a>`}
 function setStatus(msg,err){$('status').innerHTML=err?`<span class="err">${esc(msg)}</span>${/^(Open |No samples have)/.test(msg)?'':reportLink(msg)}`:esc(msg)}
 
@@ -126,6 +126,7 @@ function getWorker(){if(worker)return worker;
       const progress=m=>self.postMessage({type:'progress',msg:(groups.length>1?g.name+': ':'')+m});
       if(scorable(g.lab).filter(Boolean).length<4){out.push({name:g.name,skipped:'Fewer than 4 samples belong to people with two or more samples.'});continue}
       const M=distances(data,progress);const r=annotate(data,g.lab,analyse(data,g.lab,{prior,progress},M),{house:g.house,well:g.well,plate:g.plate});
+      const mp=measurePower(data,g.lab,r,M,{progress});r.power=mp||{single:NaN,swap:NaN,singleWithCheck:NaN,swapWithCheck:NaN,measured:false};
       progress('Drawing the sample map');const map=g.samples.length<=3000?pcoa(M.J,g.samples.length,40):null;
       const pos=r.planted.pair.filter(Number.isFinite),obs=r.rows.map(x=>x.pair).filter(Number.isFinite);
       out.push({name:g.name,map:map?{x:Array.from(map.x),y:Array.from(map.y),share:map.share}:null,rows:r.rows,pairs:r.pairs,shifts:r.shifts||[],power:r.power,nSubjects:r.nSubjects,nScorable:r.nScorable,aitFeat:r.aitFeat,
@@ -159,9 +160,9 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
     if(g.skipped){el.innerHTML=`<h3 style="margin-bottom:8px">${esc(g.name)}</h3><div class="verdict weak">Not checked: ${esc(g.skipped)}</div>`;box.appendChild(el);continue}
     const flagged=g.rows.filter(r=>r.level==='flag').sort((a,b)=>b.prob-a.prob),checks=g.rows.filter(r=>r.level==='check').sort((a,b)=>Math.max(b.broad,b.prob)-Math.max(a.broad,a.prob));
     const unscored=g.rows.filter(r=>!r.scorable).length,pw=g.power.swap,pw1=g.power.single,pwc=g.power.swapWithCheck,pw1c=g.power.singleWithCheck;
-    const fPairs=g.pairs.filter(p=>p.level==='flag').length,cPairs=g.pairs.length-fPairs,nPeople=new Set(g.rows.filter(r=>r.scorable).map(r=>r.subject)).size,fewPeople=nPeople<8,lowPower=pwc<.25||fewPeople;
+    const fPairs=g.pairs.filter(p=>p.level==='flag').length,cPairs=g.pairs.length-fPairs,nPeople=new Set(g.rows.filter(r=>r.scorable).map(r=>r.subject)).size,fewPeople=nPeople<8,noPower=!g.power.measured,lowPower=noPower||pwc<.25||fewPeople;
     let verdict;
-    if(fewPeople)verdict=`<div class="verdict weak"><b>Too few people to calibrate.</b> Only ${nPeople} people have two or more samples. SwapSeq learns what an error looks like by swapping labels between people, and with fewer than 8 its power estimate is unreliable (in our benchmark, 5 mice gave an estimate of 36% when the real rate was 3%). Strong flags are still shown; the check list is hidden.</div>`;
+    if(fewPeople||noPower)verdict=`<div class="verdict weak"><b>Too few people to check well.</b> ${fewPeople?`Only ${nPeople} people have two or more samples.`:'Too few people have three or more samples to hide test errors in.'} SwapSeq learns what an error looks like by swapping labels between people and measures its power the same way, so with this few people a clean result proves little. Strong flags are still shown; the check list is hidden.</div>`;
     else if(lowPower)verdict=`<div class="verdict weak"><b>Low power in this dataset.</b> Even with the check list, only about ${fmtPct(pwc)} of planted swaps could be told apart from normal variation, so a clean result here does not prove the labels are right, and the check list below is mostly natural look-alikes. This is expected for infants, low-biomass sites and very shallow sequencing.</div>`;
     else if(flagged.length)verdict=`<div class="verdict warn"><b>${flagged.length} sample${flagged.length>1?'s':''} flagged${fPairs?`, including ${fPairs} likely swap${fPairs>1?'s':''}`:''}${checks.length?`, plus ${checks.length} to check`:''}.</b> Flags carry strong evidence. In this dataset SwapSeq flags about ${fmtPct(pw)} of swapped tubes, and ${fmtPct(pwc)} counting the check list.</div>`;
     else if(checks.length)verdict=`<div class="verdict weak"><b>No strong flags, ${checks.length} sample${checks.length>1?'s':''} to check.</b> These look somewhat like another person. Some will be natural look-alikes (people who live together, unusual samples), so compare them with lab records before changing anything.</div>`;
@@ -170,8 +171,8 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
       <div class="tiles">
         <div class="panel tile"><div class="label">Samples checked</div><div class="v">${g.nScorable.toLocaleString()}</div><div class="d">${g.nSubjects} people${unscored?`, ${unscored} with a single sample not checked`:''}</div></div>
         <div class="panel tile"><div class="label">Flagged, and to check</div><div class="v"><span style="color:${flagged.length?'var(--swap)':'var(--ok)'}">${flagged.length}</span> <span style="color:var(--mis);font-size:.7em">+ ${checks.length}</span></div><div class="d">${fPairs} flagged swap pair${fPairs===1?'':'s'}${cPairs?`, ${cPairs} possible`:''}</div></div>
-        <div class="panel tile"><div class="label">Catches swaps</div><div class="v">${fmtPct(pwc)}</div><div class="d">${fmtPct(pw)} as strong flags, estimated on errors planted in your data</div></div>
-        <div class="panel tile"><div class="label">Catches mislabels</div><div class="v">${fmtPct(pw1c)}</div><div class="d">${fmtPct(pw1)} as strong flags, for one sample under the wrong person</div></div>
+        <div class="panel tile"><div class="label">Catches swaps</div><div class="v">${fmtPct(pwc)}</div><div class="d">${fmtPct(pw)} as strong flags. Measured: we hid ${g.power.tests?g.power.tests.swapped:'–'} swapped samples in copies of your labels</div></div>
+        <div class="panel tile"><div class="label">Catches mislabels</div><div class="v">${fmtPct(pw1c)}</div><div class="d">${fmtPct(pw1)} as strong flags, for one sample under the wrong person (${g.power.tests?g.power.tests.relabelled:'–'} hidden tests)</div></div>
       </div>${verdict}${(g.shifts||[]).map(x=>`<div class="verdict warn"><b>Possible sample-sheet shift${x.plate?` on ${esc(x.plate)}`:''}:</b> ${x.n} tubes in a row, from position <span class="mono">${esc(x.from)}</span> to <span class="mono">${esc(x.to)}</span>, each look like the person written for the ${x.direction>0?'next':'previous'} tube. Check whether a row was skipped or added in the sample sheet.</div>`).join('')}`;
     const list=flagged.concat(lowPower?[]:checks);
     const tw=document.createElement('div');tw.className='tablewrap';
@@ -206,9 +207,9 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
   $('results').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove()}
-const VERSION='SwapSeq method v3';
+const VERSION='SwapSeq 1.1.0 (method v3)';
 function methodsText(g,prior){const f=g.rows.filter(r=>r.level==='flag').length,c=g.rows.filter(r=>r.level==='check').length,fp=g.pairs.filter(p=>p.level==='flag').length;
-  return `Sample identity was checked with ${VERSION} (soft Jaccard and Aitchison fingerprints, calibrated on errors planted in this dataset; expected mislabel rate ${prior*100}%). Of ${g.nScorable} samples from ${g.nSubjects} participants${g.name!=='All samples'?` (${g.name})`:''}, ${f} ${f===1?'was':'were'} flagged with strong evidence${fp?` (${fp} reciprocal swap${fp===1?'':'s'})`:''} and ${c} listed for checking against laboratory records. Estimated detection in this dataset: ${fmtPct(g.power.swapWithCheck)} of swapped tubes and ${fmtPct(g.power.singleWithCheck)} of single mislabels (${fmtPct(g.power.swap)} and ${fmtPct(g.power.single)} as strong flags) (Singh 2026, https://doi.org/10.5281/zenodo.23963612).`}
+  return `Sample identity was checked with ${VERSION} (soft Jaccard and Aitchison fingerprints, calibrated on errors planted in this dataset; expected mislabel rate ${prior*100}%). Of ${g.nScorable} samples from ${g.nSubjects} participants${g.name!=='All samples'?` (${g.name})`:''}, ${f} ${f===1?'was':'were'} flagged with strong evidence${fp?` (${fp} reciprocal swap${fp===1?'':'s'})`:''} and ${c} listed for checking against laboratory records. Measured detection in this dataset, from errors hidden in copies of the labels: ${fmtPct(g.power.swapWithCheck)} of swapped tubes and ${fmtPct(g.power.singleWithCheck)} of single mislabels (${fmtPct(g.power.swap)} and ${fmtPct(g.power.single)} as strong flags) (Singh 2026, https://doi.org/10.5281/zenodo.23963612).`}
 function toTSV(g){const h=['sample','labelled_as','level','verdict','p_strict','p_broad','p_mislabel','p_swap','looks_like','nearest_sample','swap_partner','partner_labelled_as','rare_asvs','rare_shared_with_look_alike','rare_shared_with_own','well','same_household','mismatch_score','swap_score'];
   const f=v=>Number.isFinite(v)?(+v).toFixed(4):'',pairOf=id=>g.pairs.find(p=>p.a===id||p.b===id);
   const head=[`# ${VERSION} QC audit`,`# file: ${st.tableName}; group: ${g.name}; date: ${new Date().toISOString().slice(0,10)}`,`# columns used: ${Object.entries(st.lastCols||{}).filter(([k,v])=>v).map(([k,v])=>k+'='+v).join(', ')}`,`# ${methodsText(g,+$('prior').value)}`];
