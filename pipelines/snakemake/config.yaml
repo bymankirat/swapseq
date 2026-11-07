@@ -1,0 +1,4 @@
+table: feature-table.tsv
+metadata: metadata.tsv
+subject: subject_id
+type: counts

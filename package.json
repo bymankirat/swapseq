@@ -1,0 +1,16 @@
+{
+  "name": "swapseq",
+  "version": "1.2.0",
+  "description": "Finds swapped and mislabelled samples in longitudinal microbiome studies from each person's microbial fingerprint (and, optionally, host DNA).",
+  "type": "module",
+  "bin": { "swapseq": "cli/swapseq.mjs" },
+  "files": ["cli/", "method/core.mjs", "LICENSE", "README.md"],
+  "engines": { "node": ">=18" },
+  "license": "GPL-3.0-or-later",
+  "author": "Mankirat Singh (https://orcid.org/0009-0005-3375-2123)",
+  "homepage": "https://bymankirat.github.io/swapseq/",
+  "repository": { "type": "git", "url": "git+https://github.com/bymankirat/swapseq.git" },
+  "bugs": { "url": "https://github.com/bymankirat/swapseq/issues" },
+  "keywords": ["microbiome", "bioinformatics", "quality-control", "sample-swap", "16S", "metagenomics", "qiime2"],
+  "scripts": { "test": "node cli/test.mjs" }
+}

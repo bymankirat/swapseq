@@ -26,6 +26,26 @@ remotes::install_github("bymankirat/swapseqr")
 res <- swapseqr::check_swaps(ps, subject = "subject_id")
 ```
 
+**On the command line and in pipelines** (Node.js 18 or newer, nothing else to install):
+
+```bash
+npx github:bymankirat/swapseq feature-table.tsv metadata.tsv --subject subject_id
+```
+
+It writes `swapseq.tsv` (one row per sample) and `swapseq.json` (summary, measured power and a Methods
+sentence). Add `--fail-on-flags` to stop a pipeline when a sample is strongly flagged. Ready-made
+[Nextflow](pipelines/nextflow/main.nf) and [Snakemake](pipelines/snakemake/Snakefile) steps are in
+`pipelines/`. Run `npx github:bymankirat/swapseq --help` for every option.
+
+**Shotgun data (new in 1.2, R and command line):**
+
+- Strain markers (command line `--type markers`, R `type = "markers"`) compare samples on strain markers, genes or SNVs, for example
+  MetaPhlAn marker presence, instead of species.
+- Host DNA (command line `--host host_counts.tsv`, R `host =`) adds an independent check from the host's own DNA in the reads,
+  which works where microbes change too fast to identify anyone (newborns, antibiotics). Tested in simulation
+  so far; see [docs/host-dna.md](docs/host-dna.md) for how to make the input and the privacy rules for human
+  genetic data.
+
 ## What it reports
 
 - **Strong flags** – samples that very likely belong to someone else, with the likely swap partner.
@@ -46,7 +66,7 @@ res <- swapseqr::check_swaps(ps, subject = "subject_id")
    probabilities at two levels (flag and check).
 5. Sample-sheet shift scan along plate wells or plating order.
 
-Code: `method/core.mjs` (the same code runs in the page).
+Code: `method/core.mjs` (the same code runs in the page, in R and on the command line).
 
 ## Validation
 
@@ -82,6 +102,7 @@ folder, point `SWAPSEQ_DATA` at it, then run for example
 
 ## Changes
 
+- **v1.2.0** – Command-line tool (`npx github:bymankirat/swapseq`) with Nextflow and Snakemake examples. Strain-marker mode for shotgun tables. Host-DNA check: each sample's host reads at common SNPs are scored against every person's pooled reads; in simulation it caught 95% of swaps at 2,000 covered sites per sample and all from 2,500, with no false flags (not yet tested on real data). Counts mode is unchanged: the same flags, probabilities and power as 1.1.1. The web page stays on 1.1.1 for now. Tested and not adopted: time-aware fingerprints for infants and antibiotics (strong flags on hard tables 2.6% → 4.2%, but 13 times more false check-list entries).
 - **v1.1.1** – Measured power no longer reads low when a table already holds errors: near-certain flags (P ≥ 0.9) are set aside before the hidden tests. Average gap to an independent measurement on tables with 1–2% errors: 9 points (1.1.0: 11; 1.0: 7); on clean tables unchanged at 9 (1.0: 31).
 - **v1.1.0** – Power is now measured on your own table: SwapSeq hides one swap or relabel at a time in copies of your labels, reruns the check and reports how many it caught. In 1.0 the power figure could read near 0% on clean tables that SwapSeq checks well; across 30 public tables (the SwapSeq Atlas) the average gap to an independent measurement fell from 31 to 9 points. Flags and probabilities are unchanged (method v3).
 - **v1.0.1** – Public Methods & validation page, feedback and problem-report forms, citation details. Method unchanged (method v3).
@@ -95,7 +116,7 @@ used for diagnosis or clinical decisions.
 
 ## How to cite
 
-Singh M. (2026). *SwapSeq: a sample mix-up checker for longitudinal microbiome studies* (v1.1.1). Zenodo. https://doi.org/10.5281/zenodo.23963612
+Singh M. (2026). *SwapSeq: a sample mix-up checker for longitudinal microbiome studies* (v1.2.0). Zenodo. https://doi.org/10.5281/zenodo.23963612
 
 Registered in bio.tools as [biotools:swapseq](https://bio.tools/swapseq) and in the SciCrunch Registry as [RRID:SCR_029248](https://scicrunch.org/resolver/RRID:SCR_029248). In papers, please cite it as *SwapSeq (RRID:SCR_029248)* together with the DOI.
 

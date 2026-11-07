@@ -341,3 +341,67 @@ export function pcoa(D,n,iters=50){
     vecs.push(v);vals.push(lam)}
   return {x:Float32Array.from(vecs[0],v=>v*Math.sqrt(vals[0])),y:Float32Array.from(vecs[1],v=>v*Math.sqrt(vals[1])),share:vals.map(l=>trace>0?l/trace:0)};
 }
+
+// ===================== SwapSeq 1.2: strain-level fingerprints and host DNA =====================
+// ---------- strain-level fingerprints ----------
+// Input: the usual sparse table, where a feature is a strain marker, gene or SNV and any value > 0 means present.
+// Only informative markers are used: present in at least 2 samples and in at most half of them (markers that
+// everybody carries say nothing about who a sample came from). Two distances:
+//   J: Jaccard on presence
+//   A: Jaccard where each marker is weighted by -log(prevalence), so sharing a rare marker counts for more
+export function markerDistances(data,opt={}){
+  const S=data.samples,n=S.length,F=data.feats.length,maxPrev=opt.maxPrev??0.5,minPrev=opt.minPrev??2;
+  const prev=new Int32Array(F);for(const s of S)for(let k=0;k<s.idx.length;k++)if(s.val[k]>0)prev[s.idx[k]]++;
+  const use=new Uint8Array(F);let nUse=0;for(let f=0;f<F;f++)if(prev[f]>=minPrev&&prev[f]<=maxPrev*n){use[f]=1;nUse++}
+  const w=new Float64Array(F);for(let f=0;f<F;f++)if(use[f])w[f]=-Math.log(prev[f]/n);
+  const P=S.map(s=>{const I=[];for(let k=0;k<s.idx.length;k++)if(s.val[k]>0&&use[s.idx[k]])I.push(s.idx[k]);I.sort((a,b)=>a-b);let t=0,tw=0;for(const f of I){t++;tw+=w[f]}return {I:Int32Array.from(I),t,tw}});
+  const J=new Float32Array(n*n),A=new Float32Array(n*n);
+  for(let a=0;a<n;a++){const X=P[a];for(let b=a+1;b<n;b++){const Y=P[b];let i=0,j=0,c=0,cw=0;
+    while(i<X.I.length&&j<Y.I.length){const x=X.I[i],y=Y.I[j];if(x===y){c++;cw+=w[x];i++;j++}else if(x<y)i++;else j++}
+    const u=X.t+Y.t-c,uw=X.tw+Y.tw-cw;J[a*n+b]=J[b*n+a]=u>0?1-c/u:1;A[a*n+b]=A[b*n+a]=uw>0?1-cw/uw:1}}
+  return {J,A,aitFeat:nUse,mode:'markers',markers:nUse};
+}
+
+// ---------- host DNA ----------
+// Shotgun reads from stool, swabs or saliva carry some of the person's own DNA. Read alleles at common SNPs
+// identify a person however much their microbes change (newborns, antibiotics, illness). Host coverage is
+// usually very low (one read at a few thousand sites), so two single samples rarely share sites. Instead, as
+// in single-cell demultiplexing, each sample's reads are scored against every person's POOLED reads (all
+// their other samples together, leave-one-out), and the person whose genotypes best explain the reads wins.
+// Input G: one entry per sample (table order), a Map site -> [altReads, totalReads] (or a number in [0,1],
+// read as one read). Population allele frequencies are estimated from all samples unless opt.af is given.
+export function hostCheck(G,lab,opt={}){
+  const n=lab.length,e=opt.errorRate??0.01,minSites=opt.minSites??2000;
+  const rd=v=>Array.isArray(v)?[+v[0],+v[1]]:[Number(v)>=.5?1:0,1];
+  const people=[...new Set(lab)],pid=new Map(people.map((p,k)=>[p,k]));
+  const pool=people.map(()=>new Map()),glob=new Map();
+  const reads=G.map(g=>{const o=[];if(g)for(const [k,v] of g){const [a,t]=rd(v);if(t>0)o.push([+k,a,t])}return o});
+  reads.forEach((r,i)=>{const P=pool[pid.get(lab[i])];for(const [k,a,t] of r){const c=P.get(k)||[0,0];c[0]+=a;c[1]+=t;P.set(k,c);const g=glob.get(k)||[0,0];g[0]+=a;g[1]+=t;glob.set(k,g)}});
+  const afOf=k=>{if(opt.af&&opt.af.has(k))return Math.min(.99,Math.max(.01,opt.af.get(k)));const g=glob.get(k);return g?Math.min(.95,Math.max(.05,(g[0]+1)/(g[1]+2))):.5};
+  // predictive probability that a read from person S at site k shows the alt allele, given S's pooled reads (A of T)
+  const pred=(k,A,T)=>{const f=afOf(k),pr=[(1-f)*(1-f),2*f*(1-f),f*f],q=[e,.5,1-e];let z=0,num=0;
+    for(let g=0;g<3;g++){const w=pr[g]*Math.pow(q[g],A)*Math.pow(1-q[g],T-A);z+=w;num+=w*q[g]}return z>0?num/z:f};
+  const rows=[];let used=0;
+  for(let i=0;i<n;i++){const r=reads[i];if(r.length<minSites){rows.push({i,verdict:'unknown',sites:r.length});continue}used++;
+    const own=pid.get(lab[i]),LL=new Float64Array(people.length);
+    for(let S=0;S<people.length;S++){const P=pool[S];let ll=0;
+      for(const [k,a,t] of r){let A=0,T=0;const c=P.get(k);if(c){A=c[0];T=c[1];if(S===own){A-=a;T-=t}}const q=pred(k,A,T);ll+=a*Math.log(q)+(t-a)*Math.log(1-q)}
+      LL[S]=ll}
+    // only people with host reads of their own can be told apart from the population prior
+    let best=-Infinity,bS=-1;for(let S=0;S<people.length;S++){if(S===own)continue;if(LL[S]>best){best=LL[S];bS=S}}
+    const llr=best-LL[own];  // > 0: another person's DNA explains the reads better than the labelled person's
+    const verdict=llr>=(opt.cut??8)?'other person':llr<=-(opt.cut??8)?'same person':'unclear';
+    rows.push({i,verdict,llr,looksLike:bS>=0?people[bS]:null,sites:r.length})}
+  if(!used)return {ok:false,reason:'no sample has enough host reads',rows};
+  return {ok:true,rows,minSites,used};
+}
+
+// Microbes and host DNA are independent witnesses. Host DNA, when it is there, settles identity.
+export function addHost(res,host){
+  if(!host||!host.ok)return res;
+  for(const r of res.rows){const h=host.rows[r.i];r.host=h?{verdict:h.verdict,looksLike:h.verdict==='other person'?h.looksLike:null,llr:h.llr??null,sites:h.sites}:null;
+    if(!h)continue;
+    if(h.verdict==='other person'){r.level='flag';r.flag=true;r.check=false;if(r.kind==='ok')r.kind='mismatch';r.byHost=true;r.looksLike=h.looksLike||r.looksLike;r.prob=Math.max(r.prob||0,.99)}
+    else if(h.verdict==='same person'&&r.level!=='ok'&&!r.byHost){r.hostClears=true}}
+  return res;
+}
