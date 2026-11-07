@@ -1,4 +1,4 @@
-# Host-DNA check (SwapSeq 1.2)
+# Host-DNA check
 
 Shotgun reads from stool, swabs or saliva always carry some of the person's own DNA. Genotypes at common
 human SNPs identify a person, however much their microbes change. That covers the cases where the microbial

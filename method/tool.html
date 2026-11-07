@@ -245,6 +245,11 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
   .realswap{grid-template-columns:1fr}.legal{grid-template-columns:1fr}
 }
 @media (max-width:480px){.privacy span{display:none}.tile .v{font-size:28px}.lede{font-size:17px}.btn{width:100%;justify-content:center}.cta .linkbtn{width:100%;text-align:center}}
+.hostbox{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:16px;align-items:start;margin-top:12px}
+.drop.small{min-height:96px;padding:14px}
+.hint{margin:0;font-size:14px;color:var(--muted);line-height:1.5}
+@media (max-width:720px){.hostbox{grid-template-columns:1fr}}
+.tag.host{background:var(--accent-soft);color:var(--accent)}
 </style>
 
 <header><div class="wrap">
@@ -309,10 +314,19 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
       <div class="s3-row">
         <div class="field colfield" hidden><label for="colP">Who each sample came from</label><select id="colP"></select></div>
         <div class="field colfield" hidden><label for="colG">Check separately by</label><select id="colG"><option value="">No split</option></select></div>
+        <div class="field"><label for="dtype">Data type</label>
+          <select id="dtype"><option value="counts" selected>Taxa or ASV counts (16S or shotgun)</option><option value="markers">Strain markers or genes (shotgun, present or absent)</option></select></div>
         <div class="field"><label for="prior">Expected error rate</label>
           <select id="prior"><option value="0.005">0.5%, a very careful lab</option><option value="0.01" selected>1%, typical</option><option value="0.02">2%</option><option value="0.05">5%, known problems</option></select></div>
         <div class="s3-go"><button class="btn primary" id="run">Check samples</button><button class="linkbtn" id="demo">or load the demo study</button></div>
       </div>
+      <details class="more"><summary>Host DNA from shotgun reads (optional, beta)</summary>
+        <div class="hostbox">
+          <label class="drop small" id="dropH"><input type="file" id="fileH" accept=".tsv,.txt,.csv"><strong>Open host_counts.tsv</strong><small>columns: sample, site, alt, total</small></label>
+          <p class="hint">Shotgun reads carry some of the person's own DNA. SwapSeq matches each sample's reads at common human SNPs to every person's other samples, which works even when microbes change too fast to identify anyone (newborns, antibiotics). Tested on simulated data so far; needs at least 2,000 covered SNP sites per sample. <b>This is human genetic data:</b> use it only within your ethics approval. Like everything here, it stays on this computer. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the file</a></p>
+          <p class="hint" id="infoH"></p>
+        </div>
+      </details>
       <details class="more colfield" hidden><summary>Household and plate columns (optional)</summary>
         <div class="s3-row">
           <div class="field"><label for="colH">Household or family</label><select id="colH"><option value="">None</option></select></div>
@@ -439,6 +453,7 @@ res[res$level != <span class="s">"ok"</span>, ]
   </div>
   <details class="versions"><summary>What changed in each version</summary>
     <ul>
+      <li><b>1.1.1, November update</b> &middot; Strain-marker mode and a host-DNA check (beta) for shotgun data; a command-line tool for pipelines. Results on taxa counts are unchanged.</li>
       <li><b>1.1.1</b> &middot; Measured power no longer reads low when a table already holds errors.</li>
       <li><b>1.1.0</b> &middot; Power is measured on your own table by hiding test errors in copies of your labels. Version 1.0 could show near 0% for tables it checks well.</li>
       <li><b>1.0.1</b> &middot; Methods and validation page, feedback forms, citation details.</li>

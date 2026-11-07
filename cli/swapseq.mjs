@@ -6,7 +6,7 @@
 import fs from 'fs';import path from 'path';
 import {analyse,annotate,distances,markerDistances,measurePower,findShifts,hostCheck,addHost} from '../method/core.mjs';
 
-const VERSION='1.2.0';
+const VERSION='1.1.1';
 const HELP=`SwapSeq ${VERSION}: finds swapped and mislabelled samples in longitudinal microbiome studies.
 
 Usage:

@@ -105,6 +105,15 @@ wireDrop('dropT','fileT',async f=>{setStatus('Reading '+f.name+' …');try{st.ta
 wireDrop('dropM','fileM',async f=>{try{st.meta=await readMeta(f);st.metaName=f.name;$('dropM').classList.add('done');$('dropM').querySelector('strong').textContent=f.name;$('dropM').querySelector('small').textContent='click to choose another file';fillColumns();$('infoM').textContent=`${st.meta.rows.length} rows, ${st.meta.head.length-1} columns.`;stat('statM',true,`${st.meta.rows.length.toLocaleString()} rows, ${st.meta.head.length-1} columns`);ready()}
   catch(e){setStatus('Could not read the metadata: '+e.message,true)}});
 
+// host DNA counts (optional): sample, site, alt, total
+wireDrop('dropH','fileH',async f=>{try{const txt=await f.text(),L=txt.split(/\r?\n/).filter(l=>l.trim());const sep=/\.csv$/i.test(f.name)?',':'\t',h=L[0].split(sep).map(x=>x.trim().toLowerCase());
+  const ix=['sample','site','alt','total'].map(k=>h.indexOf(k));if(ix.some(i=>i<0))throw new Error('the file needs the columns sample, site, alt and total');
+  const sites=new Map(),m=new Map();let n=0;for(const l of L.slice(1)){const c=l.split(sep),a=+c[ix[2]],t=+c[ix[3]];if(!(t>0)||!(a>=0)||a>t)continue;const s=c[ix[1]];if(!sites.has(s))sites.set(s,sites.size);
+    const id=c[ix[0]];if(!m.has(id))m.set(id,[]);m.get(id).push([sites.get(s),a,t]);n++}
+  st.host=m;st.hostName=f.name;$('dropH').classList.add('done');$('dropH').querySelector('strong').textContent=f.name;$('dropH').querySelector('small').textContent='click to choose another file';
+  const many=[...m.values()].filter(v=>v.length>=2000).length;$('infoH').innerHTML=`Read <b>${n.toLocaleString()}</b> allele counts for <b>${m.size.toLocaleString()}</b> samples; <b>${many.toLocaleString()}</b> have 2,000 or more covered sites.`}
+  catch(e){setStatus('Could not read the host DNA file: '+e.message,true)}});
+
 // ---------- demo ----------
 $('demoHero')&&$('demoHero').addEventListener('click',()=>$('demo').click());
 $('demo').addEventListener('click',()=>{
@@ -119,17 +128,18 @@ $('demo').addEventListener('click',()=>{
 let worker=null;
 function getWorker(){if(worker)return worker;
   const src=$('coreSrc').textContent+`
-  self.onmessage=e=>{const {groups,prior}=e.data;const out=[];
+  self.onmessage=e=>{const {groups,prior,type}=e.data;const out=[];
     for(const g of groups){const t0=Date.now();
       if(g.samples.length<4){out.push({name:g.name,skipped:'Fewer than 4 samples.'});continue}
       const data={feats:{length:g.nFeat},samples:g.samples.map(s=>({id:s.id,idx:Int32Array.from(s.idx),val:Float64Array.from(s.val)}))};
       const progress=m=>self.postMessage({type:'progress',msg:(groups.length>1?g.name+': ':'')+m});
       if(scorable(g.lab).filter(Boolean).length<4){out.push({name:g.name,skipped:'Fewer than 4 samples belong to people with two or more samples.'});continue}
-      const M=distances(data,progress);const r=annotate(data,g.lab,analyse(data,g.lab,{prior,progress},M),{house:g.house,well:g.well,plate:g.plate});
+      const M=type==='markers'?markerDistances(data):distances(data,progress);let r=annotate(data,g.lab,analyse(data,g.lab,{prior,progress},M),{house:g.house,well:g.well,plate:g.plate});
       const mp=measurePower(data,g.lab,r,M,{progress});r.power=mp||{single:NaN,swap:NaN,singleWithCheck:NaN,swapWithCheck:NaN,measured:false};
+      let host=null;if(g.host){progress('Matching host DNA');host=hostCheck(g.host.map(x=>x?new Map(x.map(q=>[q[0],[q[1],q[2]]])):null),g.lab);r=addHost(r,host);}
       progress('Drawing the sample map');const map=g.samples.length<=3000?pcoa(M.J,g.samples.length,40):null;
       const pos=r.planted.pair.filter(Number.isFinite),obs=r.rows.map(x=>x.pair).filter(Number.isFinite);
-      out.push({name:g.name,map:map?{x:Array.from(map.x),y:Array.from(map.y),share:map.share}:null,rows:r.rows,pairs:r.pairs,shifts:r.shifts||[],power:r.power,nSubjects:r.nSubjects,nScorable:r.nScorable,aitFeat:r.aitFeat,
+      out.push({name:g.name,type,host:host?{ok:host.ok,reason:host.reason||null,used:host.used||0}:null,map:map?{x:Array.from(map.x),y:Array.from(map.y),share:map.share}:null,rows:r.rows,pairs:r.pairs,shifts:r.shifts||[],power:r.power,nSubjects:r.nSubjects,nScorable:r.nScorable,aitFeat:r.aitFeat,
         hist:{obs:r.rows.map(x=>x.single).filter(Number.isFinite),plant:r.planted.single,obsPair:obs,plantPair:pos},secs:(Date.now()-t0)/1000})}
     self.postMessage({type:'done',out})}`;
   worker=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));return worker}
@@ -141,7 +151,8 @@ function run(){
   const all=samplesFrom(st.table,m);const groups=new Map();let skipped=0;
   for(const s of all.samples){const r=m.map.get(s.id);if(!r||!r[kP]||/^(na|nan|none|null|missing|not applicable)$/i.test(r[kP])){skipped++;continue}
     const g=kG>=0?(r[kG]||'(blank)'):'All samples';if(!groups.has(g))groups.set(g,{name:g,samples:[],lab:[],nFeat:all.feats,house:kH>=0?[]:null,well:kW>=0?[]:null,plate:kL>=0?[]:null});const G=groups.get(g);G.samples.push(s);G.lab.push(r[kP]);
-    if(kH>=0)G.house.push(r[kH]||'');if(kW>=0)G.well.push(r[kW]||'');if(kL>=0)G.plate.push(r[kL]||'')}
+    if(kH>=0)G.house.push(r[kH]||'');if(kW>=0)G.well.push(r[kW]||'');if(kL>=0)G.plate.push(r[kL]||'');
+    if(st.host){if(!G.host)G.host=[];G.host.push(st.host.get(s.id)||null)}}
   const list=[...groups.values()];const n=list.reduce((a,g)=>a+g.samples.length,0);
   if(!n){setStatus('No samples have a person ID in that column.',true);return}
   const big=list.find(g=>g.samples.length>4000);if(big){setStatus(`"${big.name}" has ${big.samples.length} samples. SwapSeq handles up to 4,000 per check in the browser; split it with "Check separately by".`,true);return}
@@ -149,7 +160,7 @@ function run(){
   const w=getWorker();const prior=+$('prior').value;
   w.onmessage=e=>{if(e.data.type==='progress'){const p=$('pmsg');if(p)p.textContent=e.data.msg+' …'}else{ $('run').disabled=false;setStatus(`Checked ${n.toLocaleString()} samples${skipped?` (${skipped} without a person ID were left out)`:''}.`);render(e.data.out,prior)}};
   w.onerror=e=>{$('run').disabled=false;setStatus('Something went wrong: '+e.message,true)};
-  st.lastCols={person:$('colP').value,group:gc,house:$('colH').value,well:$('colW').value,plate:$('colL').value};w.postMessage({groups:list,prior});
+  st.lastCols={person:$('colP').value,group:gc,house:$('colH').value,well:$('colW').value,plate:$('colL').value,type:$('dtype').value,host:st.hostName||''};w.postMessage({groups:list,prior,type:$('dtype').value});
 }
 
 // ---------- results ----------
@@ -163,7 +174,7 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
     const fPairs=g.pairs.filter(p=>p.level==='flag').length,cPairs=g.pairs.length-fPairs,nPeople=new Set(g.rows.filter(r=>r.scorable).map(r=>r.subject)).size,fewPeople=nPeople<8,noPower=!g.power.measured,lowPower=noPower||pwc<.25||fewPeople;
     let verdict;
     if(fewPeople||noPower)verdict=`<div class="verdict weak"><b>Too few people to check well.</b> ${fewPeople?`Only ${nPeople} people have two or more samples.`:'Too few people have three or more samples to hide test errors in.'} SwapSeq learns what an error looks like by swapping labels between people and measures its power the same way, so with this few people a clean result proves little. Strong flags are still shown; the check list is hidden.</div>`;
-    else if(lowPower)verdict=`<div class="verdict weak"><b>Low power in this dataset.</b> Even with the check list, only about ${fmtPct(pwc)} of planted swaps could be told apart from normal variation, so a clean result here does not prove the labels are right, and the check list below is mostly natural look-alikes. This is expected for infants, low-biomass sites and very shallow sequencing.</div>`;
+    else if(lowPower)verdict=`<div class="verdict weak"><b>Low power in this dataset${g.host&&g.host.ok?' from microbes alone':''}.</b>${g.host&&g.host.ok?' The host-DNA check below does not depend on the microbes.':''} Even with the check list, only about ${fmtPct(pwc)} of planted swaps could be told apart from normal variation, so a clean result here does not prove the labels are right, and the check list below is mostly natural look-alikes. This is expected for infants, low-biomass sites and very shallow sequencing.</div>`;
     else if(flagged.length)verdict=`<div class="verdict warn"><b>${flagged.length} sample${flagged.length>1?'s':''} flagged${fPairs?`, including ${fPairs} likely swap${fPairs>1?'s':''}`:''}${checks.length?`, plus ${checks.length} to check`:''}.</b> Flags carry strong evidence. In this dataset SwapSeq flags about ${fmtPct(pw)} of swapped tubes, and ${fmtPct(pwc)} counting the check list.</div>`;
     else if(checks.length)verdict=`<div class="verdict weak"><b>No strong flags, ${checks.length} sample${checks.length>1?'s':''} to check.</b> These look somewhat like another person. Some will be natural look-alikes (people who live together, unusual samples), so compare them with lab records before changing anything.</div>`;
     else verdict=`<div class="verdict good"><b>No sample looks like it belongs to someone else.</b> In this dataset SwapSeq would have caught about ${fmtPct(pwc)} of swapped tubes and ${fmtPct(pw1c)} of one-off mislabels.</div>`;
@@ -173,14 +184,16 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
         <div class="panel tile"><div class="label">Flagged, and to check</div><div class="v"><span style="color:${flagged.length?'var(--swap)':'var(--ok)'}">${flagged.length}</span> <span style="color:var(--mis);font-size:.7em">+ ${checks.length}</span></div><div class="d">${fPairs} flagged swap pair${fPairs===1?'':'s'}${cPairs?`, ${cPairs} possible`:''}</div></div>
         <div class="panel tile"><div class="label">Catches swaps</div><div class="v">${fmtPct(pwc)}</div><div class="d">${fmtPct(pw)} as strong flags. Measured: we hid ${g.power.tests?g.power.tests.swapped:'–'} swapped samples in copies of your labels</div></div>
         <div class="panel tile"><div class="label">Catches mislabels</div><div class="v">${fmtPct(pw1c)}</div><div class="d">${fmtPct(pw1)} as strong flags, for one sample under the wrong person (${g.power.tests?g.power.tests.relabelled:'–'} hidden tests)</div></div>
-      </div>${verdict}${(g.shifts||[]).map(x=>`<div class="verdict warn"><b>Possible sample-sheet shift${x.plate?` on ${esc(x.plate)}`:''}:</b> ${x.n} tubes in a row, from position <span class="mono">${esc(x.from)}</span> to <span class="mono">${esc(x.to)}</span>, each look like the person written for the ${x.direction>0?'next':'previous'} tube. Check whether a row was skipped or added in the sample sheet.</div>`).join('')}`;
+      </div>${verdict}${g.host?(g.host.ok?`<div class="verdict ${g.rows.some(x=>x.byHost)?'warn':'good'}"><b>Host DNA (beta):</b> ${g.host.used.toLocaleString()} samples had enough host reads to check; ${g.rows.filter(x=>x.byHost).length} ${g.rows.filter(x=>x.byHost).length===1?'was':'were'} flagged because their DNA fits another person.</div>`:`<div class="verdict weak"><b>Host DNA not used:</b> ${esc(g.host.reason)}. Samples need at least 2,000 covered SNP sites.</div>`):''}${(g.shifts||[]).map(x=>`<div class="verdict warn"><b>Possible sample-sheet shift${x.plate?` on ${esc(x.plate)}`:''}:</b> ${x.n} tubes in a row, from position <span class="mono">${esc(x.from)}</span> to <span class="mono">${esc(x.to)}</span>, each look like the person written for the ${x.direction>0?'next':'previous'} tube. Check whether a row was skipped or added in the sample sheet.</div>`).join('')}`;
     const list=flagged.concat(lowPower?[]:checks);
     const tw=document.createElement('div');tw.className='tablewrap';
     tw.innerHTML=list.length?`<table><thead><tr><th>Sample</th><th>Labelled as</th><th>Verdict</th><th>Evidence</th><th>Looks like</th><th>Why</th></tr></thead><tbody>${list.map(r=>{
-      const kind=r.kind,lvl=r.level,tag=r.cohab?'Housemate?':(kind==='swap'?'Swap':'Mismatch')+(lvl==='check'?'?':''),p=lvl==='flag'?r.prob:Math.max(r.broad,r.prob);
-      let why=kind==='swap'?`Swapping labels with <span class="mono">${esc(r.partner)}</span> (labelled ${esc(r.partnerSubject)}) makes both samples fit their person.`
+      const kind=r.kind,lvl=r.level,tag=r.byHost?'Host DNA':r.cohab?'Housemate?':(kind==='swap'?'Swap':'Mismatch')+(lvl==='check'?'?':''),p=lvl==='flag'?r.prob:Math.max(r.broad,r.prob);
+      let why=r.byHost&&kind!=='swap'?'':kind==='swap'?`Swapping labels with <span class="mono">${esc(r.partner)}</span> (labelled ${esc(r.partnerSubject)}) makes both samples fit their person.`
         :`Closest sample is <span class="mono">${esc(r.nearest)}</span> from ${esc(r.looksLike)}, not one of ${esc(r.subject)}'s own samples.`;
       if(r.rare&&r.rare.total)why+=`<span class="ev">Shares <b>${r.rare.withOther}</b> of its ${r.rare.total} rare ASVs with ${esc(r.rare.other)}'s other samples, and <b>${r.rare.withOwn}</b> with ${esc(r.subject)}'s.</span>`;
+      if(r.host&&r.host.verdict==='other person')why+=`<span class="ev warnc">Host DNA: the reads at ${(r.host.sites||0).toLocaleString()} human SNP sites fit <b>${esc(r.host.looksLike)}</b> much better than ${esc(r.subject)} (log-likelihood ratio ${Number.isFinite(r.host.llr)?r.host.llr.toFixed(0):'?'}).</span>`;
+      else if(r.host&&r.host.verdict==='same person')why+=`<span class="ev">Host DNA: the reads fit ${esc(r.subject)}, the labelled person. Check whether the look-alike is a household member, a twin or a transplant donor.</span>`;
       if(r.shift)why+=`<span class="ev warnc">Part of a possible sample-sheet shift (positions ${esc(r.shift.from)} to ${esc(r.shift.to)}).</span>`;
       if(r.cohab)why+=`<span class="ev warnc">Same household (${esc(r.cohab)}) as ${esc(r.rare?r.rare.other:r.looksLike)}: people who live together share microbes${r.downgraded?', so this was moved to the check list':''}.</span>`;
       const pw=kind==='swap'?g.pairs.find(p=>(p.a===r.id||p.b===r.id)&&p.wells):null;
@@ -209,12 +222,12 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove()}
 const VERSION='SwapSeq 1.1.1 (method v3)';
 function methodsText(g,prior){const f=g.rows.filter(r=>r.level==='flag').length,c=g.rows.filter(r=>r.level==='check').length,fp=g.pairs.filter(p=>p.level==='flag').length;
-  return `Sample identity was checked with ${VERSION} (soft Jaccard and Aitchison fingerprints, calibrated on errors planted in this dataset; expected mislabel rate ${prior*100}%). Of ${g.nScorable} samples from ${g.nSubjects} participants${g.name!=='All samples'?` (${g.name})`:''}, ${f} ${f===1?'was':'were'} flagged with strong evidence${fp?` (${fp} reciprocal swap${fp===1?'':'s'})`:''} and ${c} listed for checking against laboratory records. Measured detection in this dataset, from errors hidden in copies of the labels: ${fmtPct(g.power.swapWithCheck)} of swapped tubes and ${fmtPct(g.power.singleWithCheck)} of single mislabels (${fmtPct(g.power.swap)} and ${fmtPct(g.power.single)} as strong flags) (Singh 2026, https://doi.org/10.5281/zenodo.23963612).`}
-function toTSV(g){const h=['sample','labelled_as','level','verdict','p_strict','p_broad','p_mislabel','p_swap','looks_like','nearest_sample','swap_partner','partner_labelled_as','rare_asvs','rare_shared_with_look_alike','rare_shared_with_own','well','same_household','mismatch_score','swap_score'];
+  return `Sample identity was checked with ${VERSION} (${g.type==='markers'?'strain-marker Jaccard fingerprints':'soft Jaccard and Aitchison fingerprints'}${g.host&&g.host.ok?', plus host-DNA genotype matching':''}, calibrated on errors planted in this dataset; expected mislabel rate ${prior*100}%). Of ${g.nScorable} samples from ${g.nSubjects} participants${g.name!=='All samples'?` (${g.name})`:''}, ${f} ${f===1?'was':'were'} flagged with strong evidence${fp?` (${fp} reciprocal swap${fp===1?'':'s'})`:''} and ${c} listed for checking against laboratory records. Measured detection in this dataset, from errors hidden in copies of the labels: ${fmtPct(g.power.swapWithCheck)} of swapped tubes and ${fmtPct(g.power.singleWithCheck)} of single mislabels (${fmtPct(g.power.swap)} and ${fmtPct(g.power.single)} as strong flags) (Singh 2026, https://doi.org/10.5281/zenodo.23963612).`}
+function toTSV(g){const h=['sample','labelled_as','level','verdict','p_strict','p_broad','p_mislabel','p_swap','looks_like','nearest_sample','swap_partner','partner_labelled_as','rare_asvs','rare_shared_with_look_alike','rare_shared_with_own','well','same_household','mismatch_score','swap_score','host_verdict','host_looks_like','host_llr','host_sites','flagged_by_host'];
   const f=v=>Number.isFinite(v)?(+v).toFixed(4):'',pairOf=id=>g.pairs.find(p=>p.a===id||p.b===id);
   const head=[`# ${VERSION} QC audit`,`# file: ${st.tableName}; group: ${g.name}; date: ${new Date().toISOString().slice(0,10)}`,`# columns used: ${Object.entries(st.lastCols||{}).filter(([k,v])=>v).map(([k,v])=>k+'='+v).join(', ')}`,`# ${methodsText(g,+$('prior').value)}`];
   return head.join('\n')+'\n'+h.join('\t')+'\n'+g.rows.map(r=>[r.id,r.subject,!r.scorable?'not_checked':r.level,r.level==='ok'?'ok':r.kind,f(r.prob),f(r.broad),f(r.pSingle),f(r.pSwap),r.looksLike??'',r.nearest??'',r.kind==='swap'?r.partner:'',r.kind==='swap'?r.partnerSubject:'',
-    r.rare?r.rare.total:'',r.rare?r.rare.withOther:'',r.rare?r.rare.withOwn:'',r.well||'',r.cohab||'',f(r.single),f(r.pair)].join('\t')).join('\n')+'\n'}
+    r.rare?r.rare.total:'',r.rare?r.rare.withOther:'',r.rare?r.rare.withOwn:'',r.well||'',r.cohab||'',f(r.single),f(r.pair),r.host?r.host.verdict:'',r.host&&r.host.looksLike?r.host.looksLike:'',r.host&&Number.isFinite(r.host.llr)?r.host.llr.toFixed(1):'',r.host?r.host.sites??'':'',r.byHost?'yes':''].join('\t')).join('\n')+'\n'}
 
 // histogram: how this study's samples score against errors planted in it
 function chart(g){const box=document.createElement('div');box.className='panel chart';

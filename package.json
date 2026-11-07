@@ -1,6 +1,6 @@
 {
   "name": "swapseq",
-  "version": "1.2.0",
+  "version": "1.1.1",
   "description": "Finds swapped and mislabelled samples in longitudinal microbiome studies from each person's microbial fingerprint (and, optionally, host DNA).",
   "type": "module",
   "bin": { "swapseq": "cli/swapseq.mjs" },

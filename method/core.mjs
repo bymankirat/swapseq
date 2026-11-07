@@ -342,7 +342,7 @@ export function pcoa(D,n,iters=50){
   return {x:Float32Array.from(vecs[0],v=>v*Math.sqrt(vals[0])),y:Float32Array.from(vecs[1],v=>v*Math.sqrt(vals[1])),share:vals.map(l=>trace>0?l/trace:0)};
 }
 
-// ===================== SwapSeq 1.2: strain-level fingerprints and host DNA =====================
+// ===================== strain-level fingerprints and host DNA (November 2026 update) =====================
 // ---------- strain-level fingerprints ----------
 // Input: the usual sparse table, where a feature is a strain marker, gene or SNV and any value > 0 means present.
 // Only informative markers are used: present in at least 2 samples and in at most half of them (markers that
