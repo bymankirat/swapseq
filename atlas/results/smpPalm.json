@@ -1,0 +1,43 @@
+{
+ "key": "smpPalm",
+ "name": "Student Microbiome palm",
+ "ref": "Flores et al. 2014, Genome Biol",
+ "type": "16S",
+ "host": "Skin: palm",
+ "design": "Weekly self-sampling for 10 weeks",
+ "validation": true,
+ "control": null,
+ "samples": 515,
+ "droppedLowDepth": 0,
+ "subjects": 61,
+ "scorable": 515,
+ "subjectsWith2": 61,
+ "medianSamplesPerSubject": 9,
+ "reidentified": 0.829126213592233,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.4743083003952569,
+  "swap": 0.8814229249011858,
+  "singleWithCheck": 0.6442687747035574,
+  "swapWithCheck": 0.9071146245059288
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0.4666666666666667,
+  "swapCaughtWithReview": 0.7666666666666667,
+  "swapPairNamed": 0.6,
+  "relabelCaught": 0.05,
+  "relabelCaughtWithReview": 0.35,
+  "falseFlagsPer1000": 0.1976284584980237,
+  "falseChecksPer1000": 2.766798418972332
+ },
+ "strongFlags": 1,
+ "checkList": 0,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 1.941747572815534,
+ "checksPer1000": 0,
+ "householdOrRareNote": 1,
+ "seconds": 3.341
+}

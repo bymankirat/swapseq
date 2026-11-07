@@ -1,0 +1,43 @@
+{
+ "key": "dietOriginal",
+ "name": "Diet and microbiome, labels before the authors' correction",
+ "ref": "Johnson et al. 2019, Cell Host Microbe",
+ "type": "Shotgun (strain-level)",
+ "host": "Adult gut",
+ "design": "Same data with one tube swap the authors later corrected",
+ "validation": true,
+ "control": "known real swap",
+ "samples": 522,
+ "droppedLowDepth": 4,
+ "subjects": 37,
+ "scorable": 522,
+ "subjectsWith2": 37,
+ "medianSamplesPerSubject": 16,
+ "reidentified": 0.9808429118773946,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.9530332681017613,
+  "swap": 0.6536203522504892,
+  "singleWithCheck": 0.9608610567514677,
+  "swapWithCheck": 0.9275929549902152
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0.8166666666666667,
+  "swapCaughtWithReview": 0.9666666666666667,
+  "swapPairNamed": 0.7333333333333333,
+  "relabelCaught": 0.85,
+  "relabelCaughtWithReview": 0.9,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0.390625
+ },
+ "strongFlags": 2,
+ "checkList": 0,
+ "strongSwapPairs": 1,
+ "allSwapPairs": 1,
+ "flagsPer1000": 3.8314176245210727,
+ "checksPer1000": 0,
+ "householdOrRareNote": 2,
+ "seconds": 2.79
+}

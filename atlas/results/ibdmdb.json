@@ -1,0 +1,43 @@
+{
+ "key": "ibdmdb",
+ "name": "IBD multi-omics, HMP2 (Lloyd-Price 2019)",
+ "ref": "Lloyd-Price et al. 2019, Nature",
+ "type": "Shotgun (species counts)",
+ "host": "Adult and child gut",
+ "design": "Stool every 2 weeks for 1 year (subset with metabolomics)",
+ "validation": false,
+ "control": null,
+ "samples": 382,
+ "droppedLowDepth": 0,
+ "subjects": 105,
+ "scorable": 376,
+ "subjectsWith2": 99,
+ "medianSamplesPerSubject": 4,
+ "reidentified": 0.526595744680851,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0,
+  "singleWithCheck": 0,
+  "swapWithCheck": 0.021164021164021163
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0,
+  "swapCaughtWithReview": 0,
+  "swapPairNamed": 0,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0
+ },
+ "strongFlags": 0,
+ "checkList": 1,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 2.6595744680851063,
+ "householdOrRareNote": 0,
+ "seconds": 5.822
+}

@@ -1,0 +1,43 @@
+{
+ "key": "imp",
+ "name": "Immigration Microbiome Project (Vangay 2018)",
+ "ref": "Vangay et al. 2018, Cell",
+ "type": "16S",
+ "host": "Adult gut",
+ "design": "Immigrants sampled before and after moving to the US",
+ "validation": true,
+ "control": null,
+ "samples": 110,
+ "droppedLowDepth": 0,
+ "subjects": 18,
+ "scorable": 110,
+ "subjectsWith2": 18,
+ "medianSamplesPerSubject": 6,
+ "reidentified": 0.8818181818181818,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.41403508771929826,
+  "swap": 0,
+  "singleWithCheck": 0.6807017543859649,
+  "swapWithCheck": 0.9578947368421052
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 1,
+  "relabelsPerRep": 1,
+  "swapCaught": 0.7,
+  "swapCaughtWithReview": 0.8,
+  "swapPairNamed": 0.8,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0.4,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0
+ },
+ "strongFlags": 0,
+ "checkList": 1,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 9.090909090909092,
+ "householdOrRareNote": 0,
+ "seconds": 0.502
+}

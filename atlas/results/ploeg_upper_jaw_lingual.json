@@ -1,0 +1,43 @@
+{
+ "key": "ploeg_upper_jaw_lingual",
+ "name": "Gingivitis challenge, upper jaw, lingual (van der Ploeg 2024)",
+ "ref": "van der Ploeg et al. 2024",
+ "type": "16S",
+ "host": "Oral: upper jaw, lingual",
+ "design": "Experimental gingivitis, 7 visits over 6 weeks",
+ "validation": false,
+ "control": null,
+ "samples": 429,
+ "droppedLowDepth": 0,
+ "subjects": 63,
+ "scorable": 427,
+ "subjectsWith2": 61,
+ "medianSamplesPerSubject": 7,
+ "reidentified": 0.7681498829039812,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.05868544600938967,
+  "swap": 0.33568075117370894,
+  "singleWithCheck": 0.5352112676056338,
+  "swapWithCheck": 0.5516431924882629
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0.13333333333333333,
+  "swapCaughtWithReview": 0.4,
+  "swapPairNamed": 0.36666666666666664,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0.35,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 1.2285012285012284
+ },
+ "strongFlags": 2,
+ "checkList": 10,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 4.68384074941452,
+ "checksPer1000": 23.4192037470726,
+ "householdOrRareNote": 2,
+ "seconds": 2.598
+}

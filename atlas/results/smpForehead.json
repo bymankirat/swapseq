@@ -1,0 +1,43 @@
+{
+ "key": "smpForehead",
+ "name": "Student Microbiome forehead",
+ "ref": "Flores et al. 2014, Genome Biol",
+ "type": "16S",
+ "host": "Skin: forehead",
+ "design": "Weekly self-sampling for 10 weeks",
+ "validation": true,
+ "control": null,
+ "samples": 675,
+ "droppedLowDepth": 0,
+ "subjects": 80,
+ "scorable": 675,
+ "subjectsWith2": 80,
+ "medianSamplesPerSubject": 9,
+ "reidentified": 0.8740740740740741,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.7530120481927711,
+  "swap": 0.9412650602409639,
+  "singleWithCheck": 0.8162650602409639,
+  "swapWithCheck": 0.9533132530120482
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0.95,
+  "swapCaughtWithReview": 0.9666666666666667,
+  "swapPairNamed": 0.9333333333333333,
+  "relabelCaught": 0.7,
+  "relabelCaughtWithReview": 0.8,
+  "falseFlagsPer1000": 0.45045045045045046,
+  "falseChecksPer1000": 1.2012012012012012
+ },
+ "strongFlags": 0,
+ "checkList": 1,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 1.4814814814814814,
+ "householdOrRareNote": 0,
+ "seconds": 8.883
+}

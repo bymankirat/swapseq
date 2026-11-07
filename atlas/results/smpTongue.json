@@ -1,0 +1,43 @@
+{
+ "key": "smpTongue",
+ "name": "Student Microbiome tongue",
+ "ref": "Flores et al. 2014, Genome Biol",
+ "type": "16S",
+ "host": "Oral: tongue",
+ "design": "Weekly self-sampling for 10 weeks",
+ "validation": true,
+ "control": null,
+ "samples": 692,
+ "droppedLowDepth": 0,
+ "subjects": 80,
+ "scorable": 692,
+ "subjectsWith2": 80,
+ "medianSamplesPerSubject": 9,
+ "reidentified": 0.7774566473988439,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.45095168374816985,
+  "swap": 0.7042459736456809,
+  "singleWithCheck": 0.6120058565153733,
+  "swapWithCheck": 0.746705710102489
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0.4666666666666667,
+  "swapCaughtWithReview": 0.6166666666666667,
+  "swapPairNamed": 0.5,
+  "relabelCaught": 0.05,
+  "relabelCaughtWithReview": 0.5,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0.14925373134328357
+ },
+ "strongFlags": 10,
+ "checkList": 4,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 14.45086705202312,
+ "checksPer1000": 5.780346820809249,
+ "householdOrRareNote": 9,
+ "seconds": 6.193
+}

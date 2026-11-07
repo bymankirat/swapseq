@@ -1,0 +1,43 @@
+{
+ "key": "palleja",
+ "name": "Antibiotic recovery (Palleja 2018)",
+ "ref": "Palleja et al. 2018, Nat Microbiol",
+ "type": "Shotgun (mOTU relative)",
+ "host": "Adult gut",
+ "design": "4-day antibiotic cocktail, stool to day 180",
+ "validation": false,
+ "control": null,
+ "samples": 59,
+ "droppedLowDepth": 0,
+ "subjects": 12,
+ "scorable": 59,
+ "subjectsWith2": 12,
+ "medianSamplesPerSubject": 5,
+ "reidentified": 0.6440677966101694,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0,
+  "singleWithCheck": 0.21978021978021978,
+  "swapWithCheck": 0.21978021978021978
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 1,
+  "relabelsPerRep": 1,
+  "swapCaught": 0,
+  "swapCaughtWithReview": 0.1,
+  "swapPairNamed": 0,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0.1,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0
+ },
+ "strongFlags": 0,
+ "checkList": 1,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 16.949152542372882,
+ "householdOrRareNote": 0,
+ "seconds": 0.132
+}

@@ -1,0 +1,43 @@
+{
+ "key": "ploeg_upper_jaw_interproximal",
+ "name": "Gingivitis challenge, upper jaw, interproximal (van der Ploeg 2024)",
+ "ref": "van der Ploeg et al. 2024",
+ "type": "16S",
+ "host": "Oral: upper jaw, interproximal",
+ "design": "Experimental gingivitis, 7 visits over 6 weeks",
+ "validation": false,
+ "control": null,
+ "samples": 425,
+ "droppedLowDepth": 0,
+ "subjects": 63,
+ "scorable": 423,
+ "subjectsWith2": 61,
+ "medianSamplesPerSubject": 7,
+ "reidentified": 0.8628841607565012,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.15550239234449761,
+  "swap": 0.5382775119617225,
+  "singleWithCheck": 0.6363636363636364,
+  "swapWithCheck": 0.7033492822966507
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0.1,
+  "swapCaughtWithReview": 0.43333333333333335,
+  "swapPairNamed": 0.36666666666666664,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0.45,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0.49261083743842365
+ },
+ "strongFlags": 3,
+ "checkList": 6,
+ "strongSwapPairs": 1,
+ "allSwapPairs": 1,
+ "flagsPer1000": 7.092198581560283,
+ "checksPer1000": 14.184397163120567,
+ "householdOrRareNote": 2,
+ "seconds": 2.517
+}

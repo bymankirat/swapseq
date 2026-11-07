@@ -1,0 +1,43 @@
+{
+ "key": "hagan",
+ "name": "Antibiotics and vaccines (Hagan 2019)",
+ "ref": "Hagan et al. 2019, Cell",
+ "type": "16S (relative abundance)",
+ "host": "Adult gut",
+ "design": "Antibiotics before flu vaccination, stool to day 180",
+ "validation": false,
+ "control": null,
+ "samples": 264,
+ "droppedLowDepth": 0,
+ "subjects": 33,
+ "scorable": 264,
+ "subjectsWith2": 33,
+ "medianSamplesPerSubject": 8,
+ "reidentified": 0.9242424242424242,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.8368055555555556,
+  "swap": 0,
+  "singleWithCheck": 0.8645833333333334,
+  "swapWithCheck": 0.9409722222222222
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 1,
+  "relabelsPerRep": 1,
+  "swapCaught": 0.9,
+  "swapCaughtWithReview": 0.95,
+  "swapPairNamed": 0.8,
+  "relabelCaught": 0.6,
+  "relabelCaughtWithReview": 0.9,
+  "falseFlagsPer1000": 0.3831417624521073,
+  "falseChecksPer1000": 0.7662835249042146
+ },
+ "strongFlags": 0,
+ "checkList": 0,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 0,
+ "householdOrRareNote": 0,
+ "seconds": 0.787
+}

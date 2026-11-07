@@ -15,6 +15,8 @@ Load a feature table (QIIME 2 `.qza`, BIOM 1 or 2,
 or a text table) and the sample metadata, choose the column that says who each sample came from,
 and press *Check samples*. Try the built-in demo first.
 
+**SwapSeq Atlas:** how checkable are 30 public longitudinal microbiome datasets? See the [Atlas](https://bymankirat.github.io/swapseq/atlas/).
+
 **In R:** the [swapseqr](https://github.com/bymankirat/swapseqr) package runs the same engine on a
 phyloseq object or a count matrix.
 

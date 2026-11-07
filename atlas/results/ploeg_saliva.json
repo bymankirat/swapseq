@@ -1,0 +1,43 @@
+{
+ "key": "ploeg_saliva",
+ "name": "Gingivitis challenge, saliva (van der Ploeg 2024)",
+ "ref": "van der Ploeg et al. 2024",
+ "type": "16S",
+ "host": "Oral: saliva",
+ "design": "Experimental gingivitis, 7 visits over 6 weeks",
+ "validation": false,
+ "control": null,
+ "samples": 427,
+ "droppedLowDepth": 0,
+ "subjects": 61,
+ "scorable": 427,
+ "subjectsWith2": 61,
+ "medianSamplesPerSubject": 7,
+ "reidentified": 0.9180327868852459,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.6501182033096927,
+  "swap": 0,
+  "singleWithCheck": 0.7541371158392435,
+  "swapWithCheck": 0.9456264775413712
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0.5333333333333333,
+  "swapCaughtWithReview": 0.8666666666666667,
+  "swapPairNamed": 0.6,
+  "relabelCaught": 0.4,
+  "relabelCaughtWithReview": 0.65,
+  "falseFlagsPer1000": 0.7194244604316546,
+  "falseChecksPer1000": 2.158273381294964
+ },
+ "strongFlags": 0,
+ "checkList": 2,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 4.68384074941452,
+ "householdOrRareNote": 0,
+ "seconds": 1.862
+}

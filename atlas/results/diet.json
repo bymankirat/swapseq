@@ -1,0 +1,43 @@
+{
+ "key": "diet",
+ "name": "Diet and microbiome (Johnson 2019)",
+ "ref": "Johnson et al. 2019, Cell Host Microbe",
+ "type": "Shotgun (strain-level)",
+ "host": "Adult gut",
+ "design": "Daily stool for 17 days",
+ "validation": true,
+ "control": null,
+ "samples": 522,
+ "droppedLowDepth": 4,
+ "subjects": 37,
+ "scorable": 522,
+ "subjectsWith2": 37,
+ "medianSamplesPerSubject": 16,
+ "reidentified": 0.9904214559386973,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.958904109589041,
+  "swap": 0,
+  "singleWithCheck": 0.9667318982387475,
+  "swapWithCheck": 0.9960861056751468
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0.9166666666666666,
+  "swapCaughtWithReview": 0.9833333333333333,
+  "swapPairNamed": 0.8666666666666667,
+  "relabelCaught": 0.85,
+  "relabelCaughtWithReview": 0.95,
+  "falseFlagsPer1000": 0.19455252918287938,
+  "falseChecksPer1000": 0.5836575875486382
+ },
+ "strongFlags": 0,
+ "checkList": 0,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 0,
+ "householdOrRareNote": 0,
+ "seconds": 2.467
+}

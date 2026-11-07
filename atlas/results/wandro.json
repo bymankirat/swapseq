@@ -1,0 +1,43 @@
+{
+ "key": "wandro",
+ "name": "Preterm infants in NICU (Wandro 2018)",
+ "ref": "Wandro et al. 2018, mSphere",
+ "type": "16S (genus counts)",
+ "host": "Preterm infant gut",
+ "design": "Stool over the first weeks in intensive care",
+ "validation": false,
+ "control": null,
+ "samples": 75,
+ "droppedLowDepth": 0,
+ "subjects": 32,
+ "scorable": 63,
+ "subjectsWith2": 20,
+ "medianSamplesPerSubject": 3,
+ "reidentified": 0.49206349206349204,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0,
+  "singleWithCheck": 0,
+  "swapWithCheck": 0.1840277777777778
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 1,
+  "relabelsPerRep": 1,
+  "swapCaught": 0,
+  "swapCaughtWithReview": 0,
+  "swapPairNamed": 0,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0
+ },
+ "strongFlags": 0,
+ "checkList": 0,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 0,
+ "householdOrRareNote": 0,
+ "seconds": 0.211
+}

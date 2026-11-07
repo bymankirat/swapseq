@@ -1,0 +1,43 @@
+{
+ "key": "heInfants",
+ "name": "Infant formula trial (He 2019)",
+ "ref": "He et al. 2019, Sci Rep",
+ "type": "16S (genus counts)",
+ "host": "Infant gut",
+ "design": "Stool at 2, 4, 6 and 12 months",
+ "validation": false,
+ "control": null,
+ "samples": 277,
+ "droppedLowDepth": 0,
+ "subjects": 80,
+ "scorable": 273,
+ "subjectsWith2": 76,
+ "medianSamplesPerSubject": 4,
+ "reidentified": 0.2490842490842491,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0,
+  "singleWithCheck": 0.0033783783783783786,
+  "swapWithCheck": 0
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 1,
+  "relabelsPerRep": 1,
+  "swapCaught": 0,
+  "swapCaughtWithReview": 0,
+  "swapPairNamed": 0,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0
+ },
+ "strongFlags": 0,
+ "checkList": 2,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 7.326007326007326,
+ "householdOrRareNote": 0,
+ "seconds": 1.239
+}

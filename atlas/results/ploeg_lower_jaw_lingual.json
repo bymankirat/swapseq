@@ -1,0 +1,43 @@
+{
+ "key": "ploeg_lower_jaw_lingual",
+ "name": "Gingivitis challenge, lower jaw, lingual (van der Ploeg 2024)",
+ "ref": "van der Ploeg et al. 2024",
+ "type": "16S",
+ "host": "Oral: lower jaw, lingual",
+ "design": "Experimental gingivitis, 7 visits over 6 weeks",
+ "validation": false,
+ "control": null,
+ "samples": 418,
+ "droppedLowDepth": 0,
+ "subjects": 63,
+ "scorable": 416,
+ "subjectsWith2": 61,
+ "medianSamplesPerSubject": 7,
+ "reidentified": 0.9014423076923077,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.5,
+  "swap": 0.8033980582524272,
+  "singleWithCheck": 0.7888349514563107,
+  "swapWithCheck": 0.8616504854368932
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0.55,
+  "swapCaughtWithReview": 0.85,
+  "swapPairNamed": 0.6333333333333333,
+  "relabelCaught": 0.05,
+  "relabelCaughtWithReview": 0.5,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 1
+ },
+ "strongFlags": 4,
+ "checkList": 4,
+ "strongSwapPairs": 1,
+ "allSwapPairs": 1,
+ "flagsPer1000": 9.615384615384615,
+ "checksPer1000": 9.615384615384615,
+ "householdOrRareNote": 4,
+ "seconds": 2.244
+}

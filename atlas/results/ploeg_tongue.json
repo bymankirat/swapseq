@@ -1,0 +1,43 @@
+{
+ "key": "ploeg_tongue",
+ "name": "Gingivitis challenge, tongue (van der Ploeg 2024)",
+ "ref": "van der Ploeg et al. 2024",
+ "type": "16S",
+ "host": "Oral: tongue",
+ "design": "Experimental gingivitis, 7 visits over 6 weeks",
+ "validation": false,
+ "control": null,
+ "samples": 429,
+ "droppedLowDepth": 0,
+ "subjects": 63,
+ "scorable": 427,
+ "subjectsWith2": 61,
+ "medianSamplesPerSubject": 7,
+ "reidentified": 0.9976580796252927,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0,
+  "singleWithCheck": 0.9975961538461539,
+  "swapWithCheck": 1
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0.8666666666666667,
+  "swapCaughtWithReview": 0.9,
+  "swapPairNamed": 0.8,
+  "relabelCaught": 0.65,
+  "relabelCaughtWithReview": 0.9,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0.2386634844868735
+ },
+ "strongFlags": 0,
+ "checkList": 0,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 0,
+ "householdOrRareNote": 0,
+ "seconds": 1.891
+}

@@ -1,0 +1,43 @@
+{
+ "key": "kostic",
+ "name": "Infants at risk of type 1 diabetes (Kostic 2015)",
+ "ref": "Kostic et al. 2015, Cell Host Microbe",
+ "type": "16S (genus counts)",
+ "host": "Infant gut",
+ "design": "Monthly stool, birth to 3 years (subset with metabolomics)",
+ "validation": false,
+ "control": null,
+ "samples": 103,
+ "droppedLowDepth": 0,
+ "subjects": 19,
+ "scorable": 103,
+ "subjectsWith2": 19,
+ "medianSamplesPerSubject": 5,
+ "reidentified": 0.6990291262135923,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0,
+  "singleWithCheck": 0.10839160839160839,
+  "swapWithCheck": 0.2937062937062937
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 1,
+  "relabelsPerRep": 1,
+  "swapCaught": 0,
+  "swapCaughtWithReview": 0.3,
+  "swapPairNamed": 0.3,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0
+ },
+ "strongFlags": 0,
+ "checkList": 0,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 0,
+ "householdOrRareNote": 0,
+ "seconds": 0.327
+}

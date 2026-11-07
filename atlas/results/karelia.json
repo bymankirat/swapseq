@@ -1,0 +1,43 @@
+{
+ "key": "karelia",
+ "name": "DIABIMMUNE infants (Vatanen 2016)",
+ "ref": "Vatanen et al. 2016, Cell",
+ "type": "16S",
+ "host": "Infant gut",
+ "design": "3 countries, monthly stool, birth to 3 years",
+ "validation": false,
+ "control": null,
+ "samples": 1761,
+ "droppedLowDepth": 98,
+ "subjects": 221,
+ "scorable": 1759,
+ "subjectsWith2": 219,
+ "medianSamplesPerSubject": 8,
+ "reidentified": 0.617964752700398,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0,
+  "singleWithCheck": 0.043536503683858,
+  "swapWithCheck": 0.016744809109176157
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 5,
+  "relabelsPerRep": 4,
+  "swapCaught": 0,
+  "swapCaughtWithReview": 0.04,
+  "swapPairNamed": 0,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0.05,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0.4098360655737705
+ },
+ "strongFlags": 0,
+ "checkList": 37,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 3,
+ "flagsPer1000": 0,
+ "checksPer1000": 21.034678794769757,
+ "householdOrRareNote": 0,
+ "seconds": 66.424
+}

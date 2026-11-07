@@ -1,0 +1,43 @@
+{
+ "key": "mdsH",
+ "name": "Gnotobiotic mice, healthy donor (Gibson 2025)",
+ "ref": "Gibson et al. 2025 (MDSINE2)",
+ "type": "16S",
+ "host": "Mouse gut",
+ "design": "Mice colonised with one donor community",
+ "validation": true,
+ "control": null,
+ "samples": 320,
+ "droppedLowDepth": 0,
+ "subjects": 5,
+ "scorable": 320,
+ "subjectsWith2": 5,
+ "medianSamplesPerSubject": 76,
+ "reidentified": 0.8875,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0.35537190082644626,
+  "singleWithCheck": 0.6570247933884298,
+  "swapWithCheck": 0.4462809917355372
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0,
+  "swapCaughtWithReview": 0.3,
+  "swapPairNamed": 0.13333333333333333,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0.3,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0.9836065573770492
+ },
+ "strongFlags": 0,
+ "checkList": 7,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 21.875,
+ "householdOrRareNote": 0,
+ "seconds": 0.626
+}

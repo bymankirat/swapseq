@@ -1,0 +1,43 @@
+{
+ "key": "muVRE",
+ "name": "Mouse VRE colonisation (Mu 2021)",
+ "ref": "lecaolab case study (mouse VRE)",
+ "type": "16S (batch-corrected)",
+ "host": "Mouse gut",
+ "design": "Mice sampled daily, days 0-5",
+ "validation": false,
+ "control": null,
+ "samples": 97,
+ "droppedLowDepth": 0,
+ "subjects": 9,
+ "scorable": 97,
+ "subjectsWith2": 9,
+ "medianSamplesPerSubject": 11,
+ "reidentified": 0.5154639175257731,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0,
+  "singleWithCheck": 0,
+  "swapWithCheck": 0
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 1,
+  "relabelsPerRep": 1,
+  "swapCaught": 0,
+  "swapCaughtWithReview": 0,
+  "swapPairNamed": 0,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0
+ },
+ "strongFlags": 0,
+ "checkList": 0,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 0,
+ "householdOrRareNote": 0,
+ "seconds": 0.195
+}

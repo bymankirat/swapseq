@@ -1,0 +1,43 @@
+{
+ "key": "smpGut",
+ "name": "Student Microbiome gut",
+ "ref": "Flores et al. 2014, Genome Biol",
+ "type": "16S",
+ "host": "Adult gut",
+ "design": "Weekly self-sampling for 10 weeks",
+ "validation": true,
+ "control": null,
+ "samples": 638,
+ "droppedLowDepth": 0,
+ "subjects": 75,
+ "scorable": 638,
+ "subjectsWith2": 75,
+ "medianSamplesPerSubject": 9,
+ "reidentified": 0.9733542319749217,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.8482428115015974,
+  "swap": 0,
+  "singleWithCheck": 0.8961661341853036,
+  "swapWithCheck": 0.9696485623003195
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0.9333333333333333,
+  "swapCaughtWithReview": 0.95,
+  "swapPairNamed": 0.9,
+  "relabelCaught": 0.85,
+  "relabelCaughtWithReview": 0.9,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0.3179650238473768
+ },
+ "strongFlags": 1,
+ "checkList": 0,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 1.567398119122257,
+ "checksPer1000": 0,
+ "householdOrRareNote": 1,
+ "seconds": 7.318
+}

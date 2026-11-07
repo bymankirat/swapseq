@@ -1,0 +1,43 @@
+{
+ "key": "shao",
+ "name": "Baby Biome infants (Shao 2019)",
+ "ref": "Shao et al. 2019, Nature",
+ "type": "Shotgun (mOTU counts)",
+ "host": "Infant gut",
+ "design": "Neonatal stool days 4-21 and infancy",
+ "validation": false,
+ "control": null,
+ "samples": 682,
+ "droppedLowDepth": 0,
+ "subjects": 429,
+ "scorable": 440,
+ "subjectsWith2": 187,
+ "medianSamplesPerSubject": 2,
+ "reidentified": 0.2318181818181818,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0,
+  "singleWithCheck": 0.008836524300441826,
+  "swapWithCheck": 0.005891016200294551
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0,
+  "swapCaughtWithReview": 0,
+  "swapPairNamed": 0,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0
+ },
+ "strongFlags": 0,
+ "checkList": 0,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 0,
+ "householdOrRareNote": 0,
+ "seconds": 9.036
+}

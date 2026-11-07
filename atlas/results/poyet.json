@@ -1,0 +1,43 @@
+{
+ "key": "poyet",
+ "name": "BIO-ML stool donors (Poyet 2019)",
+ "ref": "Poyet et al. 2019, Nat Med",
+ "type": "Shotgun (genus counts)",
+ "host": "Adult gut",
+ "design": "Healthy donors sampled repeatedly over up to 2 years",
+ "validation": false,
+ "control": null,
+ "samples": 164,
+ "droppedLowDepth": 0,
+ "subjects": 83,
+ "scorable": 128,
+ "subjectsWith2": 47,
+ "medianSamplesPerSubject": 2,
+ "reidentified": 1,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0,
+  "singleWithCheck": 1,
+  "swapWithCheck": 1
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 1,
+  "relabelsPerRep": 1,
+  "swapCaught": 1,
+  "swapCaughtWithReview": 1,
+  "swapPairNamed": 1,
+  "relabelCaught": 0.9,
+  "relabelCaughtWithReview": 1,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0
+ },
+ "strongFlags": 0,
+ "checkList": 0,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 0,
+ "householdOrRareNote": 0,
+ "seconds": 0.547
+}

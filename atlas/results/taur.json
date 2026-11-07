@@ -1,0 +1,43 @@
+{
+ "key": "taur",
+ "name": "Stem-cell transplant patients (Taur 2018)",
+ "ref": "Taur et al. 2018, Sci Transl Med",
+ "type": "16S",
+ "host": "Adult gut (hospital, antibiotics)",
+ "design": "Stool from 25 days before to 100 days after allo-HSCT",
+ "validation": false,
+ "control": null,
+ "samples": 2479,
+ "droppedLowDepth": 95,
+ "subjects": 674,
+ "scorable": 2370,
+ "subjectsWith2": 565,
+ "medianSamplesPerSubject": 3,
+ "reidentified": 0.5738396624472574,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.012040133779264214,
+  "swap": 0.028762541806020066,
+  "singleWithCheck": 0.12976588628762542,
+  "swapWithCheck": 0.10234113712374582
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 7,
+  "relabelsPerRep": 5,
+  "swapCaught": 0.007142857142857143,
+  "swapCaughtWithReview": 0.22857142857142856,
+  "swapPairNamed": 0.1,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0.14,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0.38843331894691413
+ },
+ "strongFlags": 10,
+ "checkList": 24,
+ "strongSwapPairs": 2,
+ "allSwapPairs": 4,
+ "flagsPer1000": 4.219409282700422,
+ "checksPer1000": 10.126582278481013,
+ "householdOrRareNote": 0,
+ "seconds": 153.022
+}

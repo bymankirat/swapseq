@@ -1,0 +1,43 @@
+{
+ "key": "ploeg_lower_jaw_interproximal",
+ "name": "Gingivitis challenge, lower jaw, interproximal (van der Ploeg 2024)",
+ "ref": "van der Ploeg et al. 2024",
+ "type": "16S",
+ "host": "Oral: lower jaw, interproximal",
+ "design": "Experimental gingivitis, 7 visits over 6 weeks",
+ "validation": false,
+ "control": null,
+ "samples": 402,
+ "droppedLowDepth": 1,
+ "subjects": 63,
+ "scorable": 400,
+ "subjectsWith2": 61,
+ "medianSamplesPerSubject": 7,
+ "reidentified": 0.72,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0.14898989898989898,
+  "singleWithCheck": 0.04292929292929293,
+  "swapWithCheck": 0.25252525252525254
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0,
+  "swapCaughtWithReview": 0.16666666666666666,
+  "swapPairNamed": 0.16666666666666666,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0
+ },
+ "strongFlags": 0,
+ "checkList": 2,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 5,
+ "householdOrRareNote": 0,
+ "seconds": 1.813
+}

@@ -1,0 +1,43 @@
+{
+ "key": "storage",
+ "name": "Stool storage conditions (Song 2016)",
+ "ref": "Song et al. 2016, mSystems",
+ "type": "16S",
+ "host": "Human and dog stool",
+ "design": "Aliquots of one stool per donor, many preservation methods, up to 8 weeks",
+ "validation": false,
+ "control": null,
+ "samples": 1300,
+ "droppedLowDepth": 104,
+ "subjects": 16,
+ "scorable": 1299,
+ "subjectsWith2": 15,
+ "medianSamplesPerSubject": 86,
+ "reidentified": 0.9753656658968437,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.932621199671323,
+  "swap": 0.9531635168447001,
+  "singleWithCheck": 0.9408381265406738,
+  "swapWithCheck": 0.9630238290879212
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 4,
+  "relabelsPerRep": 3,
+  "swapCaught": 0.9,
+  "swapCaughtWithReview": 0.925,
+  "swapPairNamed": 0.575,
+  "relabelCaught": 0.7666666666666667,
+  "relabelCaughtWithReview": 0.8333333333333334,
+  "falseFlagsPer1000": 0.2336448598130841,
+  "falseChecksPer1000": 1.0903426791277258
+ },
+ "strongFlags": 4,
+ "checkList": 0,
+ "strongSwapPairs": 1,
+ "allSwapPairs": 1,
+ "flagsPer1000": 3.079291762894534,
+ "checksPer1000": 0,
+ "householdOrRareNote": 2,
+ "seconds": 16.593
+}

@@ -1,0 +1,43 @@
+{
+ "key": "mars",
+ "name": "Irritable bowel syndrome (Mars 2020)",
+ "ref": "Mars et al. 2020, Cell",
+ "type": "Shotgun (species counts)",
+ "host": "Adult gut",
+ "design": "Stool over 6 months, including flares",
+ "validation": false,
+ "control": null,
+ "samples": 444,
+ "droppedLowDepth": 0,
+ "subjects": 75,
+ "scorable": 440,
+ "subjectsWith2": 71,
+ "medianSamplesPerSubject": 7,
+ "reidentified": 0.8909090909090909,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.4634703196347032,
+  "swap": 0.8242009132420092,
+  "singleWithCheck": 0.7077625570776256,
+  "swapWithCheck": 0.865296803652968
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0.4,
+  "swapCaughtWithReview": 0.9166666666666666,
+  "swapPairNamed": 0.7,
+  "relabelCaught": 0.05,
+  "relabelCaughtWithReview": 0.6,
+  "falseFlagsPer1000": 0.2347417840375587,
+  "falseChecksPer1000": 0.2347417840375587
+ },
+ "strongFlags": 4,
+ "checkList": 2,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 9.090909090909092,
+ "checksPer1000": 4.545454545454546,
+ "householdOrRareNote": 4,
+ "seconds": 4.427
+}

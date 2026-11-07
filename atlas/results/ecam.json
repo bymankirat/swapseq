@@ -1,0 +1,43 @@
+{
+ "key": "ecam",
+ "name": "ECAM infants (Bokulich 2016)",
+ "ref": "Bokulich et al. 2016, Sci Transl Med",
+ "type": "16S",
+ "host": "Infant gut",
+ "design": "Monthly stool, birth to 2 years",
+ "validation": true,
+ "control": null,
+ "samples": 875,
+ "droppedLowDepth": 0,
+ "subjects": 43,
+ "scorable": 875,
+ "subjectsWith2": 43,
+ "medianSamplesPerSubject": 22,
+ "reidentified": 0.744,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0,
+  "swap": 0.09613130128956623,
+  "singleWithCheck": 0.3094958968347011,
+  "swapWithCheck": 0.1570926143024619
+ },
+ "measured": {
+  "reps": 10,
+  "swapsPerRep": 3,
+  "relabelsPerRep": 2,
+  "swapCaught": 0,
+  "swapCaughtWithReview": 0.35,
+  "swapPairNamed": 0.2,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0.35,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0.23501762632197415
+ },
+ "strongFlags": 0,
+ "checkList": 16,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 0,
+ "checksPer1000": 18.285714285714285,
+ "householdOrRareNote": 0,
+ "seconds": 4.84
+}
