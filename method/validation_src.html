@@ -102,7 +102,7 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
 
 <div class="doc">
 <aside class="toc" aria-label="On this page"><b>On this page</b>
-  <a href="#checks">What it checks</a><a href="#method">Method</a><a href="#data">Data</a><a href="#design">Test design</a><a href="#results">Results</a><a href="#plate">Plate errors</a><a href="#real">A real swap</a><a href="#untouched">Untouched data</a><a href="#dropped">Tried and dropped</a><a href="#limits">Limits</a><a href="#reproduce">Reproduce</a><a href="#cite">Cite</a>
+  <a href="#checks">What it checks</a><a href="#method">Method</a><a href="#data">Data</a><a href="#design">Test design</a><a href="#results">Results</a><a href="#plate">Plate errors</a><a href="#real">A real swap</a><a href="#untouched">Untouched data</a><a href="#dropped">Tried and dropped</a><a href="#shotgun">Shotgun data</a><a href="#limits">Limits</a><a href="#reproduce">Reproduce</a><a href="#cite">Cite</a>
 </aside>
 <article>
 
@@ -240,23 +240,40 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
     <li class="panel"><b>Estimating the error rate (EM)</b>Unstable when errors are rare, which is exactly the normal case.</li>
     <li class="panel"><b>Ignoring same-visit look-alikes</b>Helps when one batch makes samples look alike, but breaks before/after designs with two samples each.</li>
     <li class="panel"><b>Blending nearest and median distance</b>Diluted the nearest-neighbour signal that a swap leaves.</li>
+    <li class="panel"><b>An ensemble of six scores</b>Stacking nearest-neighbour, rare-taxon, Bray-Curtis, Aitchison, fingerprint and time scores caught 5&ndash;7 more points of swaps, but overfitted small tables (16 false flags per 1,000 at 103 samples) and lost the calibrated probability.</li>
+    <li class="panel"><b>Time-aware fingerprints</b>Removing what all samples of a similar age share, tested on 28 Atlas tables. On the 14 tables where SwapSeq caught under 20%, strong flags rose only from 2.6% to 4.2%, while false check-list entries rose from 0.3 to 4.1 per 1,000. Checkable tables were unchanged.</li>
   </ul>
 </section>
 
+<section id="shotgun">
+  <span class="secno">10</span><h2>Shotgun data: strain markers and host DNA</h2>
+  <div class="prose">
+    <p>Where people stop looking like themselves (newborns, heavy antibiotics, lab animals from one donor), no method based on a species or ASV table caught more than a few per cent of swaps. Shotgun data carry two more kinds of identity, and SwapSeq can now use both.</p>
+    <p><b>Strain markers.</b> A presence table of strain markers, genes or SNVs (for example MetaPhlAn marker presence) is compared with the Jaccard distance, and with a second Jaccard distance in which each marker is weighted by &minus;log(prevalence), so that a shared rare marker counts for more. Only markers present in at least 2 samples and at most half of them are used. Scoring and calibration are unchanged. A test on public shotgun cohorts, including infants, is under way.</p>
+    <p><b>Host DNA (beta).</b> Shotgun reads carry some of the person's own DNA, usually one read at a few thousand common SNPs. Two single samples then rarely share sites, so, as in single-cell demultiplexing, each sample's reads are scored against every person's pooled reads from all their other samples, with Hardy&ndash;Weinberg genotype priors and a 1% read-error rate. A sample is flagged when another person explains its reads at least e<sup>8</sup> (about 3,000) times better than the labelled person.</p>
+  </div>
+  <div class="tablewrap" style="margin-top:14px"><table>
+    <thead><tr><th>Covered SNP sites per sample</th><th>Swaps caught</th><th>False flags per 1,000</th></tr></thead>
+    <tbody><tr><td>500 or 1,000</td><td>0%</td><td>0</td></tr><tr><td>1,500</td><td>25%</td><td>0.8</td></tr><tr><td>2,000</td><td>95%</td><td>0</td></tr><tr><td>2,500 or 4,000</td><td>100%</td><td>0</td></tr></tbody>
+  </table></div>
+  <div class="prose"><p class="muted">Simulation: 40 people sampled 6 times, a panel of 200,000 common SNPs, one read per covered site, 5 repeats per row. SwapSeq therefore judges only samples with at least 2,000 covered sites. Real host reads are less even than this, so treat these figures as an upper bound until the check is run on real samples. Host reads are human genetic data: use them only within your ethics approval; SwapSeq processes them on your own computer.</p></div>
+</section>
+
 <section id="limits">
-  <span class="secno">10</span><h2>Limits</h2>
+  <span class="secno">11</span><h2>Limits</h2>
   <div class="prose"><ul>
     <li><b>One confirmed real error.</b> Everything else is planted. Planted errors are clean label exchanges; real mix-ups can also be partial, such as cross-contamination or a split sample.</li>
     <li><b>Narrow evidence base.</b> Adult 16S results come from two studies, shotgun from one, and plate patterns from one real plating order.</li>
     <li><b>Development results.</b> Settings were chosen on these tables.</li>
     <li><b>Needs repeat samples.</b> At least two per person, better three. People who live together, antibiotics and illness all blur the fingerprint.</li>
-    <li><b>Memory.</b> All pairwise distances are held in the browser, so tables of many thousands of samples need a lot of memory. The largest table tested had 875 samples.</li>
+    <li><b>Memory.</b> All pairwise distances are held in the browser, so tables of many thousands of samples need a lot of memory. The largest table in this benchmark had 875 samples; the SwapSeq Atlas ran tables of up to 2,479 samples, and the browser accepts up to 4,000 per check.</li>
+    <li><b>Host DNA and strain markers are new.</b> The host-DNA check is tested on simulated data only, and the strain-marker test on public cohorts is still running.</li>
     <li><b>A flag is a reason to check.</b> Compare it with plate maps, extraction batches and sample sheets before relabelling or dropping anything. SwapSeq is a research QC tool, not a medical device.</li>
   </ul></div>
 </section>
 
 <section id="reproduce">
-  <span class="secno">11</span><h2>Reproduce</h2>
+  <span class="secno">12</span><h2>Reproduce</h2>
   <div class="prose">
     <p>Node.js 22 and nothing else. Clone the five source repositories into one folder (the layout is in <span class="mono">method/load.mjs</span>), then:</p>
   </div>
@@ -278,7 +295,7 @@ node method/realswap.mjs       # the real diet-study swap</pre>
 </section>
 
 <section id="cite">
-  <span class="secno">12</span><h2>Cite and references</h2>
+  <span class="secno">13</span><h2>Cite and references</h2>
   <div class="panel cite">
     <p id="citeText">Singh M. (2026). <i>SwapSeq: a sample mix-up checker for longitudinal microbiome studies</i> (v1.1.1). Zenodo. https://doi.org/10.5281/zenodo.23963612</p>
     <div class="actions"><button class="btn ghost small" type="button" id="copyCite">Copy citation</button><span class="copied" id="copied" hidden>Copied</span><a href="https://doi.org/10.5281/zenodo.23963612" target="_blank" rel="noopener">doi:10.5281/zenodo.23963612</a><a href="https://orcid.org/0009-0005-3375-2123" target="_blank" rel="noopener">ORCID 0009-0005-3375-2123</a><a href="https://bio.tools/swapseq" target="_blank" rel="noopener">biotools:swapseq</a><a href="https://scicrunch.org/resolver/RRID:SCR_029248" target="_blank" rel="noopener">RRID:SCR_029248</a></div>
