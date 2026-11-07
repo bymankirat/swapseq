@@ -309,7 +309,7 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
 
 <main><div class="wrap">
 <div class="dhero">
-  <span class="eyebrow">SwapSeq v1.1.0 · Methods and validation</span>
+  <span class="eyebrow">SwapSeq v1.1.1 · Methods and validation</span>
   <h1>How SwapSeq works, and how well</h1>
   <p>SwapSeq checks whether each sample in a longitudinal microbiome study came from the person on its label. This page sets out the method, the public data it was tested on, how errors were planted, and every result, including where it does poorly.</p>
   <div class="stats">
@@ -410,7 +410,7 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
 
   <h3 style="margin-top:36px">Power is now measured on your own table (version 1.1)</h3>
   <div class="prose" style="margin-top:8px"><p class="muted">Every run reports how many swaps SwapSeq could catch in that study. In version 1.0 this figure was read off the calibration. It matched the measured catch rate when a table already held errors (the 13 benchmark tables below, within 7 points on average), but on clean tables it could read close to 0% for a table SwapSeq checks well. The SwapSeq Atlas found this across 30 public tables in November 2026.</p>
-  <p class="muted">Version 1.1 measures power directly: it hides one swap or one relabel at a time in copies of the user's labels, reruns the full check on the same distances, and counts what is caught. Against a separate measurement on the same 30 tables, the average gap on clean labels fell from 31 to 9 points, and no table SwapSeq checks well is shown below 20%. When a table already holds 1-2% errors, the 1.1 figure reads a little low (average gap 11 points, against 7 for 1.0), because the hidden tests add to the errors already there. It adds a few seconds to a typical run of a few hundred samples, and one to two minutes for 2,000 or more.</p></div>
+  <p class="muted">Version 1.1 measures power directly: it hides one swap or one relabel at a time in copies of the user's labels, reruns the full check on the same distances, and counts what is caught. Against a separate measurement on the same 30 tables, the average gap on clean labels fell from 31 to 9 points, and no table SwapSeq checks well is shown below 20%. When a table already holds 1-2% errors, near-certain flags are set aside before the tests are hidden (1.1.1), so the tests do not compete with errors SwapSeq has already found; the average gap there is 9 points, against 7 for 1.0, about the noise between two repeat measurements (8 points). It adds a few seconds to a typical run of a few hundred samples, and one to two minutes for 2,000 or more.</p></div>
   <div class="panel valchart chartwrap" id="powerChart"></div>
 
   <h3 style="margin-top:36px">Where it is weaker</h3>
@@ -500,7 +500,7 @@ node method/realswap.mjs       # the real diet-study swap</pre>
 <section id="cite">
   <span class="secno">12</span><h2>Cite and references</h2>
   <div class="panel cite">
-    <p id="citeText">Singh M. (2026). <i>SwapSeq: a sample mix-up checker for longitudinal microbiome studies</i> (v1.1.0). Zenodo. https://doi.org/10.5281/zenodo.23963612</p>
+    <p id="citeText">Singh M. (2026). <i>SwapSeq: a sample mix-up checker for longitudinal microbiome studies</i> (v1.1.1). Zenodo. https://doi.org/10.5281/zenodo.23963612</p>
     <div class="actions"><button class="btn ghost small" type="button" id="copyCite">Copy citation</button><span class="copied" id="copied" hidden>Copied</span><a href="https://doi.org/10.5281/zenodo.23963612" target="_blank" rel="noopener">doi:10.5281/zenodo.23963612</a><a href="https://orcid.org/0009-0005-3375-2123" target="_blank" rel="noopener">ORCID 0009-0005-3375-2123</a><a href="https://bio.tools/swapseq" target="_blank" rel="noopener">biotools:swapseq</a><a href="https://scicrunch.org/resolver/RRID:SCR_029248" target="_blank" rel="noopener">RRID:SCR_029248</a></div>
   </div>
   <h3 style="margin-top:28px;margin-bottom:12px">Studies and methods</h3>

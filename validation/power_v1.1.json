@@ -1,21 +1,21 @@
 {
- "description": "SwapSeq 1.1.0 measured power vs the 1.0.1 estimate on 30 public longitudinal tables (SwapSeq Atlas, Nov 2026). \"truth\" = strong-flag catch rate measured with 10 independent rounds of hidden errors; \"actual\" = catch rate of errors hidden before the run. Values are fractions.",
+ "description": "SwapSeq 1.1.1 measured power vs the 1.0.1 estimate on 30 public longitudinal tables (SwapSeq Atlas, Nov 2026). \"truth\" = strong-flag catch rate measured with 10 independent rounds of hidden errors; \"actual\" = catch rate of errors hidden before the run. Values are fractions.",
  "summary": {
   "cleanLabels_meanAbsError_points": {
    "v1.0.1": 31.4,
-   "v1.1.0": 8.9
+   "v1.1.1": 9.1
   },
   "withErrors_meanAbsError_points": {
    "v1.0.1": 6.6,
-   "v1.1.0": 10.7
+   "v1.1.1": 8.6
   },
   "checkableTablesShownBelow20pct": {
    "v1.0.1": 8,
-   "v1.1.0": 0
+   "v1.1.1": 0
   },
   "uncheckableTablesShownAbove50pct": {
    "v1.0.1": 1,
-   "v1.1.0": 0
+   "v1.1.1": 0
   }
  },
  "tables": [
@@ -34,10 +34,10 @@
    "withErrors": {
     "actual": 0.6,
     "old": 0.5164855322838009,
-    "new": 0.7350000000000001,
+    "new": 0.7550000000000001,
     "runs": 5
    },
-   "powerSeconds": 1.345
+   "powerSeconds": 1.224
   },
   {
    "key": "diet",
@@ -54,10 +54,10 @@
    "withErrors": {
     "actual": 0.9,
     "old": 0.9012354837666827,
-    "new": 0.93,
+    "new": 0.96,
     "runs": 5
    },
-   "powerSeconds": 2.701
+   "powerSeconds": 2.899
   },
   {
    "key": "digiulio",
@@ -67,17 +67,17 @@
    "clean": {
     "truth": 0.8,
     "old": 0.9292517006802721,
-    "new": 0.925,
-    "newSingle": 0.6,
+    "new": 0.975,
+    "newSingle": 0.65,
     "truthSingle": 0.55
    },
    "withErrors": {
     "actual": 0.75,
     "old": 0.7971960279598873,
-    "new": 0.675,
+    "new": 0.8400000000000001,
     "runs": 5
    },
-   "powerSeconds": 6.232
+   "powerSeconds": 6.558
   },
   {
    "key": "ecam",
@@ -97,7 +97,7 @@
     "new": 0,
     "runs": 5
    },
-   "powerSeconds": 7.11
+   "powerSeconds": 8.911
   },
   {
    "key": "hagan",
@@ -114,10 +114,10 @@
    "withErrors": {
     "actual": 0.9,
     "old": 0.8632099790524539,
-    "new": 0.715,
+    "new": 0.79,
     "runs": 5
    },
-   "powerSeconds": 1.917
+   "powerSeconds": 1.828
   },
   {
    "key": "heInfants",
@@ -137,7 +137,7 @@
     "new": 0,
     "runs": 5
    },
-   "powerSeconds": 3.212
+   "powerSeconds": 3.129
   },
   {
    "key": "ibdmdb",
@@ -157,7 +157,7 @@
     "new": 0,
     "runs": 5
    },
-   "powerSeconds": 4.933
+   "powerSeconds": 2.781
   },
   {
    "key": "imp",
@@ -177,7 +177,7 @@
     "new": 0.325,
     "runs": 5
    },
-   "powerSeconds": 0.512
+   "powerSeconds": 0.487
   },
   {
    "key": "karelia",
@@ -197,7 +197,7 @@
     "new": 0,
     "runs": 5
    },
-   "powerSeconds": 30.021
+   "powerSeconds": 35.505
   },
   {
    "key": "kostic",
@@ -217,7 +217,7 @@
     "new": 0,
     "runs": 5
    },
-   "powerSeconds": 0.563
+   "powerSeconds": 0.5
   },
   {
    "key": "mars",
@@ -234,10 +234,10 @@
    "withErrors": {
     "actual": 0.8,
     "old": 0.7279077648368579,
-    "new": 0.52,
+    "new": 0.66,
     "runs": 5
    },
-   "powerSeconds": 4.566
+   "powerSeconds": 4.037
   },
   {
    "key": "mdsH",
@@ -254,10 +254,10 @@
    "withErrors": {
     "actual": 0.05,
     "old": 0.15269520994363558,
-    "new": 0.11000000000000001,
+    "new": 0.12000000000000002,
     "runs": 5
    },
-   "powerSeconds": 0.614
+   "powerSeconds": 0.591
   },
   {
    "key": "mdsU",
@@ -277,7 +277,7 @@
     "new": 0,
     "runs": 5
    },
-   "powerSeconds": 0.991
+   "powerSeconds": 0.809
   },
   {
    "key": "muVRE",
@@ -297,7 +297,7 @@
     "new": 0,
     "runs": 5
    },
-   "powerSeconds": 0.488
+   "powerSeconds": 0.39
   },
   {
    "key": "palleja",
@@ -317,7 +317,7 @@
     "new": 0,
     "runs": 5
    },
-   "powerSeconds": 0.316
+   "powerSeconds": 0.294
   },
   {
    "key": "ploeg_lower_jaw_interproximal",
@@ -337,7 +337,7 @@
     "new": 0.04,
     "runs": 5
    },
-   "powerSeconds": 2.809
+   "powerSeconds": 3.214
   },
   {
    "key": "ploeg_lower_jaw_lingual",
@@ -348,16 +348,16 @@
     "truth": 0.55,
     "old": 0.8033980582524272,
     "new": 0.7,
-    "newSingle": 0.1,
+    "newSingle": 0.4,
     "truthSingle": 0.05
    },
    "withErrors": {
     "actual": 0.7,
     "old": 0.6968258666267619,
-    "new": 0.48,
+    "new": 0.5399999999999999,
     "runs": 5
    },
-   "powerSeconds": 3.017
+   "powerSeconds": 3.082
   },
   {
    "key": "ploeg_saliva",
@@ -374,10 +374,10 @@
    "withErrors": {
     "actual": 0.8,
     "old": 0.766442656186349,
-    "new": 0.7,
+    "new": 0.72,
     "runs": 5
    },
-   "powerSeconds": 3.903
+   "powerSeconds": 3.239
   },
   {
    "key": "ploeg_tongue",
@@ -394,10 +394,10 @@
    "withErrors": {
     "actual": 1,
     "old": 0.8485214915146505,
-    "new": 0.9200000000000002,
+    "new": 0.96,
     "runs": 5
    },
-   "powerSeconds": 3.865
+   "powerSeconds": 2.682
   },
   {
    "key": "ploeg_upper_jaw_interproximal",
@@ -417,7 +417,7 @@
     "new": 0.22000000000000003,
     "runs": 5
    },
-   "powerSeconds": 2.768
+   "powerSeconds": 3.728
   },
   {
    "key": "ploeg_upper_jaw_lingual",
@@ -437,7 +437,7 @@
     "new": 0.22000000000000003,
     "runs": 5
    },
-   "powerSeconds": 3.119
+   "powerSeconds": 2.89
   },
   {
    "key": "poyet",
@@ -454,10 +454,10 @@
    "withErrors": {
     "actual": 1,
     "old": 0.5340426502063774,
-    "new": 0.6900000000000001,
+    "new": 0.8299999999999998,
     "runs": 5
    },
-   "powerSeconds": 1.149
+   "powerSeconds": 1.113
   },
   {
    "key": "shao",
@@ -477,7 +477,7 @@
     "new": 0,
     "runs": 5
    },
-   "powerSeconds": 19.46
+   "powerSeconds": 18.432
   },
   {
    "key": "smpForehead",
@@ -494,10 +494,10 @@
    "withErrors": {
     "actual": 0.85,
     "old": 0.8639000002944253,
-    "new": 0.7400000000000001,
+    "new": 0.8600000000000001,
     "runs": 5
    },
-   "powerSeconds": 9.803
+   "powerSeconds": 9.418
   },
   {
    "key": "smpGut",
@@ -517,7 +517,7 @@
     "new": 0.9800000000000001,
     "runs": 5
    },
-   "powerSeconds": 8.226
+   "powerSeconds": 9.162
   },
   {
    "key": "smpPalm",
@@ -534,10 +534,10 @@
    "withErrors": {
     "actual": 0.8,
     "old": 0.7442335332293231,
-    "new": 0.63,
+    "new": 0.76,
     "runs": 5
    },
-   "powerSeconds": 4.268
+   "powerSeconds": 5.009
   },
   {
    "key": "smpTongue",
@@ -554,10 +554,10 @@
    "withErrors": {
     "actual": 0.65,
     "old": 0.5644999893177391,
-    "new": 0.45,
+    "new": 0.55,
     "runs": 5
    },
-   "powerSeconds": 12.625
+   "powerSeconds": 11.508
   },
   {
    "key": "storage",
@@ -567,17 +567,17 @@
    "clean": {
     "truth": 0.9,
     "old": 0.9531635168447001,
-    "new": 0.95,
+    "new": 0.9666666666666667,
     "newSingle": 0.8666666666666667,
     "truthSingle": 0.7666666666666667
    },
    "withErrors": {
     "actual": 0.8,
     "old": 0.8419941231685018,
-    "new": 0.8699999999999999,
+    "new": 0.9633333333333335,
     "runs": 5
    },
-   "powerSeconds": 12.893
+   "powerSeconds": 13.026
   },
   {
    "key": "taur",
@@ -597,7 +597,7 @@
     "new": 0,
     "runs": 5
    },
-   "powerSeconds": 76.61
+   "powerSeconds": 80.815
   },
   {
    "key": "wandro",
@@ -617,7 +617,7 @@
     "new": 0,
     "runs": 5
    },
-   "powerSeconds": 0.368
+   "powerSeconds": 0.354
   }
  ]
 }
