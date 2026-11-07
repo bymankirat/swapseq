@@ -1,0 +1,623 @@
+{
+ "description": "SwapSeq 1.1.0 measured power vs the 1.0.1 estimate on 30 public longitudinal tables (SwapSeq Atlas, Nov 2026). \"truth\" = strong-flag catch rate measured with 10 independent rounds of hidden errors; \"actual\" = catch rate of errors hidden before the run. Values are fractions.",
+ "summary": {
+  "cleanLabels_meanAbsError_points": {
+   "v1.0.1": 31.4,
+   "v1.1.0": 8.9
+  },
+  "withErrors_meanAbsError_points": {
+   "v1.0.1": 6.6,
+   "v1.1.0": 10.7
+  },
+  "checkableTablesShownBelow20pct": {
+   "v1.0.1": 8,
+   "v1.1.0": 0
+  },
+  "uncheckableTablesShownAbove50pct": {
+   "v1.0.1": 1,
+   "v1.1.0": 0
+  }
+ },
+ "tables": [
+  {
+   "key": "david",
+   "name": "Diet switch (David 2014)",
+   "n": 236,
+   "subjects": 20,
+   "clean": {
+    "truth": 0.8,
+    "old": 0,
+    "new": 0.775,
+    "newSingle": 0.85,
+    "truthSingle": 0.8
+   },
+   "withErrors": {
+    "actual": 0.6,
+    "old": 0.5164855322838009,
+    "new": 0.7350000000000001,
+    "runs": 5
+   },
+   "powerSeconds": 1.345
+  },
+  {
+   "key": "diet",
+   "name": "Diet and microbiome (Johnson 2019)",
+   "n": 522,
+   "subjects": 37,
+   "clean": {
+    "truth": 0.9166666666666666,
+    "old": 0,
+    "new": 0.95,
+    "newSingle": 0.9,
+    "truthSingle": 0.85
+   },
+   "withErrors": {
+    "actual": 0.9,
+    "old": 0.9012354837666827,
+    "new": 0.93,
+    "runs": 5
+   },
+   "powerSeconds": 2.701
+  },
+  {
+   "key": "digiulio",
+   "name": "Pregnancy vaginal (DiGiulio 2015)",
+   "n": 756,
+   "subjects": 40,
+   "clean": {
+    "truth": 0.8,
+    "old": 0.9292517006802721,
+    "new": 0.925,
+    "newSingle": 0.6,
+    "truthSingle": 0.55
+   },
+   "withErrors": {
+    "actual": 0.75,
+    "old": 0.7971960279598873,
+    "new": 0.675,
+    "runs": 5
+   },
+   "powerSeconds": 6.232
+  },
+  {
+   "key": "ecam",
+   "name": "ECAM infants (Bokulich 2016)",
+   "n": 875,
+   "subjects": 43,
+   "clean": {
+    "truth": 0,
+    "old": 0.09613130128956623,
+    "new": 0,
+    "newSingle": 0,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0.1,
+    "old": 0.079042842715628,
+    "new": 0,
+    "runs": 5
+   },
+   "powerSeconds": 7.11
+  },
+  {
+   "key": "hagan",
+   "name": "Antibiotics and vaccines (Hagan 2019)",
+   "n": 264,
+   "subjects": 33,
+   "clean": {
+    "truth": 0.9,
+    "old": 0,
+    "new": 0.75,
+    "newSingle": 0.75,
+    "truthSingle": 0.6
+   },
+   "withErrors": {
+    "actual": 0.9,
+    "old": 0.8632099790524539,
+    "new": 0.715,
+    "runs": 5
+   },
+   "powerSeconds": 1.917
+  },
+  {
+   "key": "heInfants",
+   "name": "Infant formula trial (He 2019)",
+   "n": 277,
+   "subjects": 80,
+   "clean": {
+    "truth": 0,
+    "old": 0,
+    "new": 0,
+    "newSingle": 0,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0,
+    "new": 0,
+    "runs": 5
+   },
+   "powerSeconds": 3.212
+  },
+  {
+   "key": "ibdmdb",
+   "name": "IBD multi-omics, HMP2 (Lloyd-Price 2019)",
+   "n": 382,
+   "subjects": 105,
+   "clean": {
+    "truth": 0,
+    "old": 0,
+    "new": 0,
+    "newSingle": 0,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0,
+    "new": 0,
+    "runs": 5
+   },
+   "powerSeconds": 4.933
+  },
+  {
+   "key": "imp",
+   "name": "Immigration Microbiome Project (Vangay 2018)",
+   "n": 110,
+   "subjects": 18,
+   "clean": {
+    "truth": 0.7,
+    "old": 0,
+    "new": 0.575,
+    "newSingle": 0.05,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0.8,
+    "old": 0.6548529610769507,
+    "new": 0.325,
+    "runs": 5
+   },
+   "powerSeconds": 0.512
+  },
+  {
+   "key": "karelia",
+   "name": "DIABIMMUNE infants (Vatanen 2016)",
+   "n": 1761,
+   "subjects": 221,
+   "clean": {
+    "truth": 0,
+    "old": 0,
+    "new": 0,
+    "newSingle": 0,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0,
+    "new": 0,
+    "runs": 5
+   },
+   "powerSeconds": 30.021
+  },
+  {
+   "key": "kostic",
+   "name": "Infants at risk of type 1 diabetes (Kostic 2015)",
+   "n": 103,
+   "subjects": 19,
+   "clean": {
+    "truth": 0,
+    "old": 0,
+    "new": 0,
+    "newSingle": 0,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0,
+    "new": 0,
+    "runs": 5
+   },
+   "powerSeconds": 0.563
+  },
+  {
+   "key": "mars",
+   "name": "Irritable bowel syndrome (Mars 2020)",
+   "n": 444,
+   "subjects": 75,
+   "clean": {
+    "truth": 0.4,
+    "old": 0.8242009132420092,
+    "new": 0.5,
+    "newSingle": 0.2,
+    "truthSingle": 0.05
+   },
+   "withErrors": {
+    "actual": 0.8,
+    "old": 0.7279077648368579,
+    "new": 0.52,
+    "runs": 5
+   },
+   "powerSeconds": 4.566
+  },
+  {
+   "key": "mdsH",
+   "name": "Gnotobiotic mice, healthy donor (Gibson 2025)",
+   "n": 320,
+   "subjects": 5,
+   "clean": {
+    "truth": 0,
+    "old": 0.35537190082644626,
+    "new": 0.25,
+    "newSingle": 0.1,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0.05,
+    "old": 0.15269520994363558,
+    "new": 0.11000000000000001,
+    "runs": 5
+   },
+   "powerSeconds": 0.614
+  },
+  {
+   "key": "mdsU",
+   "name": "Gnotobiotic mice, UC donor (Gibson 2025)",
+   "n": 380,
+   "subjects": 5,
+   "clean": {
+    "truth": 0,
+    "old": 0,
+    "new": 0,
+    "newSingle": 0,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0,
+    "new": 0,
+    "runs": 5
+   },
+   "powerSeconds": 0.991
+  },
+  {
+   "key": "muVRE",
+   "name": "Mouse VRE colonisation (Mu 2021)",
+   "n": 97,
+   "subjects": 9,
+   "clean": {
+    "truth": 0,
+    "old": 0,
+    "new": 0,
+    "newSingle": 0,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0,
+    "new": 0,
+    "runs": 5
+   },
+   "powerSeconds": 0.488
+  },
+  {
+   "key": "palleja",
+   "name": "Antibiotic recovery (Palleja 2018)",
+   "n": 59,
+   "subjects": 12,
+   "clean": {
+    "truth": 0,
+    "old": 0,
+    "new": 0,
+    "newSingle": 0,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0,
+    "new": 0,
+    "runs": 5
+   },
+   "powerSeconds": 0.316
+  },
+  {
+   "key": "ploeg_lower_jaw_interproximal",
+   "name": "Gingivitis challenge, lower jaw, interproximal (van der Ploeg 2024)",
+   "n": 402,
+   "subjects": 63,
+   "clean": {
+    "truth": 0,
+    "old": 0.14898989898989898,
+    "new": 0.1,
+    "newSingle": 0,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0.09609675285749708,
+    "new": 0.04,
+    "runs": 5
+   },
+   "powerSeconds": 2.809
+  },
+  {
+   "key": "ploeg_lower_jaw_lingual",
+   "name": "Gingivitis challenge, lower jaw, lingual (van der Ploeg 2024)",
+   "n": 418,
+   "subjects": 63,
+   "clean": {
+    "truth": 0.55,
+    "old": 0.8033980582524272,
+    "new": 0.7,
+    "newSingle": 0.1,
+    "truthSingle": 0.05
+   },
+   "withErrors": {
+    "actual": 0.7,
+    "old": 0.6968258666267619,
+    "new": 0.48,
+    "runs": 5
+   },
+   "powerSeconds": 3.017
+  },
+  {
+   "key": "ploeg_saliva",
+   "name": "Gingivitis challenge, saliva (van der Ploeg 2024)",
+   "n": 427,
+   "subjects": 61,
+   "clean": {
+    "truth": 0.5333333333333333,
+    "old": 0,
+    "new": 0.9,
+    "newSingle": 0.8,
+    "truthSingle": 0.4
+   },
+   "withErrors": {
+    "actual": 0.8,
+    "old": 0.766442656186349,
+    "new": 0.7,
+    "runs": 5
+   },
+   "powerSeconds": 3.903
+  },
+  {
+   "key": "ploeg_tongue",
+   "name": "Gingivitis challenge, tongue (van der Ploeg 2024)",
+   "n": 429,
+   "subjects": 63,
+   "clean": {
+    "truth": 0.8666666666666667,
+    "old": 0,
+    "new": 1,
+    "newSingle": 0.6,
+    "truthSingle": 0.65
+   },
+   "withErrors": {
+    "actual": 1,
+    "old": 0.8485214915146505,
+    "new": 0.9200000000000002,
+    "runs": 5
+   },
+   "powerSeconds": 3.865
+  },
+  {
+   "key": "ploeg_upper_jaw_interproximal",
+   "name": "Gingivitis challenge, upper jaw, interproximal (van der Ploeg 2024)",
+   "n": 425,
+   "subjects": 63,
+   "clean": {
+    "truth": 0.1,
+    "old": 0.5382775119617225,
+    "new": 0.4,
+    "newSingle": 0.1,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0.3286559552655312,
+    "new": 0.22000000000000003,
+    "runs": 5
+   },
+   "powerSeconds": 2.768
+  },
+  {
+   "key": "ploeg_upper_jaw_lingual",
+   "name": "Gingivitis challenge, upper jaw, lingual (van der Ploeg 2024)",
+   "n": 429,
+   "subjects": 63,
+   "clean": {
+    "truth": 0.13333333333333333,
+    "old": 0.33568075117370894,
+    "new": 0.2,
+    "newSingle": 0.1,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0.1639607972708083,
+    "new": 0.22000000000000003,
+    "runs": 5
+   },
+   "powerSeconds": 3.119
+  },
+  {
+   "key": "poyet",
+   "name": "BIO-ML stool donors (Poyet 2019)",
+   "n": 164,
+   "subjects": 83,
+   "clean": {
+    "truth": 1,
+    "old": 0,
+    "new": 0.95,
+    "newSingle": 0.5,
+    "truthSingle": 0.9
+   },
+   "withErrors": {
+    "actual": 1,
+    "old": 0.5340426502063774,
+    "new": 0.6900000000000001,
+    "runs": 5
+   },
+   "powerSeconds": 1.149
+  },
+  {
+   "key": "shao",
+   "name": "Baby Biome infants (Shao 2019)",
+   "n": 682,
+   "subjects": 429,
+   "clean": {
+    "truth": 0,
+    "old": 0,
+    "new": 0,
+    "newSingle": 0,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0,
+    "new": 0,
+    "runs": 5
+   },
+   "powerSeconds": 19.46
+  },
+  {
+   "key": "smpForehead",
+   "name": "Student Microbiome forehead",
+   "n": 675,
+   "subjects": 80,
+   "clean": {
+    "truth": 0.95,
+    "old": 0.9412650602409639,
+    "new": 0.9,
+    "newSingle": 0.6,
+    "truthSingle": 0.7
+   },
+   "withErrors": {
+    "actual": 0.85,
+    "old": 0.8639000002944253,
+    "new": 0.7400000000000001,
+    "runs": 5
+   },
+   "powerSeconds": 9.803
+  },
+  {
+   "key": "smpGut",
+   "name": "Student Microbiome gut",
+   "n": 638,
+   "subjects": 75,
+   "clean": {
+    "truth": 0.9333333333333333,
+    "old": 0,
+    "new": 1,
+    "newSingle": 0.6,
+    "truthSingle": 0.85
+   },
+   "withErrors": {
+    "actual": 0.85,
+    "old": 0.8469653409116905,
+    "new": 0.9800000000000001,
+    "runs": 5
+   },
+   "powerSeconds": 8.226
+  },
+  {
+   "key": "smpPalm",
+   "name": "Student Microbiome palm",
+   "n": 515,
+   "subjects": 61,
+   "clean": {
+    "truth": 0.4666666666666667,
+    "old": 0.8814229249011858,
+    "new": 0.8,
+    "newSingle": 0.7,
+    "truthSingle": 0.05
+   },
+   "withErrors": {
+    "actual": 0.8,
+    "old": 0.7442335332293231,
+    "new": 0.63,
+    "runs": 5
+   },
+   "powerSeconds": 4.268
+  },
+  {
+   "key": "smpTongue",
+   "name": "Student Microbiome tongue",
+   "n": 692,
+   "subjects": 80,
+   "clean": {
+    "truth": 0.4666666666666667,
+    "old": 0.7042459736456809,
+    "new": 0.65,
+    "newSingle": 0.4,
+    "truthSingle": 0.05
+   },
+   "withErrors": {
+    "actual": 0.65,
+    "old": 0.5644999893177391,
+    "new": 0.45,
+    "runs": 5
+   },
+   "powerSeconds": 12.625
+  },
+  {
+   "key": "storage",
+   "name": "Stool storage conditions (Song 2016)",
+   "n": 1300,
+   "subjects": 16,
+   "clean": {
+    "truth": 0.9,
+    "old": 0.9531635168447001,
+    "new": 0.95,
+    "newSingle": 0.8666666666666667,
+    "truthSingle": 0.7666666666666667
+   },
+   "withErrors": {
+    "actual": 0.8,
+    "old": 0.8419941231685018,
+    "new": 0.8699999999999999,
+    "runs": 5
+   },
+   "powerSeconds": 12.893
+  },
+  {
+   "key": "taur",
+   "name": "Stem-cell transplant patients (Taur 2018)",
+   "n": 2479,
+   "subjects": 674,
+   "clean": {
+    "truth": 0.007142857142857143,
+    "old": 0.028762541806020066,
+    "new": 0,
+    "newSingle": 0,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0.012561307999242693,
+    "new": 0,
+    "runs": 5
+   },
+   "powerSeconds": 76.61
+  },
+  {
+   "key": "wandro",
+   "name": "Preterm infants in NICU (Wandro 2018)",
+   "n": 75,
+   "subjects": 32,
+   "clean": {
+    "truth": 0,
+    "old": 0,
+    "new": 0,
+    "newSingle": 0,
+    "truthSingle": 0
+   },
+   "withErrors": {
+    "actual": 0,
+    "old": 0,
+    "new": 0,
+    "runs": 5
+   },
+   "powerSeconds": 0.368
+  }
+ ]
+}
