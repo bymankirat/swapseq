@@ -15,7 +15,8 @@ Load a feature table (QIIME 2 `.qza`, BIOM 1 or 2,
 or a text table) and the sample metadata, choose the column that says who each sample came from,
 and press *Check samples*. Try the built-in demo first.
 
-**SwapSeq Atlas:** how checkable are 30 public longitudinal microbiome datasets? See the [Atlas](https://bymankirat.github.io/swapseq/atlas/).
+**SwapSeq Atlas:** how checkable are 30 public longitudinal microbiome datasets (16,336 samples, 21 studies)?
+Checkability is highest for adult stool and vaginal swabs and very low for infant stool and lab mice. See the [Atlas](https://bymankirat.github.io/swapseq/atlas/).
 
 **In R:** the [swapseqr](https://github.com/bymankirat/swapseqr) package runs the same engine on a
 phyloseq object or a count matrix.
@@ -31,8 +32,8 @@ res <- swapseqr::check_swaps(ps, subject = "subject_id")
 - **Check list** – weaker look-alikes to compare with lab records.
 - **Evidence** – rare ASVs a flagged sample shares with the person it looks like, household
   look-alikes, plate positions of swap pairs, and possible sample-sheet shifts.
-- **Power on your data** – how many swaps it would catch in your study, learnt from errors it
-  plants in a copy of your table.
+- **Power on your data** – measured, not guessed: SwapSeq hides test swaps and relabels in copies
+  of your labels, reruns the check and reports how many it caught (v1.1).
 - A QC audit table and a ready-made sentence for your Methods section.
 
 ## Method (v3)

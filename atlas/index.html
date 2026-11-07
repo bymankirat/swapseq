@@ -372,15 +372,14 @@ window.dash=(function(){
     <div class="sa-grid2">
       <div class="sa-card">
         <h3>People must look like themselves</h3>
-        <p>Re-identified: how often a sample's closest match is the same person. Swaps become easy to catch above roughly 85%.</p>
+        <p>Each dot is one table. Re-identified means a sample's closest match is another sample from the same person. When people keep looking like themselves (85% or more), SwapSeq catches most hidden swaps. Below 75% their microbes change too much and it catches almost none. Tap a dot for the table.</p>
         <div class="sa-chart" id="scatter" data-draw="scatter" data-source="atlas"></div>
         <div class="sa-legend" data-draw="groups" data-source="atlas"></div>
       </div>
       <div class="sa-card">
-        <h3>SwapSeq's power figure, before and after the fix</h3>
-        <p>The power SwapSeq shows after a run, against the catch rate measured here. Version 1.0 (hollow) often showed near 0% for tables it checks well. Version 1.1 (filled) hides test errors in copies of the labels and measures it: the average gap fell from <b data-draw="v" data-source="powerfix" data-field="oldGap" data-fmt="int">—</b> to <b data-draw="v" data-source="powerfix" data-field="newGap" data-fmt="int">—</b> points. Points on the dashed line are a perfect estimate.</p>
-        <div class="sa-legend"><span><i class="sa-sw" data-draw="swk" data-k="old"></i>Version 1.0</span><span><i class="sa-sw" data-draw="swk" data-k="new"></i>Version 1.1</span></div>
-        <div class="sa-chart" id="gap" data-draw="gap" data-source="atlas"></div>
+        <h3>Is SwapSeq's power figure right?</h3>
+        <p>After each run SwapSeq tells you its power: the share of swaps it would catch in your table. Each dot is one table, placed by how far that figure was from the catch rate measured here. Dots on the green line are spot on. Version 1.0 often said near 0% for tables it checks well, so many of its dots sit far to the left. Version 1.1 measures power on hidden test errors, and the average gap fell from <b data-draw="v" data-source="powerfix" data-field="oldGap" data-fmt="int">—</b> to <b data-draw="v" data-source="powerfix" data-field="newGap" data-fmt="int">—</b> points.</p>
+                <div class="sa-chart" id="gap" data-draw="gap" data-source="atlas"></div>
       </div>
     </div>
   </section>
@@ -791,24 +790,49 @@ window.dash=(function(){
     });
   });
 
+  // place dots without overlap: each dot moves away from its true height (up or down) until it is clear
+  SA.dodge = (pts, r, dirOf) => {
+    const done = [], gap = 2 * r + 1;
+    pts.slice().sort((a, b) => a.y0 - b.y0 || a.x - b.x).forEach((p) => {
+      const dir = dirOf(p); let k = 0; p.y = p.y0;
+      while (done.some((q) => Math.hypot(q.x - p.x, q.y - p.y) < gap) && k < 40) { k++; p.y = p.y0 + dir * k * (gap * .62); }
+      done.push(p);
+    });
+    return pts;
+  };
+  SA.hover = (sel, el, t, lines) => sel.style('cursor', 'pointer')
+    .on('mousemove click', (ev, d) => { ev.stopPropagation(); SA.show(el, t, ev, lines(d)); })
+    .on('mouseleave', () => { t.hidden = true; });
+
   dash.draw('scatter', (el) => {
     const all = SA.rows('atlas');
     el.replaceChildren();
     if (!all) return;
     const rows = all.filter((r) => !r.control && r.reid != null);
-    const W = Math.max(260, el.clientWidth), H = 260, m = { l: 40, r: 10, t: 10, b: 36 };
+    const W = Math.max(260, el.clientWidth), H = W < 480 ? 340 : 320, m = { l: 40, r: 12, t: 52, b: 46 }, R = 5.5;
     const x = d3.scaleLinear([20, 100], [m.l, W - m.r]), y = d3.scaleLinear([0, 100], [H - m.b, m.t]);
-    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Re-identification against swaps caught');
-    svg.append('rect').attr('x', x(85)).attr('y', m.t).attr('width', x(100) - x(85)).attr('height', H - m.b - m.t).style('fill', 'var(--cds-chart-grid)').style('fill-opacity', .5);
-    [20, 40, 60, 80, 100].forEach((v) => { svg.append('line').attr('x1', x(v)).attr('x2', x(v)).attr('y1', m.t).attr('y2', H - m.b).style('stroke', 'var(--cds-chart-grid)'); SA.text(svg, x(v), H - m.b + 16, v + '%', v === 100 ? 'end' : 'middle'); });
-    [0, 50, 100].forEach((v) => { svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).style('stroke', v === 0 ? 'var(--cds-chart-axis)' : 'var(--cds-chart-grid)'); SA.text(svg, m.l - 6, y(v) + 4, v + '%', 'end'); });
-    SA.text(svg, (m.l + W - m.r) / 2, H - 4, 'Re-identified', 'middle');
-    SA.text(svg, 0, 0, 'Swaps caught', 'middle').attr('transform', `translate(10,${(m.t + H - m.b) / 2}) rotate(-90)`).attr('x', 0).attr('y', 0);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Re-identification against swaps caught, one dot per table');
+    const zone = (a, b) => { const z = rows.filter((r) => r.reid >= a && r.reid < b); return { n: z.length, k: z.filter((r) => r.caught >= 50).length }; };
+    const hard = zone(0, 75), easy = zone(85, 101);
+    // zones
+    svg.append('rect').attr('x', x(85)).attr('y', m.t).attr('width', x(100) - x(85)).attr('height', H - m.b - m.t).style('fill', dash.colors[2]).style('fill-opacity', .1);
+    svg.append('rect').attr('x', x(20)).attr('y', m.t).attr('width', x(75) - x(20)).attr('height', H - m.b - m.t).style('fill', 'var(--cds-chart-grid)').style('fill-opacity', .45);
+    [20, 40, 60, 80, 100].forEach((v) => { svg.append('line').attr('x1', x(v)).attr('x2', x(v)).attr('y1', m.t).attr('y2', H - m.b).style('stroke', 'var(--cds-chart-grid)'); SA.text(svg, x(v), H - m.b + 16, v + '%', v === 100 ? 'end' : v === 20 ? 'start' : 'middle'); });
+    [0, 50, 100].forEach((v) => { svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).style('stroke', v === 0 ? 'var(--cds-chart-axis)' : 'var(--cds-chart-grid)').style('stroke-dasharray', v === 50 ? '4 4' : null); SA.text(svg, m.l - 6, y(v) + 4, v + '%', 'end'); });
+    // axis titles, written the way you read them
+    SA.text(svg, 2, 14, 'Swaps caught ↑', 'start', false).style('font-weight', 600);
+    SA.text(svg, W - m.r, H - 6, 'Re-identified (sample looks most like its own person) →', 'end', false).style('font-weight', 600).style('font-size', W < 480 ? '11px' : 'var(--cds-font-size-caption)');
+    // what the zones mean
+    const lab = (xx, yy, lines, anchor) => lines.forEach((s, i) => SA.text(svg, xx, yy + i * 15, s, anchor, i === 0).style('font-weight', i === 0 ? 600 : null));
+    lab((x(20) + x(75)) / 2, y(100) + 18, ['Below 75%: hard to check', `${hard.k} of ${hard.n} tables catch half the swaps`, 'babies, lab mice, heavy antibiotics'], 'middle');
+    lab(W - m.r, 34, [`85% and up: ${easy.k} of ${easy.n} catch half or more`], 'end');
+    svg.append('line').attr('x1', (x(85) + x(100)) / 2).attr('x2', (x(85) + x(100)) / 2).attr('y1', 39).attr('y2', m.t - 2).style('stroke', dash.colors[2]).style('stroke-width', 1.2);
+    SA.text(svg, x(73), y(50) - 6, 'half of swaps caught', 'end');
     const t = SA.tip(el);
-    svg.selectAll('circle').data(rows).join('circle').attr('cx', (d) => x(Math.max(20, d.reid))).attr('cy', (d) => y(d.caught)).attr('r', 5.5)
-      .style('fill', (d) => SA.color(d.group)).style('stroke', 'var(--color-panel)').style('stroke-width', 1.5)
-      .on('mousemove', (ev, d) => SA.show(el, t, ev, [`${d.short} · ${d.group}`, `Re-identified ${d.reid}% · swaps caught ${d.caught}%`]))
-      .on('mouseleave', () => { t.hidden = true; });
+    const pts = SA.dodge(rows.map((d) => ({ d, x: x(Math.max(20, d.reid)), y0: y(d.caught) })), R, (p) => (p.d.caught < 50 ? -1 : 1));
+    const c = svg.selectAll('circle').data(pts).join('circle').attr('cx', (p) => p.x).attr('cy', (p) => p.y).attr('r', R)
+      .style('fill', (p) => SA.color(p.d.group)).style('stroke', 'var(--color-panel)').style('stroke-width', 1.5);
+    SA.hover(c, el, t, (p) => [`${p.d.short} · ${p.d.group}`, `Re-identified ${p.d.reid}% · swaps caught ${p.d.caught}%`]);
   });
 
   dash.draw('swk', (el) => { el.textContent = ''; el.style.background = el.dataset.k === 'new' ? dash.colors[0] : 'transparent'; el.style.border = `1.5px solid ${dash.colors[0]}`; el.style.borderRadius = '50%'; });
@@ -825,32 +849,35 @@ window.dash=(function(){
     const all = SA.rows('atlas');
     el.replaceChildren();
     if (!all) return;
-    const rows = all.filter((r) => !r.control && r.selfPowerSwap != null && r.caught != null);
-    const W = Math.max(260, el.clientWidth), H = 260, m = { l: 40, r: 10, t: 10, b: 36 };
-    const x = d3.scaleLinear([0, 100], [m.l, W - m.r]), y = d3.scaleLinear([0, 100], [H - m.b, m.t]);
-    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'SwapSeq power figure, version 1.0 and 1.1, against measured catch rate');
-    [0, 50, 100].forEach((v) => {
-      svg.append('line').attr('x1', x(v)).attr('x2', x(v)).attr('y1', m.t).attr('y2', H - m.b).style('stroke', 'var(--cds-chart-grid)');
-      SA.text(svg, x(v), H - m.b + 16, v + '%', v === 0 ? 'start' : v === 100 ? 'end' : 'middle');
-      svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).style('stroke', v === 0 ? 'var(--cds-chart-axis)' : 'var(--cds-chart-grid)');
-      SA.text(svg, m.l - 6, y(v) + 4, v + '%', 'end');
-    });
-    svg.append('line').attr('x1', x(0)).attr('y1', y(0)).attr('x2', x(100)).attr('y2', y(100)).style('stroke', 'var(--cds-chart-reference)').style('stroke-dasharray', '4 4');
-    SA.text(svg, x(62), y(62) - 8, 'Perfect estimate', 'end');
-    SA.text(svg, (m.l + W - m.r) / 2, H - 4, 'Power shown by SwapSeq', 'middle');
-    SA.text(svg, 0, 0, 'Measured catch rate', 'middle').attr('transform', `translate(10,${(m.t + H - m.b) / 2}) rotate(-90)`).attr('x', 0).attr('y', 0);
+    const rows = all.filter((r) => !r.control && r.selfPowerSwap != null && r.caught != null && r.powerV111 != null);
+    const W = Math.max(260, el.clientWidth), narrow = W < 480, R = 5.5, laneH = 122, m = { l: 12, r: 12, t: 6, b: 52 };
+    const H = m.t + 2 * laneH + m.b;
+    const x = d3.scaleLinear([-100, 100], [m.l, W - m.r]);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'How far the power SwapSeq showed was from the measured catch rate, version 1.0 and 1.1, one dot per table');
+    // the "about right" band
+    svg.append('rect').attr('x', x(-10)).attr('width', x(10) - x(-10)).attr('y', m.t).attr('height', 2 * laneH).style('fill', dash.colors[2]).style('fill-opacity', .12);
+    svg.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', m.t).attr('y2', m.t + 2 * laneH).style('stroke', dash.colors[2]).style('stroke-width', 1.5);
+    [-100, -50, 50, 100].forEach((v) => svg.append('line').attr('x1', x(v)).attr('x2', x(v)).attr('y1', m.t).attr('y2', m.t + 2 * laneH).style('stroke', 'var(--cds-chart-grid)'));
+    const yb = m.t + 2 * laneH;
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', yb).attr('y2', yb).style('stroke', 'var(--cds-chart-axis)');
+    [-100, -50, 0, 50, 100].forEach((v) => SA.text(svg, x(v), yb + 15, (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v), v === -100 ? 'start' : v === 100 ? 'end' : 'middle'));
+    SA.text(svg, x(-100), yb + 33, '← showed too low', 'start', false).style('font-weight', 600);
+    SA.text(svg, x(100), yb + 33, 'showed too high →', 'end', false).style('font-weight', 600);
+    SA.text(svg, x(0), yb + 33, narrow ? 'spot on' : 'spot on (±10)', 'middle').style('fill', dash.colors[2]).style('font-weight', 600);
+    SA.text(svg, (m.l + W - m.r) / 2, yb + 49, 'points between the power shown and the catch rate measured here', 'middle').style('font-size', narrow ? '10.5px' : 'var(--cds-font-size-caption)');
     const t = SA.tip(el);
-    const nr = rows.filter((d) => d.powerV111 != null);
-    svg.selectAll('line.lnk').data(nr).join('line').attr('class', 'lnk').attr('x1', (d) => x(d.selfPowerSwap)).attr('x2', (d) => x(d.powerV111)).attr('y1', (d) => y(d.caught)).attr('y2', (d) => y(d.caught))
-      .style('stroke', dash.colors[0]).style('stroke-opacity', .3).style('stroke-width', 1.5);
-    svg.selectAll('circle.old').data(rows).join('circle').attr('class', 'old').attr('cx', (d) => x(d.selfPowerSwap)).attr('cy', (d) => y(d.caught)).attr('r', 5)
-      .style('fill', 'var(--color-panel)').style('stroke', dash.colors[0]).style('stroke-width', 1.5)
-      .on('mousemove', (ev, d) => SA.show(el, t, ev, [d.short, `Version 1.0 showed ${d.selfPowerSwap}% · measured ${d.caught}%`]))
-      .on('mouseleave', () => { t.hidden = true; });
-    svg.selectAll('circle.new').data(nr).join('circle').attr('class', 'new').attr('cx', (d) => x(d.powerV111)).attr('cy', (d) => y(d.caught)).attr('r', 5.5)
-      .style('fill', dash.colors[0]).style('stroke', 'var(--color-panel)').style('stroke-width', 1.5)
-      .on('mousemove', (ev, d) => SA.show(el, t, ev, [d.short, `Version 1.1 shows ${d.powerV111}% · measured ${d.caught}%`]))
-      .on('mouseleave', () => { t.hidden = true; });
+    [['selfPowerSwap', 'Version 1.0', false], ['powerV111', 'Version 1.1', true]].forEach(([f, name, fill], i) => {
+      const top = m.t + i * laneH, mid = top + laneH / 2 + 12;
+      if (i) svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', top).attr('y2', top).style('stroke', 'var(--cds-chart-grid)');
+      const avg = Math.round(d3.mean(rows, (r) => Math.abs(r[f] - r.caught)));
+      const ok = rows.filter((r) => Math.abs(r[f] - r.caught) <= 10).length;
+      SA.text(svg, m.l + 2, top + 16, name, 'start', false).style('font-weight', 700);
+      SA.text(svg, W - m.r - 2, top + 16, `${avg} points off on average · ${ok} of ${rows.length} spot on`, 'end').style('font-size', narrow ? '11px' : 'var(--cds-font-size-caption)');
+      const pts = SA.dodge(rows.map((d) => ({ d, x: x(d[f] - d.caught), y0: mid })), R, (p) => ((p.d.key.length + p.x) % 2 < 1 ? -1 : 1));
+      const c = svg.append('g').selectAll('circle').data(pts).join('circle').attr('cx', (p) => p.x).attr('cy', (p) => Math.max(top + 32, Math.min(top + laneH - 8, p.y))).attr('r', R)
+        .style('fill', fill ? dash.colors[0] : 'var(--color-panel)').style('stroke', fill ? 'var(--color-panel)' : dash.colors[0]).style('stroke-width', 1.6);
+      SA.hover(c, el, t, (p) => [p.d.short, `${name} showed ${p.d[f]}% · measured ${p.d.caught}%`, `${Math.abs(p.d[f] - p.d.caught)} points ${p.d[f] < p.d.caught ? 'too low' : p.d[f] > p.d.caught ? 'too high' : 'off'}`]);
+    });
   });
 
   dash.draw('tbody', (el) => {
