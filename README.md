@@ -46,12 +46,21 @@ sentence). Add `--fail-on-flags` to stop a pipeline when a sample is strongly fl
   so far; see [docs/host-dna.md](docs/host-dna.md) for how to make the input and the privacy rules for human
   genetic data.
 
+**All data (new):**
+
+- Duplicate check: two samples labelled as different people whose microbes are near-identical (one tube, extract or
+  file under two names) are listed as possible duplicates. Works with one sample per person too.
+- Several errors at once: swap pairs that point at each other are strong flags in tables where test swaps stand out
+  well, and the tool says when a table holds more swap pairs than the expected error rate explains.
+  See [validation/ye2026_comparison](validation/ye2026_comparison) for tests on the shotgun tables of Ye et al. (2026).
+
 ## What it reports
 
 - **Strong flags** – samples that very likely belong to someone else, with the likely swap partner.
 - **Check list** – weaker look-alikes to compare with lab records.
 - **Evidence** – rare ASVs a flagged sample shares with the person it looks like, household
   look-alikes, plate positions of swap pairs, and possible sample-sheet shifts.
+- **Possible duplicates** – two samples labelled as different people with near-identical microbes.
 - **Power on your data** – measured, not guessed: SwapSeq hides test swaps and relabels in copies
   of your labels, reruns the check and reports how many it caught (v1.1).
 - A QC audit table and a ready-made sentence for your Methods section.
@@ -102,7 +111,7 @@ folder, point `SWAPSEQ_DATA` at it, then run for example
 
 ## Changes
 
-- **v1.1.1, November update** – Command-line tool (`npx github:bymankirat/swapseq`) with Nextflow and Snakemake examples. Strain-marker mode for shotgun tables. Host-DNA check: each sample's host reads at common SNPs are scored against every person's pooled reads; a stress test on simulated people (uneven DNA, relatives, twins, contamination) gave almost no false flags and caught 85-100% of swaps with 2,000-4,000 covered sites and 6 samples per person, but few with 2-3 samples per person; identical twins are reported as "identical DNA" (not yet tested on real data). The web page gets a data-type choice and a host-DNA input (beta). Taxa-count results are unchanged. Tested and not adopted: time-aware fingerprints for infants and antibiotics (strong flags on hard tables 2.6% → 4.2%, but 13 times more false check-list entries).
+- **v1.1.1, November update** – Command-line tool (`npx github:bymankirat/swapseq`) with Nextflow and Snakemake examples. Strain-marker mode for shotgun tables. Host-DNA check: each sample's host reads at common SNPs are scored against every person's pooled reads; a stress test on simulated people (uneven DNA, relatives, twins, contamination) gave almost no false flags and caught 85-100% of swaps with 2,000-4,000 covered sites and 6 samples per person, but few with 2-3 samples per person; identical twins are reported as "identical DNA" (not yet tested on real data). The web page gets a data-type choice and a host-DNA input (beta). Duplicate check (planted duplicates in 15 public shotgun tables: 97% found in cross-sectional and 63% in longitudinal tables, no unplanted pair). Reciprocal swap pairs on the check list become strong flags in tables that separate swaps well: with 3% of samples swapped in 7 shotgun tables, strong flags caught 41% of swaps instead of 5%, other samples flagged 2.8 instead of 0.1 per 1,000; on the 29 published tables tested, strong flags went from 76 to 78. A note suggests a higher expected error rate when a table holds many swap pairs (at 3%: about 80% caught). Tested and not adopted: letting the data raise the error rate automatically (more false flags on published labels); time-aware fingerprints for infants and antibiotics (strong flags on hard tables 2.6% → 4.2%, but 13 times more false check-list entries).
 - **v1.1.1** – Measured power no longer reads low when a table already holds errors: near-certain flags (P ≥ 0.9) are set aside before the hidden tests. Average gap to an independent measurement on tables with 1–2% errors: 9 points (1.1.0: 11; 1.0: 7); on clean tables unchanged at 9 (1.0: 31).
 - **v1.1.0** – Power is now measured on your own table: SwapSeq hides one swap or relabel at a time in copies of your labels, reruns the check and reports how many it caught. In 1.0 the power figure could read near 0% on clean tables that SwapSeq checks well; across 30 public tables (the SwapSeq Atlas) the average gap to an independent measurement fell from 31 to 9 points. Flags and probabilities are unchanged (method v3).
 - **v1.0.1** – Public Methods & validation page, feedback and problem-report forms, citation details. Method unchanged (method v3).

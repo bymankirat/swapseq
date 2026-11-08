@@ -38,5 +38,13 @@ test('host DNA catches a swap the microbes cannot see',()=>{
   fs.writeFileSync(path.join(D,'host.tsv'),lines.join('\n')+'\n');
   run(['flat.tsv','mh.tsv','--subject','person','--host','host.tsv','--out','h','--no-power']);assert.deepEqual(flagged('h'),['P3_1','P4_1']);
   const j=JSON.parse(fs.readFileSync(path.join(D,'h.json'),'utf8'));assert.ok(j.host.ok);assert.equal(j.host.flaggedByHost,2)});
+test('duplicate check: one tube under two names',()=>{
+  // P5_3 is replaced by a re-sequenced copy of P6_2 (every count jittered a little), still labelled P5
+  const dup=cols.map(c=>c.slice()),src=ids.indexOf('P6_2'),dst=ids.indexOf('P5_3');dup[dst]=cols[src].map(v=>v?Math.max(1,Math.round(v*(0.85+0.3*R()))):0);
+  fs.writeFileSync(path.join(D,'dup.tsv'),'#OTU ID\t'+ids.join('\t')+'\n'+Array.from({length:F},(_,i)=>['f'+i,...dup.map(c=>c[i])].join('\t')).join('\n')+'\n');
+  run(['dup.tsv','clean.tsv','--subject','person','--out','u','--no-power']);
+  const j=JSON.parse(fs.readFileSync(path.join(D,'u.json'),'utf8'));
+  assert.deepEqual(j.duplicates.map(d=>[d.sampleA,d.sampleB].sort()),[['P5_3','P6_2']]);
+  const b=JSON.parse(fs.readFileSync(path.join(D,'b.json'),'utf8'));assert.equal(b.duplicates.length,0)});
 test('helpful errors',()=>{run(['t.tsv','m.tsv','--subject','nope'],1);run(['missing.tsv','m.tsv','--subject','person'],1);run(['t.tsv'],1)});
 console.log(`\n${ok} tests passed`);fs.rmSync(D,{recursive:true,force:true});

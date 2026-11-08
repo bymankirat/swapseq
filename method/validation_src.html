@@ -102,7 +102,7 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
 
 <div class="doc">
 <aside class="toc" aria-label="On this page"><b>On this page</b>
-  <a href="#checks">What it checks</a><a href="#method">Method</a><a href="#data">Data</a><a href="#design">Test design</a><a href="#results">Results</a><a href="#plate">Plate errors</a><a href="#real">A real swap</a><a href="#untouched">Untouched data</a><a href="#dropped">Tried and dropped</a><a href="#shotgun">Shotgun data</a><a href="#limits">Limits</a><a href="#reproduce">Reproduce</a><a href="#cite">Cite</a>
+  <a href="#checks">What it checks</a><a href="#method">Method</a><a href="#data">Data</a><a href="#design">Test design</a><a href="#results">Results</a><a href="#plate">Plate errors</a><a href="#real">A real swap</a><a href="#untouched">Untouched data</a><a href="#dropped">Tried and dropped</a><a href="#shotgun">Shotgun data</a><a href="#several">Several errors, duplicates</a><a href="#limits">Limits</a><a href="#reproduce">Reproduce</a><a href="#cite">Cite</a>
 </aside>
 <article>
 
@@ -242,6 +242,7 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
     <li class="panel"><b>Blending nearest and median distance</b>Diluted the nearest-neighbour signal that a swap leaves.</li>
     <li class="panel"><b>An ensemble of six scores</b>Stacking nearest-neighbour, rare-taxon, Bray-Curtis, Aitchison, fingerprint and time scores caught 5&ndash;7 more points of swaps, but overfitted small tables (16 false flags per 1,000 at 103 samples) and lost the calibrated probability.</li>
     <li class="panel"><b>Time-aware fingerprints</b>Removing what all samples of a similar age share, tested on 28 Atlas tables. On the 14 tables where SwapSeq caught under 20%, strong flags rose only from 2.6% to 4.2%, while false check-list entries rose from 0.3 to 4.1 per 1,000. Checkable tables were unchanged.</li>
+    <li class="panel"><b>Letting the data raise the error rate</b>Estimating the error rate from the upper tail and using it when above 1% (capped at 3%). With 3% of samples swapped it caught more, but on the published labels it added strong flags in 5 of 29 tables (up to 9 in one) and up to 37 other samples per 1,000 in one table. Choosing a higher expected error rate yourself, when the tool says the table holds many swap pairs, does the same job openly.</li>
   </ul>
 </section>
 
@@ -270,8 +271,27 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
   <div class="prose"><p class="muted">Simulated genotypes at common SNPs (allele frequency 0.05&ndash;0.5, sites independent), a 200,000-SNP panel and one read per covered site, 5 repeats per row. With 40 people &times; 6 samples it caught 85% of swaps at 2,000 covered sites, 95% at 2,500&ndash;3,000 and all from 4,000, with no false flags. An earlier rule made up to 10 false flags per 1,000 with uneven DNA and few samples, and many with twins; the rule above was changed until they were gone. It works best with many samples per person and plenty of host reads, and samples under 1,500 covered sites are not judged. Real host reads are less even than this, so treat these figures as an upper bound until the check is run on real samples. Host reads are human genetic data: use them only within your ethics approval; SwapSeq processes them on your own computer.</p></div>
 </section>
 
+<section id="several">
+  <span class="secno">11</span><h2>Several errors at once, and duplicates</h2>
+  <div class="prose">
+    <p><b>Several errors in one table.</b> The calibration assumes about 1% errors. When a table holds more, a strong flag needs more evidence than the table can give, and strong flags alone caught few: with 3% of samples swapped in the seven longitudinal shotgun tables of Ye et al. (2026), 5%. A swap leaves two samples that each fit the other's person, and when both sit on the check list and point at each other that pattern is far rarer by chance than either sample alone. Such pairs are now strong flags, but only in tables where planted swaps stand out well: at least 70% of planted swap scores above the 95th percentile of the table's own scores. Most samples are correct even at a few per cent errors, so this gate stays stable when the table holds several errors (the measured power does not). When more than 1.5 times the expected rate of samples sit in swap pairs, the tool says so and suggests a higher expected error rate.</p>
+  </div>
+  <div class="tablewrap" style="margin-top:14px"><table>
+    <thead><tr><th>Strong flags: swaps caught / other samples flagged per 1,000</th><th>1 swap per ~300 samples</th><th>3% of samples swapped</th><th>3% swapped, expected rate set to 3%</th></tr></thead>
+    <tbody>
+    <tr><td>7 shotgun tables (Ye et al. 2026)</td><td>52% / 8.0 &rarr; 65% / 8.4</td><td>5% / 0.1 &rarr; 41% / 2.8</td><td>81% / 13.5</td></tr>
+    <tr><td>14 checkable Atlas tables</td><td>73% / 1.3 &rarr; 78% / 1.4</td><td>34% / 0.4 &rarr; 57% / 0.8</td><td>82% / 7.1</td></tr>
+    <tr><td>8 hard Atlas tables (infants, mice, transplant patients)</td><td>1% / 1.3 &rarr; 5% / 1.5</td><td>1% / 0.8 &rarr; 3% / 0.8</td><td>6% / 3.6</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p class="muted">Swaps hidden among all samples of people with 3 or more samples, 6 repeats per table; &ldquo;&rarr;&rdquo; is 1.1.1 before and after the change. On the 29 tables as published, strong flags went from 76 to 78 (two more in one infant table). For comparison, Find-abnormality (Ye et al. 2026) flagged 96% of hidden swaps in the seven shotgun tables, and 52 other samples per 1,000; SwapSeq set to a 3% expected rate flagged 91% with 18 per 1,000.</p>
+    <p><b>Duplicates.</b> Two samples labelled as different people whose communities are near-identical are listed as possible duplicates: one tube sequenced twice under two names, a reused extract or a file uploaded twice. The two must be each other's nearest neighbour among other people's samples and, on both distances, closer than almost any pair from different people (log distance below the median minus 5 MAD); with repeat samples, also closer than 0.7 times the distance from either sample to its own person's nearest other sample. In the 15 shotgun tables of Ye et al., a sample re-sequenced under another person's name (every abundance jittered, rare taxa dropped at random) was found in 102 of 105 tests in cross-sectional tables and 66 of 105 in longitudinal ones, where a person's consecutive samples can be just as close. No pair was reported that was not planted. In tables with repeat samples, 7 of 105 planted mislabels also showed up as a near-identical pair, so the message names both causes. On the published labels of the cross-sectional tables, 8 of the 9 pairs SwapSeq lists are also on Find-abnormality's duplicate list, which has 10.</p>
+  </div>
+</section>
+
 <section id="limits">
-  <span class="secno">11</span><h2>Limits</h2>
+  <span class="secno">12</span><h2>Limits</h2>
   <div class="prose"><ul>
     <li><b>One confirmed real error.</b> Everything else is planted. Planted errors are clean label exchanges; real mix-ups can also be partial, such as cross-contamination or a split sample.</li>
     <li><b>Narrow evidence base.</b> Adult 16S results come from two studies, shotgun from one, and plate patterns from one real plating order.</li>
@@ -279,12 +299,13 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
     <li><b>Needs repeat samples.</b> At least two per person, better three. People who live together, antibiotics and illness all blur the fingerprint.</li>
     <li><b>Memory.</b> All pairwise distances are held in the browser, so tables of many thousands of samples need a lot of memory. The largest table in this benchmark had 875 samples; the SwapSeq Atlas ran tables of up to 2,479 samples, and the browser accepts up to 4,000 per check.</li>
     <li><b>Host DNA and strain markers are new.</b> The host-DNA check is tested on simulated data only, and the strain-marker test on public cohorts is still running.</li>
+    <li><b>Many errors at once.</b> At the default 1% expected rate, strong flags catch fewer swaps when several per cent of a table are wrong; follow the tool's note and raise the expected rate. Duplicates are found less often in longitudinal tables than in cross-sectional ones.</li>
     <li><b>A flag is a reason to check.</b> Compare it with plate maps, extraction batches and sample sheets before relabelling or dropping anything. SwapSeq is a research QC tool, not a medical device.</li>
   </ul></div>
 </section>
 
 <section id="reproduce">
-  <span class="secno">12</span><h2>Reproduce</h2>
+  <span class="secno">13</span><h2>Reproduce</h2>
   <div class="prose">
     <p>Node.js 22 and nothing else. Clone the five source repositories into one folder (the layout is in <span class="mono">method/load.mjs</span>), then:</p>
   </div>
@@ -306,7 +327,7 @@ node method/realswap.mjs       # the real diet-study swap</pre>
 </section>
 
 <section id="cite">
-  <span class="secno">13</span><h2>Cite and references</h2>
+  <span class="secno">14</span><h2>Cite and references</h2>
   <div class="panel cite">
     <p id="citeText">Singh M. (2026). <i>SwapSeq: a sample mix-up checker for longitudinal microbiome studies</i> (v1.1.1). Zenodo. https://doi.org/10.5281/zenodo.23963612</p>
     <div class="actions"><button class="btn ghost small" type="button" id="copyCite">Copy citation</button><span class="copied" id="copied" hidden>Copied</span><a href="https://doi.org/10.5281/zenodo.23963612" target="_blank" rel="noopener">doi:10.5281/zenodo.23963612</a><a href="https://orcid.org/0009-0005-3375-2123" target="_blank" rel="noopener">ORCID 0009-0005-3375-2123</a><a href="https://bio.tools/swapseq" target="_blank" rel="noopener">biotools:swapseq</a><a href="https://scicrunch.org/resolver/RRID:SCR_029248" target="_blank" rel="noopener">RRID:SCR_029248</a></div>

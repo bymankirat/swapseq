@@ -626,6 +626,16 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
       <h3>Host DNA</h3>
       <p>Shotgun reads carry some of the person's own DNA, which does not change when their microbes do. SwapSeq matches each sample's reads at common human SNPs to every person's other samples. In a stress test on simulated people (uneven DNA, relatives, twins, contamination, mixed populations) it made almost no false flags and caught 85&ndash;100% of swaps with 2,000&ndash;4,000 covered SNP sites per sample and 6 samples per person, but few with only 2&ndash;3 samples per person. Identical twins cannot be told apart by DNA. It is not yet tested on real samples, and it is human genetic data: use it within your ethics approval. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the input</a>.</p>
     </div>
+    <div class="panel">
+      <span class="kicker">Several errors</span>
+      <h3>Swap pairs and a note</h3>
+      <p>A swap leaves two samples that each fit the other's person. When both point at each other, SwapSeq now makes them strong flags in tables where test swaps stand out well. With 3% of samples swapped in seven shotgun tables, strong flags caught 41% of swaps instead of 5%. If a table holds more swap pairs than the expected error rate explains, SwapSeq says so; raising the rate to 2&ndash;5% then caught about 80%.</p>
+    </div>
+    <div class="panel">
+      <span class="kicker">All study designs</span>
+      <h3>Duplicates</h3>
+      <p>Two samples labelled as different people with near-identical microbes are listed as possible duplicates: one tube sequenced twice, a reused extract or a file uploaded twice. It works with one sample per person too. With test duplicates planted in 15 public shotgun tables it found 97% in cross-sectional and 63% in longitudinal tables, and reported no pair that was not planted.</p>
+    </div>
   </div>
 </div></section>
 
@@ -769,7 +779,7 @@ npx github:bymankirat/swapseq table.tsv metadata.tsv \
   </div>
   <details class="versions"><summary>What changed in each version</summary>
     <ul>
-      <li><b>1.1.1, November update</b> &middot; Strain-marker mode and a host-DNA check (beta) for shotgun data; a command-line tool for pipelines. Results on taxa counts are unchanged.</li>
+      <li><b>1.1.1, November update</b> &middot; Strain-marker mode and a host-DNA check (beta) for shotgun data; a command-line tool for pipelines; a duplicate check; swap pairs that point at each other are strong flags in tables that separate swaps well, which helps most when a table holds several errors.</li>
       <li><b>1.1.1</b> &middot; Measured power no longer reads low when a table already holds errors.</li>
       <li><b>1.1.0</b> &middot; Power is measured on your own table by hiding test errors in copies of your labels. Version 1.0 could show near 0% for tables it checks well.</li>
       <li><b>1.0.1</b> &middot; Methods and validation page, feedback forms, citation details.</li>
@@ -1034,7 +1044,12 @@ function analyse(data,lab,opt={},M=null){
   const inPair=new Set(pairs.flatMap(p=>[p.a,p.b]));for(const r of rows)r.kind=r.level==='ok'?'ok':inPair.has(r.id)?'swap':'mismatch';
   const frac=(x,f)=>x.length?x.filter(f).length/x.length:NaN;
   const power={single:frac(pl.single,v=>Ps(v)>=thr),swap:frac(pl.pair,v=>Pp(v)>=thr),singleWithCheck:frac(pl.single,v=>Ps(v)>=.2||Bs(v)>=thr),swapWithCheck:frac(pl.pair,v=>Pp(v)>=.2||Bp(v)>=thr)};
-  return {rows,pairs,power,prior,errorRate:{single:Ps.pi,swap:Pp.pi},threshold:thr,aitFeat:M.aitFeat,nSubjects:new Set(lab).size,nScorable:rows.filter(r=>r.scorable).length,planted:pl};
+  // how well planted swaps stand out from this table's own samples: share of planted swap scores above the 95th
+  // percentile of all observed pair scores. Most samples are correct even when a few percent are not, so this
+  // stays stable when the table already holds several errors (the measured power does not).
+  const obsP=Array.from(pr.s).filter(Number.isFinite).sort((x,y)=>x-y),plP=pl.pair.filter(Number.isFinite);
+  const separation=obsP.length&&plP.length?plP.filter(v=>v>obsP[Math.floor(.95*(obsP.length-1))]).length/plP.length:NaN;
+  return {rows,pairs,power,prior,separation,errorRate:{single:Ps.pi,swap:Pp.pi},threshold:thr,aitFeat:M.aitFeat,nSubjects:new Set(lab).size,nScorable:rows.filter(r=>r.scorable).length,planted:pl};
 }
 
 // ---------- measured power (v1.1) ----------
@@ -1063,7 +1078,7 @@ function measurePower(data,lab,res,M,opt={}){
   const idx=[];for(let i=0;i<n;i++)if(ok[i]&&!base.has(i)&&cnt.get(lab[i])>=3)idx.push(i);
   const k=Math.max(1,Math.round(n*.002));
   if(idx.length<8*k||new Set(idx.map(i=>lab[i])).size<3)return null;
-  let s=0,s2=0,sN=0,o=0,o2=0,oN=0,fp=0,fpN=0;
+  let s=0,s2=0,s3=0,sN=0,o=0,o2=0,oN=0,fp=0,fpN=0;
   for(let rep=0;rep<reps;rep++){
     if(opt.progress)opt.progress(`Measuring power: hidden test ${rep+1} of ${reps}`);
     const R=rng(9001+rep*7919),L=lab.slice(),used=new Set(),swaps=[],ones=[],doSwap=rep%2===0;
@@ -1072,12 +1087,65 @@ function measurePower(data,lab,res,M,opt={}){
     if(doSwap)while(swaps.length<k&&guard++<10000){const a=pick(),b=pick();if(a<0||b<0||a===b||L[a]===L[b])continue;[L[a],L[b]]=[L[b],L[a]];used.add(a);used.add(b);swaps.push([a,b])}
     else while(ones.length<k&&guard++<10000){const a=pick(),b=pick();if(a<0||b<0||a===b||L[a]===L[b])continue;L[a]=L[b];used.add(a);used.add(b);ones.push(a)}
     const r=analyse(data,L,{prior:res.prior,seed:rep+3,visit:opt.visit},M);
-    for(const [a,b] of swaps)for(const x of [a,b]){sN++;if(r.rows[x].flag)s++;if(r.rows[x].level!=='ok')s2++}
+    const up=new Set();if(r.separation>=0.7)for(const p of r.pairs)if(p.level==='check'){up.add(p.a);up.add(p.b)}
+    for(const [a,b] of swaps)for(const x of [a,b]){sN++;if(r.rows[x].flag)s++;if(r.rows[x].flag||up.has(r.rows[x].id))s3++;if(r.rows[x].level!=='ok')s2++}
     for(const a of ones){oN++;if(r.rows[a].flag)o++;if(r.rows[a].level!=='ok')o2++}
     const planted=new Set(swaps.flat().concat(ones));
     for(let i=0;i<n;i++){if(planted.has(i)||base.has(i)||!r.rows[i].scorable)continue;fpN++;if(r.rows[i].flag)fp++}}
   if(!sN)return null;
-  return {single:oN?o/oN:NaN,swap:s/sN,singleWithCheck:oN?o2/oN:NaN,swapWithCheck:s2/sN,falseFlagsPer1000:fpN?1000*fp/fpN:NaN,reps,tests:{swapped:sN,relabelled:oN},measured:true};
+  return {single:oN?o/oN:NaN,swap:s/sN,swapPairsPromoted:s3/sN,singleWithCheck:oN?o2/oN:NaN,swapWithCheck:s2/sN,falseFlagsPer1000:fpN?1000*fp/fpN:NaN,reps,tests:{swapped:sN,relabelled:oN},measured:true};
+}
+
+// ---------- reciprocal pairs (November 2026) ----------
+// A swap leaves two samples that each fit the other's person. When both sit on the check list and point at each
+// other, that pattern is much rarer by chance than either sample alone, so in tables where planted swaps stand
+// out well (separation >= 0.7) such pairs are promoted to strong flags. This matters most when a table holds
+// several errors at once: the calibration assumes about 1% errors, and with 3% swapped samples strong flags alone
+// caught few. Tested on 29 public tables, see validation section 11. In tables where swaps do not stand out it
+// added false flags, so it is not applied there. When power was measured, the reported swap rate includes it.
+function promotePairs(res,power,opt={}){
+  if(!(res.separation>=(opt.minSeparation??0.7)))return res;
+  const byId=new Map(res.rows.map(r=>[r.id,r]));let n=0;
+  for(const p of res.pairs){if(p.level!=='check')continue;
+    for(const id of [p.a,p.b]){const r=byId.get(id);if(r&&!r.flag){r.flag=true;r.check=false;r.level='flag';r.kind='swap';r.byPair=true;n++}}
+    p.level='flag';p.promoted=true}
+  if(power&&Number.isFinite(power.swapPairsPromoted)){power.swapBeforePromotion=power.swap;power.swap=Math.max(power.swap,power.swapPairsPromoted)}
+  res.promoted=n;return res;
+}
+
+// ---------- duplicate check (November 2026) ----------
+// Duplicate check: two samples labelled as different people whose communities are near-identical.
+// That happens when one tube is sequenced twice under two names, a DNA extract is reused, or a file is
+// uploaded twice; biological samples from two people are almost never that close. Works with one sample per
+// person (cross-sectional studies) as well as with repeat samples.
+//
+// For every sample, its nearest neighbour among OTHER people's samples (soft Jaccard and Aitchison). A pair is a
+// candidate when the two are each other's nearest neighbour and, on both distances, closer than almost any other
+// pair of samples from different people: log distance below median - k * MAD (k = 5) of all samples'
+// nearest-other-person log distances. With repeat samples, the pair must also be closer than 0.7 times the distance
+// from either sample to its own person's nearest other sample. Tested on the 15 shotgun tables of Ye et al. (2026)
+// with planted technical duplicates (abundances jittered, rare taxa dropped): 97% found in cross-sectional tables,
+// 63% in longitudinal ones, and no pair reported that was not planted. In repeat-sample studies a sample put under
+// the wrong person can also show up as a near-identical pair (7 of 105 planted mislabels), which is why the
+// message names both causes.
+function findDuplicates(M,lab,opt={},ids=null){
+  const n=lab.length,k=opt.k??5,Ds=M.A&&M.A!==M.J?[M.J,M.A]:[M.J];
+  const med=a=>{const s=Float64Array.from(a).sort();return s.length?s[s.length>>1]:NaN};
+  const lim=[],nn=[],own=[],mode=opt.same??'pair',f=opt.f??0.7;
+  for(const D of Ds){const best=new Float64Array(n).fill(Infinity),who=new Int32Array(n).fill(-1);
+    for(let i=0;i<n;i++)for(let j=0;j<n;j++){if(j===i||lab[j]===lab[i])continue;const d=D[i*n+j];if(d<best[i]){best[i]=d;who[i]=j}}
+    const L=Array.from(best).filter(v=>isFinite(v)&&v>0).map(Math.log),m=med(L),mad=1.4826*med(L.map(v=>Math.abs(v-m)));
+    let same=Infinity;
+    const sp=[],ow=new Float64Array(n).fill(Infinity);for(let i=0;i<n;i++){let b=Infinity;for(let j=0;j<n;j++){if(j!==i&&lab[j]===lab[i]){const d=D[i*n+j];if(d<b)b=d}}ow[i]=b;if(isFinite(b))sp.push(b)}
+    if(mode==='global'&&sp.length>=10){const s=Float64Array.from(sp).sort();same=s[Math.floor(.05*(s.length-1))]}
+    lim.push(Math.min(Math.exp(m-k*mad),same));nn.push(who);own.push(ow)}
+  const pairs=[],seen=new Set();
+  for(let i=0;i<n;i++){const j=nn[0][i];if(j<0||nn[0][j]!==i)continue;            // mutual nearest neighbours on the fingerprint distance
+    if(!Ds.every((D,q)=>D[i*n+j]<=lim[q]))continue;
+    if(mode==='pair'&&!Ds.every((D,q)=>D[i*n+j]<f*Math.min(own[q][i],own[q][j])))continue; // closer than either sample is to its own person's other samples
+    const key=i<j?i+'|'+j:j+'|'+i;if(seen.has(key))continue;seen.add(key);
+    const a=Math.min(i,j),b=Math.max(i,j);pairs.push({a,b,idA:ids?ids[a]:a,idB:ids?ids[b]:b,subjectA:lab[a],subjectB:lab[b],distance:Ds.map(D=>D[i*n+j]),limit:lim.slice()})}
+  return {pairs,limits:lim};
 }
 
 // ---------- explaining flags ----------
@@ -1419,11 +1487,11 @@ function getWorker(){if(worker)return worker;
       const progress=m=>self.postMessage({type:'progress',msg:(groups.length>1?g.name+': ':'')+m});
       if(scorable(g.lab).filter(Boolean).length<4){out.push({name:g.name,skipped:'Fewer than 4 samples belong to people with two or more samples.'});continue}
       const M=type==='markers'?markerDistances(data):distances(data,progress);let r=annotate(data,g.lab,analyse(data,g.lab,{prior,progress},M),{house:g.house,well:g.well,plate:g.plate});
-      const mp=measurePower(data,g.lab,r,M,{progress});r.power=mp||{single:NaN,swap:NaN,singleWithCheck:NaN,swapWithCheck:NaN,measured:false};
+      const mp=measurePower(data,g.lab,r,M,{progress});r.power=mp||{single:NaN,swap:NaN,singleWithCheck:NaN,swapWithCheck:NaN,measured:false};promotePairs(r,mp);const dups=findDuplicates(M,g.lab,{},g.samples.map(x=>x.id)).pairs.map(q=>({a:q.idA,sa:q.subjectA,b:q.idB,sb:q.subjectB}));
       let host=null;if(g.host){progress('Matching host DNA');host=hostCheck(g.host.map(x=>x?new Map(x.map(q=>[q[0],[q[1],q[2]]])):null),g.lab);r=addHost(r,host);}
       progress('Drawing the sample map');const map=g.samples.length<=3000?pcoa(M.J,g.samples.length,40):null;
       const pos=r.planted.pair.filter(Number.isFinite),obs=r.rows.map(x=>x.pair).filter(Number.isFinite);
-      out.push({name:g.name,type,host:host?{ok:host.ok,reason:host.reason||null,used:host.used||0}:null,map:map?{x:Array.from(map.x),y:Array.from(map.y),share:map.share}:null,rows:r.rows,pairs:r.pairs,shifts:r.shifts||[],power:r.power,nSubjects:r.nSubjects,nScorable:r.nScorable,aitFeat:r.aitFeat,
+      out.push({name:g.name,type,host:host?{ok:host.ok,reason:host.reason||null,used:host.used||0}:null,map:map?{x:Array.from(map.x),y:Array.from(map.y),share:map.share}:null,rows:r.rows,pairs:r.pairs,shifts:r.shifts||[],dups,power:r.power,nSubjects:r.nSubjects,nScorable:r.nScorable,aitFeat:r.aitFeat,
         hist:{obs:r.rows.map(x=>x.single).filter(Number.isFinite),plant:r.planted.single,obsPair:obs,plantPair:pos},secs:(Date.now()-t0)/1000})}
     self.postMessage({type:'done',out})}`;
   worker=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));return worker}
@@ -1462,13 +1530,14 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
     else if(flagged.length)verdict=`<div class="verdict warn"><b>${flagged.length} sample${flagged.length>1?'s':''} flagged${fPairs?`, including ${fPairs} likely swap${fPairs>1?'s':''}`:''}${checks.length?`, plus ${checks.length} to check`:''}.</b> Flags carry strong evidence. In this dataset SwapSeq flags about ${fmtPct(pw)} of swapped tubes, and ${fmtPct(pwc)} counting the check list.</div>`;
     else if(checks.length)verdict=`<div class="verdict weak"><b>No strong flags, ${checks.length} sample${checks.length>1?'s':''} to check.</b> These look somewhat like another person. Some will be natural look-alikes (people who live together, unusual samples), so compare them with lab records before changing anything.</div>`;
     else verdict=`<div class="verdict good"><b>No sample looks like it belongs to someone else.</b> In this dataset SwapSeq would have caught about ${fmtPct(pwc)} of swapped tubes and ${fmtPct(pw1c)} of one-off mislabels.</div>`;
+    if(!fewPeople&&!noPower&&g.nScorable&&2*g.pairs.length/g.nScorable>=1.5*prior)verdict+=`<div class="verdict warn"><b>More swap pairs than a ${(prior*100).toLocaleString()}% error rate would explain.</b> ${(100*2*g.pairs.length/g.nScorable).toFixed(1)}% of samples sit in swap pairs. When a table holds several errors, SwapSeq at ${(prior*100).toLocaleString()}% gives few strong flags. Run it again with <i>Expected error rate</i> set to 2% or 5%; in tests with 3% of samples swapped this caught about 80% instead of 40&ndash;55%, with a few more samples listed that were fine.</div>`;
     el.innerHTML=`${out.length>1?`<h3 style="margin-bottom:10px;font-size:19px">${esc(g.name)}</h3>`:''}
       <div class="tiles">
         <div class="panel tile"><div class="label">Samples checked</div><div class="v">${g.nScorable.toLocaleString()}</div><div class="d">${g.nSubjects} people${unscored?`, ${unscored} with a single sample not checked`:''}</div></div>
         <div class="panel tile"><div class="label">Flagged, and to check</div><div class="v"><span style="color:${flagged.length?'var(--swap)':'var(--ok)'}">${flagged.length}</span> <span style="color:var(--mis);font-size:.7em">+ ${checks.length}</span></div><div class="d">${fPairs} flagged swap pair${fPairs===1?'':'s'}${cPairs?`, ${cPairs} possible`:''}</div></div>
         <div class="panel tile"><div class="label">Catches swaps</div><div class="v">${fmtPct(pwc)}</div><div class="d">${fmtPct(pw)} as strong flags. Measured: we hid ${g.power.tests?g.power.tests.swapped:'–'} swapped samples in copies of your labels</div></div>
         <div class="panel tile"><div class="label">Catches mislabels</div><div class="v">${fmtPct(pw1c)}</div><div class="d">${fmtPct(pw1)} as strong flags, for one sample under the wrong person (${g.power.tests?g.power.tests.relabelled:'–'} hidden tests)</div></div>
-      </div>${verdict}${g.host?(g.host.ok?`<div class="verdict ${g.rows.some(x=>x.byHost)?'warn':'good'}"><b>Host DNA (beta):</b> ${g.host.used.toLocaleString()} samples had enough host reads to check; ${g.rows.filter(x=>x.byHost).length} ${g.rows.filter(x=>x.byHost).length===1?'was':'were'} flagged because their DNA fits another person.${g.rows.some(x=>x.host&&x.host.verdict==='identical DNA')?` Some people share identical DNA (twins, or one person under two IDs); DNA cannot tell them apart.`:''}</div>`:`<div class="verdict weak"><b>Host DNA not used:</b> ${esc(g.host.reason)}. Samples need at least 1,500 covered SNP sites.</div>`):''}${(g.shifts||[]).map(x=>`<div class="verdict warn"><b>Possible sample-sheet shift${x.plate?` on ${esc(x.plate)}`:''}:</b> ${x.n} tubes in a row, from position <span class="mono">${esc(x.from)}</span> to <span class="mono">${esc(x.to)}</span>, each look like the person written for the ${x.direction>0?'next':'previous'} tube. Check whether a row was skipped or added in the sample sheet.</div>`).join('')}`;
+      </div>${verdict}${g.host?(g.host.ok?`<div class="verdict ${g.rows.some(x=>x.byHost)?'warn':'good'}"><b>Host DNA (beta):</b> ${g.host.used.toLocaleString()} samples had enough host reads to check; ${g.rows.filter(x=>x.byHost).length} ${g.rows.filter(x=>x.byHost).length===1?'was':'were'} flagged because their DNA fits another person.${g.rows.some(x=>x.host&&x.host.verdict==='identical DNA')?` Some people share identical DNA (twins, or one person under two IDs); DNA cannot tell them apart.`:''}</div>`:`<div class="verdict weak"><b>Host DNA not used:</b> ${esc(g.host.reason)}. Samples need at least 1,500 covered SNP sites.</div>`):''}${(g.dups||[]).length?`<div class="verdict warn"><b>Possible duplicate${g.dups.length===1?'':'s'}:</b> ${g.dups.slice(0,8).map(d=>`<span class="mono">${esc(d.a)}</span> (labelled ${esc(d.sa)}) and <span class="mono">${esc(d.b)}</span> (labelled ${esc(d.sb)})`).join('; ')}${g.dups.length>8?` and ${g.dups.length-8} more`:''} are near-identical, closer than samples from two different people normally are. Was one tube, extract or file used under two names? In studies with repeat samples this can also be a sample put under the wrong person.</div>`:''}${(g.shifts||[]).map(x=>`<div class="verdict warn"><b>Possible sample-sheet shift${x.plate?` on ${esc(x.plate)}`:''}:</b> ${x.n} tubes in a row, from position <span class="mono">${esc(x.from)}</span> to <span class="mono">${esc(x.to)}</span>, each look like the person written for the ${x.direction>0?'next':'previous'} tube. Check whether a row was skipped or added in the sample sheet.</div>`).join('')}`;
     const list=flagged.concat(lowPower?[]:checks);
     const tw=document.createElement('div');tw.className='tablewrap';
     tw.innerHTML=list.length?`<table><thead><tr><th>Sample</th><th>Labelled as</th><th>Verdict</th><th>Evidence</th><th>Looks like</th><th>Why</th></tr></thead><tbody>${list.map(r=>{
@@ -1479,6 +1548,7 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
       if(r.host&&r.host.verdict==='other person')why+=`<span class="ev warnc">Host DNA: the reads at ${(r.host.sites||0).toLocaleString()} human SNP sites fit <b>${esc(r.host.looksLike)}</b> much better than ${esc(r.subject)} (log-likelihood ratio ${Number.isFinite(r.host.llr)?r.host.llr.toFixed(0):'?'}).</span>`;
       else if(r.host&&r.host.verdict==='identical DNA')why+=`<span class="ev warnc">Host DNA: identical to <b>${esc(r.host.looksLike)}</b>. Identical twins, or one person entered under two IDs? DNA cannot tell twins apart.</span>`;
       else if(r.host&&r.host.verdict==='same person')why+=`<span class="ev">Host DNA: the reads fit ${esc(r.subject)}, the labelled person. Check whether the look-alike is a household member, a twin or a transplant donor.</span>`;
+      if(r.byPair)why+=`<span class="ev">Strong because both samples of the pair point at each other's person.</span>`;
       if(r.shift)why+=`<span class="ev warnc">Part of a possible sample-sheet shift (positions ${esc(r.shift.from)} to ${esc(r.shift.to)}).</span>`;
       if(r.cohab)why+=`<span class="ev warnc">Same household (${esc(r.cohab)}) as ${esc(r.rare?r.rare.other:r.looksLike)}: people who live together share microbes${r.downgraded?', so this was moved to the check list':''}.</span>`;
       const pw=kind==='swap'?g.pairs.find(p=>(p.a===r.id||p.b===r.id)&&p.wells):null;
@@ -1507,10 +1577,10 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove()}
 const VERSION='SwapSeq 1.1.1 (method v3)';
 function methodsText(g,prior){const f=g.rows.filter(r=>r.level==='flag').length,c=g.rows.filter(r=>r.level==='check').length,fp=g.pairs.filter(p=>p.level==='flag').length;
-  return `Sample identity was checked with ${VERSION} (${g.type==='markers'?'strain-marker Jaccard fingerprints':'soft Jaccard and Aitchison fingerprints'}${g.host&&g.host.ok?', plus host-DNA genotype matching':''}, calibrated on errors planted in this dataset; expected mislabel rate ${prior*100}%). Of ${g.nScorable} samples from ${g.nSubjects} participants${g.name!=='All samples'?` (${g.name})`:''}, ${f} ${f===1?'was':'were'} flagged with strong evidence${fp?` (${fp} reciprocal swap${fp===1?'':'s'})`:''} and ${c} listed for checking against laboratory records. Measured detection in this dataset, from errors hidden in copies of the labels: ${fmtPct(g.power.swapWithCheck)} of swapped tubes and ${fmtPct(g.power.singleWithCheck)} of single mislabels (${fmtPct(g.power.swap)} and ${fmtPct(g.power.single)} as strong flags) (Singh 2026, https://doi.org/10.5281/zenodo.23963612).`}
+  return `Sample identity was checked with ${VERSION} (${g.type==='markers'?'strain-marker Jaccard fingerprints':'soft Jaccard and Aitchison fingerprints'}${g.host&&g.host.ok?', plus host-DNA genotype matching':''}, calibrated on errors planted in this dataset; expected mislabel rate ${prior*100}%). Of ${g.nScorable} samples from ${g.nSubjects} participants${g.name!=='All samples'?` (${g.name})`:''}, ${f} ${f===1?'was':'were'} flagged with strong evidence${fp?` (${fp} reciprocal swap${fp===1?'':'s'})`:''} and ${c} listed for checking against laboratory records${(g.dups||[]).length?`; ${g.dups.length} pair${g.dups.length===1?'':'s'} of samples labelled as different people had near-identical communities (possible duplicates)`:''}. Measured detection in this dataset, from errors hidden in copies of the labels: ${fmtPct(g.power.swapWithCheck)} of swapped tubes and ${fmtPct(g.power.singleWithCheck)} of single mislabels (${fmtPct(g.power.swap)} and ${fmtPct(g.power.single)} as strong flags) (Singh 2026, https://doi.org/10.5281/zenodo.23963612).`}
 function toTSV(g){const h=['sample','labelled_as','level','verdict','p_strict','p_broad','p_mislabel','p_swap','looks_like','nearest_sample','swap_partner','partner_labelled_as','rare_asvs','rare_shared_with_look_alike','rare_shared_with_own','well','same_household','mismatch_score','swap_score','host_verdict','host_looks_like','host_llr','host_sites','flagged_by_host'];
   const f=v=>Number.isFinite(v)?(+v).toFixed(4):'',pairOf=id=>g.pairs.find(p=>p.a===id||p.b===id);
-  const head=[`# ${VERSION} QC audit`,`# file: ${st.tableName}; group: ${g.name}; date: ${new Date().toISOString().slice(0,10)}`,`# columns used: ${Object.entries(st.lastCols||{}).filter(([k,v])=>v).map(([k,v])=>k+'='+v).join(', ')}`,`# ${methodsText(g,+$('prior').value)}`];
+  const head=[`# ${VERSION} QC audit`,`# file: ${st.tableName}; group: ${g.name}; date: ${new Date().toISOString().slice(0,10)}`,`# columns used: ${Object.entries(st.lastCols||{}).filter(([k,v])=>v).map(([k,v])=>k+'='+v).join(', ')}`,`# ${methodsText(g,+$('prior').value)}`,...(g.dups||[]).map(d=>`# possible duplicate: ${d.a} (labelled ${d.sa}) and ${d.b} (labelled ${d.sb})`)];
   return head.join('\n')+'\n'+h.join('\t')+'\n'+g.rows.map(r=>[r.id,r.subject,!r.scorable?'not_checked':r.level,r.level==='ok'?'ok':r.kind,f(r.prob),f(r.broad),f(r.pSingle),f(r.pSwap),r.looksLike??'',r.nearest??'',r.kind==='swap'?r.partner:'',r.kind==='swap'?r.partnerSubject:'',
     r.rare?r.rare.total:'',r.rare?r.rare.withOther:'',r.rare?r.rare.withOwn:'',r.well||'',r.cohab||'',f(r.single),f(r.pair),r.host?r.host.verdict:'',r.host&&r.host.looksLike?r.host.looksLike:'',r.host&&Number.isFinite(r.host.llr)?r.host.llr.toFixed(1):'',r.host?r.host.sites??'':'',r.byHost?'yes':''].join('\t')).join('\n')+'\n'}
 

@@ -407,6 +407,16 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
       <h3>Host DNA</h3>
       <p>Shotgun reads carry some of the person's own DNA, which does not change when their microbes do. SwapSeq matches each sample's reads at common human SNPs to every person's other samples. In a stress test on simulated people (uneven DNA, relatives, twins, contamination, mixed populations) it made almost no false flags and caught 85&ndash;100% of swaps with 2,000&ndash;4,000 covered SNP sites per sample and 6 samples per person, but few with only 2&ndash;3 samples per person. Identical twins cannot be told apart by DNA. It is not yet tested on real samples, and it is human genetic data: use it within your ethics approval. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the input</a>.</p>
     </div>
+    <div class="panel">
+      <span class="kicker">Several errors</span>
+      <h3>Swap pairs and a note</h3>
+      <p>A swap leaves two samples that each fit the other's person. When both point at each other, SwapSeq now makes them strong flags in tables where test swaps stand out well. With 3% of samples swapped in seven shotgun tables, strong flags caught 41% of swaps instead of 5%. If a table holds more swap pairs than the expected error rate explains, SwapSeq says so; raising the rate to 2&ndash;5% then caught about 80%.</p>
+    </div>
+    <div class="panel">
+      <span class="kicker">All study designs</span>
+      <h3>Duplicates</h3>
+      <p>Two samples labelled as different people with near-identical microbes are listed as possible duplicates: one tube sequenced twice, a reused extract or a file uploaded twice. It works with one sample per person too. With test duplicates planted in 15 public shotgun tables it found 97% in cross-sectional and 63% in longitudinal tables, and reported no pair that was not planted.</p>
+    </div>
   </div>
 </div></section>
 
@@ -486,7 +496,7 @@ npx github:bymankirat/swapseq table.tsv metadata.tsv \
   </div>
   <details class="versions"><summary>What changed in each version</summary>
     <ul>
-      <li><b>1.1.1, November update</b> &middot; Strain-marker mode and a host-DNA check (beta) for shotgun data; a command-line tool for pipelines. Results on taxa counts are unchanged.</li>
+      <li><b>1.1.1, November update</b> &middot; Strain-marker mode and a host-DNA check (beta) for shotgun data; a command-line tool for pipelines; a duplicate check; swap pairs that point at each other are strong flags in tables that separate swaps well, which helps most when a table holds several errors.</li>
       <li><b>1.1.1</b> &middot; Measured power no longer reads low when a table already holds errors.</li>
       <li><b>1.1.0</b> &middot; Power is measured on your own table by hiding test errors in copies of your labels. Version 1.0 could show near 0% for tables it checks well.</li>
       <li><b>1.0.1</b> &middot; Methods and validation page, feedback forms, citation details.</li>
