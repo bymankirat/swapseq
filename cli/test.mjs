@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Tests for the SwapSeq command-line tool on small simulated studies. Run: node cli/test.mjs
-import {execFileSync} from 'child_process';import fs from 'fs';import os from 'os';import path from 'path';import assert from 'assert';
-const CLI=new URL('./swapseq.mjs',import.meta.url).pathname,D=fs.mkdtempSync(path.join(os.tmpdir(),'swapseq-'));
+import {execFileSync} from 'child_process';import fs from 'fs';import os from 'os';import path from 'path';import assert from 'assert';import {fileURLToPath} from 'url';
+const CLI=fileURLToPath(new URL('./swapseq.mjs',import.meta.url)),D=fs.mkdtempSync(path.join(os.tmpdir(),'swapseq-'));
 const R=(s=>()=>{s^=s<<13;s>>>=0;s^=s>>17;s^=s<<5;s>>>=0;return s/4294967296})(12345);
 const ri=(a,b)=>a+Math.floor(R()*(b-a+1));
 // 20 people x 5 samples: 50 shared taxa + 40 personal taxa each
