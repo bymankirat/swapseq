@@ -1,0 +1,53 @@
+{
+ "key": "yeBrooks",
+ "name": "Preterm infants in NICU (Brooks 2017)",
+ "ref": "Brooks et al. 2017, Nat Commun; table from Ye et al. 2026",
+ "type": "Shotgun (MetaPhlAn relative abundance)",
+ "host": "Preterm infant gut",
+ "design": "Repeated stool in the first weeks of life",
+ "validation": false,
+ "control": null,
+ "samples": 408,
+ "droppedLowDepth": 0,
+ "subjects": 30,
+ "scorable": 407,
+ "subjectsWith2": 29,
+ "medianSamplesPerSubject": 14,
+ "reidentified": 0.9115479115479116,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.178117048346056,
+  "swap": 0.7862595419847328,
+  "singleWithCheck": 0.7531806615776081,
+  "swapWithCheck": 0.8804071246819338
+ },
+ "measured": {
+  "reps": 80,
+  "protocol": "v0.3",
+  "swapsPerRep": 0.5,
+  "relabelsPerRep": 0.5,
+  "swapCaught": 0.8375,
+  "swapCaughtWithReview": 0.85,
+  "swapPairNamed": 0.825,
+  "relabelCaught": 0.575,
+  "relabelCaughtWithReview": 0.6,
+  "falseFlagsPer1000": 2.018633540372671,
+  "falseChecksPer1000": 3.5093167701863353
+ },
+ "separation": 1,
+ "promotedOnOriginal": 2,
+ "possibleDuplicates": 0,
+ "engine": "1.1.1 November update",
+ "reportedPower": {
+  "swap": 0.75,
+  "swapBeforePromotion": 0.55,
+  "swapWithCheck": 0.8
+ },
+ "strongFlags": 2,
+ "checkList": 1,
+ "strongSwapPairs": 1,
+ "allSwapPairs": 1,
+ "flagsPer1000": 4.914004914004914,
+ "checksPer1000": 2.457002457002457,
+ "householdOrRareNote": 1,
+ "seconds": 41.975
+}

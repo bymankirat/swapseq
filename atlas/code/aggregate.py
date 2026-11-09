@@ -3,7 +3,7 @@ R=[json.load(open(f)) for f in sorted(glob.glob('results/*.json'))]
 GROUP={'smpGut':'Adult gut','diet':'Adult gut','imp':'Adult gut','david':'Adult gut','hagan':'Adult gut','mars':'Adult gut','poyet':'Adult gut','ibdmdb':'Adult gut','palleja':'Adult gut',
  'taur':'Hospital patients','smpTongue':'Oral','smpPalm':'Skin','smpForehead':'Skin','digiulio':'Vaginal',
  'ecam':'Infant gut','karelia':'Infant gut','shao':'Infant gut','heInfants':'Infant gut','kostic':'Infant gut','wandro':'Infant gut',
- 'mdsH':'Mouse gut','mdsU':'Mouse gut','muVRE':'Mouse gut','storage':'Same-stool aliquots','dietOriginal':'Adult gut'}
+ 'yeBrooks':'Infant gut','yeT2d':'Adult gut','yeHall':'Gut, other cohorts','yePRJEB38984':'Gut, other cohorts','yePRJEB70966':'Gut, other cohorts','yeFMT':'Gut, other cohorts','mdsH':'Mouse gut','mdsU':'Mouse gut','muVRE':'Mouse gut','storage':'Same-stool aliquots','dietOriginal':'Adult gut'}
 rows=[]
 for r in R:
     k=r['key'];g=GROUP.get(k,'Oral' if k.startswith('ploeg') else '?')

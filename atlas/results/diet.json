@@ -21,16 +21,26 @@
   "swapWithCheck": 0.9960861056751468
  },
  "measured": {
-  "reps": 10,
-  "swapsPerRep": 3,
-  "relabelsPerRep": 2,
-  "swapCaught": 0.9166666666666666,
-  "swapCaughtWithReview": 0.9833333333333333,
-  "swapPairNamed": 0.8666666666666667,
-  "relabelCaught": 0.85,
-  "relabelCaughtWithReview": 0.95,
-  "falseFlagsPer1000": 0.19455252918287938,
-  "falseChecksPer1000": 0.5836575875486382
+  "reps": 20,
+  "protocol": "v0.3",
+  "swapsPerRep": 2,
+  "relabelsPerRep": 1,
+  "swapCaught": 0.925,
+  "swapCaughtWithReview": 0.9875,
+  "swapPairNamed": 0.85,
+  "relabelCaught": 0.9,
+  "relabelCaughtWithReview": 1,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0.4835589941972921
+ },
+ "separation": 1,
+ "promotedOnOriginal": 0,
+ "possibleDuplicates": 0,
+ "engine": "1.1.1 November update",
+ "reportedPower": {
+  "swap": 0.95,
+  "swapBeforePromotion": 0.95,
+  "swapWithCheck": 1
  },
  "strongFlags": 0,
  "checkList": 0,
@@ -39,5 +49,5 @@
  "flagsPer1000": 0,
  "checksPer1000": 0,
  "householdOrRareNote": 0,
- "seconds": 2.467
+ "seconds": 40.531
 }

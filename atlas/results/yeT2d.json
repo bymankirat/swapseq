@@ -1,0 +1,53 @@
+{
+ "key": "yeT2d",
+ "name": "Prediabetes, iHMP (Zhou 2019)",
+ "ref": "Zhou et al. 2019, Nature; table from Ye et al. 2026",
+ "type": "Shotgun (MetaPhlAn relative abundance)",
+ "host": "Adult gut",
+ "design": "Repeated stool over up to four years",
+ "validation": false,
+ "control": null,
+ "samples": 189,
+ "droppedLowDepth": 0,
+ "subjects": 28,
+ "scorable": 189,
+ "subjectsWith2": 28,
+ "medianSamplesPerSubject": 5,
+ "reidentified": 0.9523809523809523,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.647887323943662,
+  "swap": 0.954225352112676,
+  "singleWithCheck": 0.8274647887323944,
+  "swapWithCheck": 0.9753521126760564
+ },
+ "measured": {
+  "reps": 80,
+  "protocol": "v0.3",
+  "swapsPerRep": 0.5,
+  "relabelsPerRep": 0.5,
+  "swapCaught": 0.425,
+  "swapCaughtWithReview": 0.9375,
+  "swapPairNamed": 0.25,
+  "relabelCaught": 0,
+  "relabelCaughtWithReview": 0.475,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0
+ },
+ "separation": 1,
+ "promotedOnOriginal": 0,
+ "possibleDuplicates": 0,
+ "engine": "1.1.1 November update",
+ "reportedPower": {
+  "swap": 0.95,
+  "swapBeforePromotion": 0.85,
+  "swapWithCheck": 1
+ },
+ "strongFlags": 2,
+ "checkList": 1,
+ "strongSwapPairs": 1,
+ "allSwapPairs": 1,
+ "flagsPer1000": 10.582010582010582,
+ "checksPer1000": 5.291005291005291,
+ "householdOrRareNote": 2,
+ "seconds": 14.742
+}

@@ -1,0 +1,53 @@
+{
+ "key": "yePRJEB38984",
+ "name": "Shotgun cohort ENA PRJEB38984",
+ "ref": "ENA PRJEB38984; table from Ye et al. 2026",
+ "type": "Shotgun (MetaPhlAn relative abundance)",
+ "host": "Gut (cohort details in Ye et al. 2026)",
+ "design": "Repeated stool",
+ "validation": false,
+ "control": null,
+ "samples": 384,
+ "droppedLowDepth": 0,
+ "subjects": 101,
+ "scorable": 382,
+ "subjectsWith2": 99,
+ "medianSamplesPerSubject": 4,
+ "reidentified": 0.9607329842931938,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.9129287598944591,
+  "swap": 0.0316622691292876,
+  "singleWithCheck": 0.9762532981530343,
+  "swapWithCheck": 0.8100263852242744
+ },
+ "measured": {
+  "reps": 80,
+  "protocol": "v0.3",
+  "swapsPerRep": 0.5,
+  "relabelsPerRep": 0.5,
+  "swapCaught": 0.9125,
+  "swapCaughtWithReview": 0.95,
+  "swapPairNamed": 0,
+  "relabelCaught": 0.975,
+  "relabelCaughtWithReview": 1,
+  "falseFlagsPer1000": 0,
+  "falseChecksPer1000": 0
+ },
+ "separation": 0.9736147757255936,
+ "promotedOnOriginal": 0,
+ "possibleDuplicates": 6,
+ "engine": "1.1.1 November update",
+ "reportedPower": {
+  "swap": 0.9,
+  "swapBeforePromotion": 0.9,
+  "swapWithCheck": 1
+ },
+ "strongFlags": 11,
+ "checkList": 4,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 28.79581151832461,
+ "checksPer1000": 10.471204188481675,
+ "householdOrRareNote": 9,
+ "seconds": 29.231
+}

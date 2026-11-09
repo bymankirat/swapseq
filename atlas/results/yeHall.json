@@ -1,0 +1,53 @@
+{
+ "key": "yeHall",
+ "name": "IBD patients and controls (Hall 2017)",
+ "ref": "Hall et al. 2017, Genome Med; table from Ye et al. 2026",
+ "type": "Shotgun (MetaPhlAn relative abundance)",
+ "host": "Gut, IBD patients and controls",
+ "design": "Repeated stool over about a year",
+ "validation": false,
+ "control": null,
+ "samples": 259,
+ "droppedLowDepth": 0,
+ "subjects": 32,
+ "scorable": 259,
+ "subjectsWith2": 32,
+ "medianSamplesPerSubject": 8,
+ "reidentified": 0.918918918918919,
+ "selfEstimatedPowerOnOriginal": {
+  "single": 0.6237288135593221,
+  "swap": 0.8745762711864407,
+  "singleWithCheck": 0.7966101694915254,
+  "swapWithCheck": 0.8847457627118644
+ },
+ "measured": {
+  "reps": 80,
+  "protocol": "v0.3",
+  "swapsPerRep": 0.5,
+  "relabelsPerRep": 0.5,
+  "swapCaught": 0.7625,
+  "swapCaughtWithReview": 0.9125,
+  "swapPairNamed": 0.7,
+  "relabelCaught": 0.5,
+  "relabelCaughtWithReview": 0.75,
+  "falseFlagsPer1000": 0.04930966469428008,
+  "falseChecksPer1000": 0.6903353057199211
+ },
+ "separation": 0.9830508474576272,
+ "promotedOnOriginal": 0,
+ "possibleDuplicates": 1,
+ "engine": "1.1.1 November update",
+ "reportedPower": {
+  "swap": 0.825,
+  "swapBeforePromotion": 0.825,
+  "swapWithCheck": 0.85
+ },
+ "strongFlags": 2,
+ "checkList": 2,
+ "strongSwapPairs": 0,
+ "allSwapPairs": 0,
+ "flagsPer1000": 7.722007722007722,
+ "checksPer1000": 7.722007722007722,
+ "householdOrRareNote": 1,
+ "seconds": 23.83
+}
