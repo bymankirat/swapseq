@@ -1,6 +1,6 @@
 <title>SwapSeq Methods</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="How SwapSeq finds swapped tubes, wrong labels and sample-sheet shifts in longitudinal microbiome studies, and how it was tested on 4,732 samples from five public studies, then on 36 public datasets in the SwapSeq Atlas.">
+<meta name="description" content="How SwapSeq finds swapped tubes, wrong labels and sample-sheet shifts in longitudinal microbiome studies, and how it was tested on 4,732 samples from five public studies, then on 42 public datasets in the SwapSeq Atlas.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="SwapSeq">
 <meta property="og:title" content="SwapSeq: methods and validation">
@@ -102,7 +102,7 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
 
 <div class="doc">
 <aside class="toc" aria-label="On this page"><b>On this page</b>
-  <a href="#checks">What it checks</a><a href="#method">Method</a><a href="#data">Data</a><a href="#design">Test design</a><a href="#results">Results</a><a href="#plate">Plate errors</a><a href="#real">A real swap</a><a href="#untouched">Untouched data</a><a href="#dropped">Tried and dropped</a><a href="#shotgun">Shotgun data</a><a href="#several">Several errors, duplicates</a><a href="#limits">Limits</a><a href="#reproduce">Reproduce</a><a href="#cite">Cite</a>
+  <a href="#checks">What it checks</a><a href="#method">Method</a><a href="#data">Data</a><a href="#design">Test design</a><a href="#results">Results</a><a href="#plate">Plate errors</a><a href="#real">A real swap</a><a href="#untouched">Untouched data</a><a href="#dropped">Tried and dropped</a><a href="#shotgun">Shotgun data</a><a href="#several">Several errors, duplicates</a><a href="#robust">Small studies, broken files</a><a href="#limits">Limits</a><a href="#reproduce">Reproduce</a><a href="#cite">Cite</a>
 </aside>
 <article>
 
@@ -290,8 +290,31 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
   </div>
 </section>
 
+<section id="robust">
+  <span class="secno">12</span><h2>Small studies, broken files and a code review</h2>
+  <div class="prose">
+    <p><b>Small studies.</b> One swap in a 30-sample table is already 7% errors, far above the expected 1%, so the calibrated probability could not reach a strong flag however clear the swap was. In tables that separate planted swaps very well (at least 90% of planted swap scores above a cut that ignores the top max(5%, 4) observed scores, and at least 75% of samples closer to their own person than to anyone else), two samples that are each other's best swap partner and both score like a typical planted swap are now reported as a swap pair. Both people need three or more samples: with two per person, the data cannot say which pair was swapped.</p>
+  </div>
+  <div class="tablewrap" style="margin-top:14px"><table>
+    <thead><tr><th>One hidden swap, strong flags</th><th>24 samples</th><th>32</th><th>40</th><th>75</th><th>125</th><th>240</th></tr></thead>
+    <tbody>
+    <tr><td>12 checkable tables, before</td><td>1%</td><td>15%</td><td>30%</td><td>65%</td><td>73%</td><td>83%</td></tr>
+    <tr><td>12 checkable tables, now</td><td>60%</td><td>70%</td><td>70%</td><td>76%</td><td>78%</td><td>85%</td></tr>
+    <tr><td>Other samples flagged per 1,000, before &rarr; now</td><td>0.0 &rarr; 0.4</td><td>0.0 &rarr; 0.7</td><td>0.0 &rarr; 0.0</td><td>0.1 &rarr; 0.3</td><td>0.5 &rarr; 0.8</td><td>1.2 &rarr; 1.2</td></tr>
+    <tr><td>7 tables SwapSeq cannot check, before &rarr; now</td><td>0% &rarr; 1%</td><td>0% &rarr; 1%</td><td>1% &rarr; 1%</td><td>3% &rarr; 4%</td><td>0% &rarr; 0%</td><td>0% &rarr; 0%</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p class="muted">Random subsamples of real public tables: 6 to 40 people with 4 to 6 samples each, 40 repeats per table and size, one reciprocal swap hidden. With clean labels, strong flags per 1,000 samples stayed within 0.3 of the earlier figure at every size (0.5&ndash;1.9 in checkable tables, 0&ndash;1.3 in the others). On 34 full tables, strong flags on the published labels went from 75 to 77 and the check list stayed at 201; with 3% of samples swapped, strong flags caught 43% instead of 35% overall (60% instead of 41% in the seven shotgun tables), with 1.3 instead of 1.0 other samples flagged per 1,000.</p>
+    <p><b>Broken and unusual files.</b> A battery of 60 input cases runs with every change (<code>cli/test_inputs.mjs</code>): Windows, Unix and old-Mac line ends, a byte-order mark, quoted fields, semicolon-separated files, a trailing tab, R tables without a corner cell, a taxonomy column, decimal and scientific notation, relative abundances, empty cells, missing subject labels, people with one sample, BIOM 1.0, and files that must be refused with a clear message (duplicate sample IDs, text or negative numbers in a count cell, a line with too few columns, an empty file, an Excel or BIOM 2 file, a subject column where nobody has two samples, an output name that would overwrite the input). Before this update, 17 of the 60 failed: two crashed, and the others refused a readable file, missed the swap, or accepted a bad file without warning. The worst: a header one cell short shifted every sample ID by one column, and the output could overwrite the input table.</p>
+    <p><b>Independent code review.</b> A reviewer who had not seen the code being written was asked to find defects and prove each one with a script. It reported 18; 17 are fixed, among them missing subject labels in R being treated as one person, two all-zero samples reported as duplicates, a duplicate check that fired in tables of two or three samples, household look-alikes promoted as swap pairs, and a host-DNA flag written as &ldquo;not checked&rdquo;. One is left as it is: results can differ in the third decimal when the same samples are given in another column order, because the planted errors are drawn in file order.</p>
+    <p><b>Duplicates in 16S and other count tables.</b> In 28 count tables, a sample re-sequenced under another person's name (new depth, every count jittered and drawn again) was found in 309 of 420 tests. No pair was reported that was not planted, and 5 of 420 planted mislabels showed up as a duplicate. It works poorly where different people's samples are nearly alike anyway or where a person's own samples are just as close: vaginal swabs (1 of 15), skin behind the ear (0 of 15) and same-stool aliquots (0 of 15).</p>
+    <p><b>More public data.</b> Atlas version 0.4 adds five body sites of the first Human Microbiome Project and a controlled-feeding study (42 tables, 20,974 samples). HMP1 stool caught 99% of hidden swaps, dental plaque 92%, tongue and nostril 88%, skin behind the ear 75%. A twin study with two samples per person (Turnbaugh 2009, 270 samples) cannot be graded by the Atlas test; with family given as household, it gave 3 strong flags and one possible duplicate on the published labels.</p>
+  </div>
+</section>
+
 <section id="limits">
-  <span class="secno">12</span><h2>Limits</h2>
+  <span class="secno">13</span><h2>Limits</h2>
   <div class="prose"><ul>
     <li><b>One confirmed real error.</b> Everything else is planted. Planted errors are clean label exchanges; real mix-ups can also be partial, such as cross-contamination or a split sample.</li>
     <li><b>Narrow evidence base.</b> Adult 16S results come from two studies, shotgun from one, and plate patterns from one real plating order.</li>
@@ -300,12 +323,13 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
     <li><b>Memory.</b> All pairwise distances are held in the browser, so tables of many thousands of samples need a lot of memory. The largest table in this benchmark had 875 samples; the SwapSeq Atlas ran tables of up to 2,479 samples, and the browser accepts up to 4,000 per check.</li>
     <li><b>Host DNA and strain markers are new.</b> The host-DNA check is tested on simulated data only, and the strain-marker test on public cohorts is still running.</li>
     <li><b>Many errors at once.</b> At the default 1% expected rate, strong flags catch fewer swaps when several per cent of a table are wrong; follow the tool's note and raise the expected rate. Duplicates are found less often in longitudinal tables than in cross-sectional ones.</li>
+    <li><b>Small studies.</b> Below about 25 samples, or with two samples per person, a single swap is often not a strong flag even in sample types SwapSeq checks well; it usually sits on the check list.</li>
     <li><b>A flag is a reason to check.</b> Compare it with plate maps, extraction batches and sample sheets before relabelling or dropping anything. SwapSeq is a research QC tool, not a medical device.</li>
   </ul></div>
 </section>
 
 <section id="reproduce">
-  <span class="secno">13</span><h2>Reproduce</h2>
+  <span class="secno">14</span><h2>Reproduce</h2>
   <div class="prose">
     <p>Node.js 22 and nothing else. Clone the five source repositories into one folder (the layout is in <span class="mono">method/load.mjs</span>), then:</p>
   </div>
@@ -327,7 +351,7 @@ node method/realswap.mjs       # the real diet-study swap</pre>
 </section>
 
 <section id="cite">
-  <span class="secno">14</span><h2>Cite and references</h2>
+  <span class="secno">15</span><h2>Cite and references</h2>
   <div class="panel cite">
     <p id="citeText">Singh M. (2026). <i>SwapSeq: a sample mix-up checker for longitudinal microbiome studies</i> (v1.1.1). Zenodo. https://doi.org/10.5281/zenodo.23963612</p>
     <div class="actions"><button class="btn ghost small" type="button" id="copyCite">Copy citation</button><span class="copied" id="copied" hidden>Copied</span><a href="https://doi.org/10.5281/zenodo.23963612" target="_blank" rel="noopener">doi:10.5281/zenodo.23963612</a><a href="https://orcid.org/0009-0005-3375-2123" target="_blank" rel="noopener">ORCID 0009-0005-3375-2123</a><a href="https://bio.tools/swapseq" target="_blank" rel="noopener">biotools:swapseq</a><a href="https://scicrunch.org/resolver/RRID:SCR_029248" target="_blank" rel="noopener">RRID:SCR_029248</a></div>

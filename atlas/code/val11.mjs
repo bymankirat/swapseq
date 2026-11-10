@@ -1,7 +1,7 @@
 // Validate SwapSeq 1.1 measured power vs the 1.0.1 estimate, on clean labels and on labels with ~1% hidden errors.
 import fs from 'fs';import * as L from './load2.mjs';
 import {analyse,distances,scorable,rng,measurePower} from '../../swap/core.mjs';
-const OUT='/tmp/claude-0/-home-claude/d674b933-5c36-5fd7-9c63-4fe2a591bf95/scratchpad/atlas/val11/';fs.mkdirSync(OUT,{recursive:true});
+const OUT=(process.env.OUT||'.')+'/val11/';fs.mkdirSync(OUT,{recursive:true});
 const all={...L.VALID,...L.NEW,...L.BOREN};for(const n of L.ploegNiches())all['ploeg_'+n.replace(/\W+/g,'_')]=()=>L.ploeg(n);
 const key=process.argv[2];let ds=all[key]();
 if(!/relative/i.test(ds.type||'')){const keep=[];ds.data.samples.forEach((s,i)=>{if(s.val.reduce((a,b)=>a+b,0)>=1000)keep.push(i)});

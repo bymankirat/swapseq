@@ -30,36 +30,53 @@ async function parseTableBytes(buf,name){
     return {kind:'sparse',feats:feats.map(String),samples}}
   const txt=new TextDecoder().decode(buf);const t0=txt.trimStart();
   if(t0[0]==='{'){ // BIOM 1.0 JSON
-    const j=JSON.parse(t0);const feats=j.rows.map(r=>r.id),ids=j.columns.map(c=>c.id),per=ids.map(()=>[]);
-    if(j.matrix_type==='dense'){j.data.forEach((row,r)=>row.forEach((v,c)=>{if(v>0)per[c].push([r,v])}))}else for(const [r,c,v] of j.data)if(v>0)per[c].push([r,v]);
-    return {kind:'sparse',feats,samples:ids.map((id,c)=>{const a=per[c].sort((x,y)=>x[0]-y[0]);return {id,idx:a.map(x=>x[0]),val:a.map(x=>x[1])}})}}
+    let j;try{j=JSON.parse(t0)}catch(e){throw new Error('The file starts like JSON but cannot be read ('+e.message+').')}
+    if(!j.rows||!j.columns||!j.data)throw new Error('This JSON file is not a BIOM 1.0 table.');
+    const feats=j.rows.map(r=>r.id),ids=j.columns.map(c=>String(c.id).trim()),per=ids.map(()=>new Map());
+    const put=(r,c,v)=>{if(!Number.isFinite(+v)||+v<0)throw new Error('The table has negative or non-numeric values.');if(+v>0&&per[c])per[c].set(r,(per[c].get(r)||0)+(+v))};
+    if(j.matrix_type==='dense'){j.data.forEach((row,r)=>row.forEach((v,c)=>put(r,c,v)))}else for(const [r,c,v] of j.data)put(r,c,v);
+    return {kind:'sparse',feats,samples:ids.map((id,c)=>{const a=[...per[c]].sort((x,y)=>x[0]-y[0]);return {id,idx:a.map(x=>x[0]),val:a.map(x=>x[1])}})}}
   // delimited text
-  let lines=txt.split(/\r?\n/).filter(l=>l.trim()!=='');
+  if(buf.subarray(0,4000).includes(0))throw new Error('This is not a text file. Save the sheet as tab-separated text (.tsv) or .csv first.');
+  let lines=txt.replace(/^\ufeff/,'').split(/\r\n|\n|\r/).filter(l=>l.trim()!=='');
   while(lines.length&&/^#\s*Constructed from biom/i.test(lines[0]))lines.shift();
-  const delim=(lines[0].match(/\t/g)||[]).length>=(lines[0].match(/,/g)||[]).length?'\t':',';
-  const split=l=>delim==='\t'?l.split('\t'):splitCSV(l);
-  const head=split(lines[0]).map(s=>s.trim());const body=lines.slice(1).map(split);
-  // drop non-numeric columns such as taxonomy
-  const numericCol=head.map((_,c)=>c===0?false:body.slice(0,50).every(r=>r[c]===undefined||r[c]===''||isFinite(+r[c])));
+  if(lines.length<2)throw new Error(lines.length?'The file has a header line but no data rows.':'The file is empty.');
+  const delim=delimOf(lines[0]);
+  const split=l=>splitCSV(l,delim).map(s=>s.trim());
+  let head=split(lines[0]);let body=lines.slice(1).map(split);
+  // a tab at the end of every line gives one empty cell too many
+  const trail=r=>{let k=r.length;while(k>1&&r[k-1]==='')k--;return k};
+  if(trail(head)<head.length&&body.every(r=>trail(r)<r.length)){const cut=Math.max(trail(head),...body.map(trail));head=head.slice(0,cut);body=body.map(r=>r.slice(0,cut))}
+  // R's write.table() leaves out the corner cell: the header is one cell short of every row
+  if(body.every(r=>r.length===head.length+1))head=['',...head];
+  body.forEach((r,k)=>{if(r.length!==head.length)throw new Error(`Line ${k+2} has ${r.length} columns but the header has ${head.length}. Every line needs the same number of columns.`)});
+  // columns that hold text in every row (taxonomy, notes) are not data; in a data column every cell must be a number
+  const BLANK=/^(|na|nan|null|none|n\/a)$/i;
+  const numericCol=head.map((_,c)=>{if(c===0)return false;let n=0,num=0;for(const r of body){if(r[c]==='')continue;n++;if(isFinite(+r[c]))num++}return n===0||num>0});
   const cols=head.map((h,c)=>c).filter(c=>numericCol[c]);
-  if(!cols.length)throw new Error('Could not find numeric count columns in this table.');
+  if(!cols.length)throw new Error('Could not find numeric count columns in this table. A decimal comma (0,5) must be a point (0.5).');
   const rowIds=body.map(r=>String(r[0]).trim()),colIds=cols.map(c=>head[c]);
-  const M=body.map(r=>cols.map(c=>+r[c]||0));
+  const M=body.map((r,k)=>cols.map(c=>{const x=r[c];if(BLANK.test(x))return 0;const v=+x;if(!Number.isFinite(v))throw new Error(`"${x}" is not a number (row ${rowIds[k]}, column ${head[c]}).`);if(v<0)throw new Error(`The table has a negative value (row ${rowIds[k]}, column ${head[c]}).`);return v}));
   return {kind:'grid',rowIds,colIds,get:(r,c)=>M[r][c]}}
-function splitCSV(l){const o=[];let cur='',q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(q){if(ch==='"'){if(l[i+1]==='"'){cur+='"';i++}else q=false}else cur+=ch}else if(ch==='"')q=true;else if(ch===','){o.push(cur);cur=''}else cur+=ch}o.push(cur);return o}
+// tab, comma or semicolon: whichever splits the header into most cells
+function delimOf(line){const n=d=>splitCSV(line,d).length,t=n('\t'),c=n(','),sc=n(';');return t>=c&&t>=sc?'\t':(sc>c?';':',')}
+function dupId(ids,what){const seen=new Set();for(const id of ids){if(seen.has(id))throw new Error(`${what} "${id}" appears more than once in the feature table. Every sample needs its own ID.`);seen.add(id)}}
+function splitCSV(l,sep=','){const o=[];let cur='',q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(q){if(ch==='"'){if(l[i+1]==='"'){cur+='"';i++}else q=false}else cur+=ch}else if(ch==='"')q=true;else if(ch===sep){o.push(cur);cur=''}else cur+=ch}o.push(cur);return o}
 
 async function readMeta(file){return parseMeta(await file.text())}
 function parseMeta(txt){
-  let lines=txt.split(/\r?\n/).filter(l=>l.trim()!=='');
-  const delim=(lines[0].match(/\t/g)||[]).length>=(lines[0].match(/,/g)||[]).length?'\t':',';
-  const split=l=>(delim==='\t'?l.split('\t'):splitCSV(l)).map(s=>s.trim());
+  let lines=txt.replace(/^\ufeff/,'').split(/\r\n|\n|\r/).filter(l=>l.trim()!=='');
+  if(!lines.length)throw new Error('The file is empty.');
+  const delim=delimOf(lines[0]);
+  const split=l=>splitCSV(l,delim).map(s=>s.trim());
   const head=split(lines[0]).map(h=>h.replace(/^#/,''));lines=lines.slice(1).filter(l=>!/^#q2:types/i.test(l));
   const rows=lines.filter(l=>!l.startsWith('#')).map(split);
-  const map=new Map();rows.forEach(r=>map.set(r[0],r));
+  const map=new Map();rows.forEach(r=>{if(map.has(r[0]))throw new Error(`Sample "${r[0]}" appears more than once. Every sample needs one row.`);map.set(r[0],r)});
   return {head,rows,map}}
 
 // orient a table against metadata and make the sparse sample list
-function samplesFrom(table,meta){
+function samplesFrom(table,meta){const out=samplesFrom0(table,meta);dupId(out.samples.map(s=>s.id),'Sample');return out}
+function samplesFrom0(table,meta){
   if(table.kind==='sparse')return {feats:table.feats.length,samples:table.samples};
   const colHit=table.colIds.filter(id=>meta.map.has(id)).length,rowHit=table.rowIds.filter(id=>meta.map.has(id)).length;
   if(colHit>=rowHit){ // features in rows (QIIME/BIOM default)
@@ -87,7 +104,7 @@ function fillColumns(){
 function stat(id,ok,txt){const li=$(id);if(!li)return;li.classList.toggle('ok',ok);li.querySelector('.st').textContent=txt}
 function ready(){
   document.querySelectorAll('.colfield').forEach(e=>e.hidden=!st.meta);
-  if(st.table&&st.meta){const s=samplesFrom(st.table,st.meta);const hit=s.samples.filter(x=>st.meta.map.has(x.id)).length;
+  if(st.table&&st.meta){let s;try{s=samplesFrom(st.table,st.meta)}catch(e){setStatus(e.message,true);return}const hit=s.samples.filter(x=>st.meta.map.has(x.id)).length;
     $('infoM').innerHTML=`${esc(st.metaName)}: <b>${hit}</b> of ${s.samples.length} table samples found in the metadata.`;
     stat('statM',hit>0,hit?`${hit.toLocaleString()} of ${s.samples.length.toLocaleString()} samples matched`:'no sample IDs match the table');
     if(!hit)setStatus('No sample IDs match between the table and the metadata. Check the first column of the metadata.',true);else setStatus('')}
@@ -106,7 +123,7 @@ wireDrop('dropM','fileM',async f=>{try{st.meta=await readMeta(f);st.metaName=f.n
   catch(e){setStatus('Could not read the metadata: '+e.message,true)}});
 
 // host DNA counts (optional): sample, site, alt, total
-wireDrop('dropH','fileH',async f=>{try{const txt=await f.text(),L=txt.split(/\r?\n/).filter(l=>l.trim());const sep=/\.csv$/i.test(f.name)?',':'\t',h=L[0].split(sep).map(x=>x.trim().toLowerCase());
+wireDrop('dropH','fileH',async f=>{try{const txt=await f.text(),L=txt.split(/\r\n|\n|\r/).filter(l=>l.trim());const sep=/\.csv$/i.test(f.name)?',':'\t',h=L[0].split(sep).map(x=>x.trim().toLowerCase());
   const ix=['sample','site','alt','total'].map(k=>h.indexOf(k));if(ix.some(i=>i<0))throw new Error('the file needs the columns sample, site, alt and total');
   const sites=new Map(),m=new Map();let n=0;for(const l of L.slice(1)){const c=l.split(sep),a=+c[ix[2]],t=+c[ix[3]];if(!(t>0)||!(a>=0)||a>t)continue;const s=c[ix[1]];if(!sites.has(s))sites.set(s,sites.size);
     const id=c[ix[0]];if(!m.has(id))m.set(id,[]);m.get(id).push([sites.get(s),a,t]);n++}
@@ -148,7 +165,7 @@ $('run').addEventListener('click',run);
 function run(){
   if(!st.table||!st.meta){const miss=!st.table&&!st.meta?'Open a feature table (step 1) and your sample metadata (step 2) first, or load the demo study.':!st.table?'Open a feature table in step 1 first.':'Open your sample metadata in step 2 first.';
     setStatus(miss,true);(!st.table?$('dropT'):$('dropM')).scrollIntoView({behavior:'smooth',block:'center'});return}const m=st.meta,kP=m.head.indexOf($('colP').value),gc=$('colG').value,kG=gc?m.head.indexOf(gc):-1,col=id=>$(id).value?m.head.indexOf($(id).value):-1,kH=col('colH'),kW=col('colW'),kL=col('colL');
-  const all=samplesFrom(st.table,m);const groups=new Map();let skipped=0;
+  let all;try{all=samplesFrom(st.table,m)}catch(e){setStatus(e.message,true);return}const groups=new Map();let skipped=0;
   for(const s of all.samples){const r=m.map.get(s.id);if(!r||!r[kP]||/^(na|nan|none|null|missing|not applicable)$/i.test(r[kP])){skipped++;continue}
     const g=kG>=0?(r[kG]||'(blank)'):'All samples';if(!groups.has(g))groups.set(g,{name:g,samples:[],lab:[],nFeat:all.feats,house:kH>=0?[]:null,well:kW>=0?[]:null,plate:kL>=0?[]:null});const G=groups.get(g);G.samples.push(s);G.lab.push(r[kP]);
     if(kH>=0)G.house.push(r[kH]||'');if(kW>=0)G.well.push(r[kW]||'');if(kL>=0)G.plate.push(r[kL]||'');
@@ -178,7 +195,7 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
     else if(flagged.length)verdict=`<div class="verdict warn"><b>${flagged.length} sample${flagged.length>1?'s':''} flagged${fPairs?`, including ${fPairs} likely swap${fPairs>1?'s':''}`:''}${checks.length?`, plus ${checks.length} to check`:''}.</b> Flags carry strong evidence. In this dataset SwapSeq flags about ${fmtPct(pw)} of swapped tubes, and ${fmtPct(pwc)} counting the check list.</div>`;
     else if(checks.length)verdict=`<div class="verdict weak"><b>No strong flags, ${checks.length} sample${checks.length>1?'s':''} to check.</b> These look somewhat like another person. Some will be natural look-alikes (people who live together, unusual samples), so compare them with lab records before changing anything.</div>`;
     else verdict=`<div class="verdict good"><b>No sample looks like it belongs to someone else.</b> In this dataset SwapSeq would have caught about ${fmtPct(pwc)} of swapped tubes and ${fmtPct(pw1c)} of one-off mislabels.</div>`;
-    if(!fewPeople&&!noPower&&g.nScorable&&2*g.pairs.length/g.nScorable>=1.5*prior)verdict+=`<div class="verdict warn"><b>More swap pairs than a ${(prior*100).toLocaleString()}% error rate would explain.</b> ${(100*2*g.pairs.length/g.nScorable).toFixed(1)}% of samples sit in swap pairs. When a table holds several errors, SwapSeq at ${(prior*100).toLocaleString()}% gives few strong flags. Run it again with <i>Expected error rate</i> set to 2% or 5%; in tests with 3% of samples swapped this caught about 80% instead of 40&ndash;55%, with a few more samples listed that were fine.</div>`;
+    if(!fewPeople&&!noPower&&g.nScorable&&g.pairs.length>=3&&2*g.pairs.length/g.nScorable>=1.5*prior)verdict+=`<div class="verdict warn"><b>More swap pairs than a ${(prior*100).toLocaleString()}% error rate would explain.</b> ${(100*2*g.pairs.length/g.nScorable).toFixed(1)}% of samples sit in swap pairs. When a table holds several errors, SwapSeq at ${(prior*100).toLocaleString()}% gives few strong flags. Run it again with <i>Expected error rate</i> set to 2% or 5%; in tests with 3% of samples swapped this caught about 80% instead of 40&ndash;55%, with a few more samples listed that were fine.</div>`;
     el.innerHTML=`${out.length>1?`<h3 style="margin-bottom:10px;font-size:19px">${esc(g.name)}</h3>`:''}
       <div class="tiles">
         <div class="panel tile"><div class="label">Samples checked</div><div class="v">${g.nScorable.toLocaleString()}</div><div class="d">${g.nSubjects} people${unscored?`, ${unscored} with a single sample not checked`:''}</div></div>

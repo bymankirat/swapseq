@@ -32,3 +32,7 @@ Duplicates (15 tables, 5 repeats of 3 planted duplicates each): 102 of 105 found
 66 of 105 in longitudinal ones, no unplanted pair reported; 7 of 105 planted mislabels also appeared as a
 near-identical pair. An earlier run of `compare.py` hid swaps only among samples neither method flagged; that
 favoured both methods and is kept only for the record (`results.json`).
+
+Second November update (small-table rule): with the same hidden swaps at the 1% expected rate, strong flags catch
+79% instead of 65% in these seven tables (other samples flagged 9.2 instead of 8.4 per 1,000), and 60% instead of 41%
+with 3% of samples swapped; see `validation/robustness`.

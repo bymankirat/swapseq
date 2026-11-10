@@ -15,7 +15,7 @@ Load a feature table (QIIME 2 `.qza`, BIOM 1 or 2,
 or a text table) and the sample metadata, choose the column that says who each sample came from,
 and press *Check samples*. Try the built-in demo first.
 
-**SwapSeq Atlas:** how checkable are 36 public longitudinal microbiome datasets (18,317 samples, 27 studies)?
+**SwapSeq Atlas:** how checkable are 42 public longitudinal microbiome datasets (20,974 samples, 29 studies)?
 Checkability is highest for adult stool and vaginal swabs and very low for infant stool and lab mice. See the [Atlas](https://bymankirat.github.io/swapseq/atlas/).
 
 **In R:** the [swapseqr](https://github.com/bymankirat/swapseqr) package runs the same engine on a
@@ -53,6 +53,11 @@ sentence). Add `--fail-on-flags` to stop a pipeline when a sample is strongly fl
 - Several errors at once: swap pairs that point at each other are strong flags in tables where test swaps stand out
   well, and the tool says when a table holds more swap pairs than the expected error rate explains.
   See [validation/ye2026_comparison](validation/ye2026_comparison) for tests on the shotgun tables of Ye et al. (2026).
+- Small studies: a clear swap in a table of 24 to 40 samples is now a strong flag (60–70% caught on subsamples of
+  real tables, up from 1–30%), with no more flags on clean labels.
+- Sturdier input: semicolon and old-Mac files, R tables without a corner cell, relative abundances, and clear
+  messages for duplicate sample IDs, text in a count cell, empty or Excel files. `node cli/test_inputs.mjs` runs 60
+  odd and broken files. See [validation/robustness](validation/robustness).
 
 ## What it reports
 

@@ -20,3 +20,4 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
       - run: node cli/test.mjs
+      - run: node cli/test_inputs.mjs

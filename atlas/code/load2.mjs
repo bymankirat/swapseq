@@ -2,8 +2,8 @@
 // Copyright (C) 2026 Mankirat Singh
 // Loaders for the SwapSeq Atlas: public longitudinal microbiome datasets -> {name, data:{feats,samples}, lab, time, meta}
 import fs from 'fs';
-import {readTSV,biomJSON,tableTSV,smp,ecam,dietstudy,mdsine,imp} from '../../swap/load.mjs';
-const A='/tmp/claude-0/-home-claude/d674b933-5c36-5fd7-9c63-4fe2a591bf95/scratchpad/atlas/src/';
+import {readTSV,biomJSON,tableTSV,smp,ecam,dietstudy,mdsine,imp} from '../../method/load.mjs';
+const A=(process.env.ATLAS_SRC||'./src')+'/'; // folder holding the cloned source repositories
 const csvSplit=l=>{const o=[];let cur='',q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(ch==='"'){q=!q;continue}if(ch===','&&!q){o.push(cur);cur=''}else cur+=ch}o.push(cur);return o};
 function readCSV(p,skip=0){const L=fs.readFileSync(p,'utf8').replace(/^﻿/,'').split(/\r?\n/).slice(skip).filter(x=>x.trim());const h=csvSplit(L[0]);return L.slice(1).map(l=>{const c=csvSplit(l),o={};h.forEach((k,i)=>o[k]=c[i]);return o})}
 // samples-in-rows table (first column sample id, then features) -> {feats,samples}
@@ -66,8 +66,8 @@ export function storage(){const P=A+'twbattaglia_MicrobeDS/data-raw/qa10394/';
 // ---- Mu et al. mouse VRE (lecaolab)
 export function muVRE(){const P=A+'lecaolab_Longitudinal_microbiome_data_analysis/Clustering/Case Study/Data/';
   const L=fs.readFileSync(P+'Mu_etal_mouseVRE_FEATURE_TABLE_case_corrected.tsv','utf8').split(/\r?\n/).filter(l=>l&&!l.startsWith('# Constructed'));
-  fs.writeFileSync('/tmp/claude-0/-home-claude/d674b933-5c36-5fd7-9c63-4fe2a591bf95/scratchpad/atlas/mu.tsv',L.join('\n'));
-  const d=tableTSV('/tmp/claude-0/-home-claude/d674b933-5c36-5fd7-9c63-4fe2a591bf95/scratchpad/atlas/mu.tsv','\t',c=>/^11737\.D\d\dM[A-Z]\d$/.test(c));
+  fs.writeFileSync((process.env.TMPDIR||'/tmp')+'/swapseq_mu.tsv',L.join('\n'));
+  const d=tableTSV((process.env.TMPDIR||'/tmp')+'/swapseq_mu.tsv','\t',c=>/^11737\.D\d\dM[A-Z]\d$/.test(c));
   return mk('Mouse VRE colonisation (Mu 2021)',d,d.samples.map(s=>s.id.slice(9)),d.samples.map(s=>+s.id.slice(7,9)),{ref:'lecaolab case study (mouse VRE)',type:'16S (batch-corrected)',host:'Mouse gut',design:'Mice sampled daily, days 0-5'})}
 
 // ---- the five validation studies (SwapSeq paper)

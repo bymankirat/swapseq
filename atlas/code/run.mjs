@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Mankirat Singh
 // SwapSeq Atlas runner: one dataset per call -> results/<key>.json (study-level) + private/<key>.json (sample-level)
-import fs from 'fs';import * as L from './load2.mjs';
+import fs from 'fs';import * as L from './load2.mjs';import {MORE} from './load3.mjs';
 import {analyse,annotate,distances,scorable,rng,promotePairs,findDuplicates,measurePower} from '../../method/core.mjs';
 import {load as loadYe} from '../../validation/ye2026_comparison/loadye.mjs'; // set YE_DATA to the folder of Ye et al. profiles
 const REPS_ENV=process.env.REPS?+process.env.REPS:null;
@@ -18,17 +18,18 @@ all.yeHall=ye('HallAB_2017','IBD patients and controls (Hall 2017)','Hall et al.
 all.yePRJEB38984=ye('PRJEB38984','Shotgun cohort ENA PRJEB38984','ENA PRJEB38984; table from Ye et al. 2026','Gut (cohort details in Ye et al. 2026)','Repeated stool');
 all.yePRJEB70966=ye('PRJEB70966','Shotgun cohort ENA PRJEB70966','ENA PRJEB70966; table from Ye et al. 2026','Gut (cohort details in Ye et al. 2026)','Repeated stool');
 all.yeFMT=ye('PRJEB72385_FMT','Faecal transplant cohort ENA PRJEB72385','ENA PRJEB72385; table from Ye et al. 2026','Gut, faecal transplant donors and recipients','Repeated stool around faecal microbiota transplantation');
+Object.assign(all,MORE);   // Atlas 0.4: HMP1 body sites, twins, controlled feeding (MLRepo)
 const key=process.argv[2];if(key==='list'){console.log(Object.keys(all).join(' '));process.exit(0)}
 let ds=all[key]();const t0=Date.now();
 // uniform QC: drop samples below MIN_DEPTH reads (count data only), then drop subjects left with one sample? (kept: they are unscorable but still act as look-alike candidates)
 const relative=/relative/i.test(ds.type||'');let nLow=0;
 if(!relative){const keep=[];ds.data.samples.forEach((s,i)=>{const d=s.val.reduce((a,b)=>a+b,0);if(d>=MIN_DEPTH)keep.push(i);else nLow++});
-  ds={...ds,data:{feats:ds.data.feats,samples:keep.map(i=>ds.data.samples[i])},lab:keep.map(i=>ds.lab[i]),time:keep.map(i=>ds.time[i])}}
+  ds={...ds,data:{feats:ds.data.feats,samples:keep.map(i=>ds.data.samples[i])},lab:keep.map(i=>ds.lab[i]),time:keep.map(i=>ds.time[i]),house:ds.house?keep.map(i=>ds.house[i]):null}}
 const n=ds.data.samples.length,M=distances(ds.data);
 // re-identification: is the most similar other sample from the same subject? (fingerprint distance, scorable samples)
 const ok=scorable(ds.lab);let reHit=0,reN=0;
 for(let i=0;i<n;i++){if(!ok[i])continue;let best=Infinity,bj=-1;for(let j=0;j<n;j++){if(j===i)continue;const d=M.J[i*n+j];if(d<best){best=d;bj=j}}reN++;if(ds.lab[bj]===ds.lab[i])reHit++}
-const res=annotate(ds.data,ds.lab,promotePairs(analyse(ds.data,ds.lab,{},M),null));
+const res=promotePairs(annotate(ds.data,ds.lab,analyse(ds.data,ds.lab,{},M),{house:ds.house||null}),null);  // family members are look-alikes, not errors
 const dups=findDuplicates(M,ds.lab).pairs.length;
 const rp=measurePower(ds.data,ds.lab,res,M);if(rp)promotePairs({rows:[],pairs:[],separation:res.separation},rp);
 const flags=res.rows.filter(r=>r.level==='flag'),checks=res.rows.filter(r=>r.level==='check');
@@ -57,7 +58,7 @@ const per=new Map();ds.lab.forEach(l=>per.set(l,(per.get(l)||0)+1));const spp=[.
 const out={key,name:ds.name,ref:ds.ref,type:ds.type,host:ds.host,design:ds.design,validation:!!ds.val,control:ds.control||null,
   samples:n,droppedLowDepth:nLow,subjects:per.size,scorable:res.nScorable,subjectsWith2:spp.length,medianSamplesPerSubject:spp[spp.length>>1]||0,
   reidentified:reN?reHit/reN:null,selfEstimatedPowerOnOriginal:res.power,measured,
-  separation:res.separation,promotedOnOriginal:res.promoted||0,possibleDuplicates:dups,engine:'1.1.1 November update',reportedPower:rp?{swap:rp.swap,swapBeforePromotion:rp.swapBeforePromotion??rp.swap,swapWithCheck:rp.swapWithCheck}:null,strongFlags:flags.length,checkList:checks.length,strongSwapPairs:res.pairs.filter(p=>p.level==='flag').length,allSwapPairs:res.pairs.length,
+  separation:res.separation,promotedOnOriginal:res.promoted||0,possibleDuplicates:dups,engine:'1.1.1 November update 2',separation2:res.separation2,reportedPower:rp?{swap:rp.swap,swapBeforePromotion:rp.swapBeforePromotion??rp.swap,swapWithCheck:rp.swapWithCheck}:null,strongFlags:flags.length,checkList:checks.length,strongSwapPairs:res.pairs.filter(p=>p.level==='flag').length,allSwapPairs:res.pairs.length,
   flagsPer1000:res.nScorable?1000*flags.length/res.nScorable:null,checksPer1000:res.nScorable?1000*checks.length/res.nScorable:null,
   householdOrRareNote:flags.filter(r=>r.rare&&r.rare.withOther>r.rare.withOwn).length,
   seconds:(Date.now()-t0)/1000};

@@ -2,7 +2,7 @@
 // Copyright (C) 2026 Mankirat Singh
 // SMP full table (all samples, not only the time-series subset): does SwapSeq flag the two gut samples the SMP authors flagged?
 import {analyse,annotate} from './core.mjs';import {biomJSON,readTSV} from './load.mjs';import fs from 'fs';import zlib from 'zlib';
-const B='/tmp/claude-0/-home-claude/d674b933-5c36-5fd7-9c63-4fe2a591bf95/scratchpad/swap/';
+const B=(process.env.OUT||'.')+'/';
 const all=biomJSON(zlib.gunzipSync(fs.readFileSync(B+'data/smp/otu-tables/otu_table_even10000.biom.gz')).toString());
 const m=new Map(readTSV(B+'data/smp/analysis-results/issue-13/map.txt').map(r=>[r['#SampleID'],r]));
 for(const site of ['gut','tongue','palm','forehead']){

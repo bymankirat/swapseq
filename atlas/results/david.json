@@ -27,7 +27,7 @@
   "relabelsPerRep": 0.5,
   "swapCaught": 0.85,
   "swapCaughtWithReview": 0.875,
-  "swapPairNamed": 0.8,
+  "swapPairNamed": 0.825,
   "relabelCaught": 0.825,
   "relabelCaughtWithReview": 0.85,
   "falseFlagsPer1000": 0,
@@ -36,7 +36,8 @@
  "separation": 0.9860627177700348,
  "promotedOnOriginal": 0,
  "possibleDuplicates": 0,
- "engine": "1.1.1 November update",
+ "engine": "1.1.1 November update 2",
+ "separation2": 0.9860627177700348,
  "reportedPower": {
   "swap": 0.825,
   "swapBeforePromotion": 0.775,
@@ -49,5 +50,5 @@
  "flagsPer1000": 0,
  "checksPer1000": 0,
  "householdOrRareNote": 0,
- "seconds": 22.147
+ "seconds": 5.296
 }

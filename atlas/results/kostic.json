@@ -36,7 +36,8 @@
  "separation": 0.6118881118881119,
  "promotedOnOriginal": 0,
  "possibleDuplicates": 0,
- "engine": "1.1.1 November update",
+ "engine": "1.1.1 November update 2",
+ "separation2": 0.6118881118881119,
  "reportedPower": {
   "swap": 0,
   "swapBeforePromotion": 0,
@@ -49,5 +50,5 @@
  "flagsPer1000": 0,
  "checksPer1000": 0,
  "householdOrRareNote": 0,
- "seconds": 7.307
+ "seconds": 2.043
 }

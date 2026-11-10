@@ -1,7 +1,7 @@
 // Ensemble study: do extra algorithms catch more hidden errors at the same false-flag rate?
 import fs from 'fs';import * as L from './load2.mjs';
 import {analyse,distances,braycurtis,scorable,rng} from '../../swap/core.mjs';
-const OUT='/tmp/claude-0/-home-claude/d674b933-5c36-5fd7-9c63-4fe2a591bf95/scratchpad/atlas/ens/';fs.mkdirSync(OUT,{recursive:true});
+const OUT=(process.env.OUT||'.')+'/ens/';fs.mkdirSync(OUT,{recursive:true});
 const all={...L.VALID,...L.NEW,...L.BOREN};for(const n of L.ploegNiches())all['ploeg_'+n.replace(/\W+/g,'_')]=()=>L.ploeg(n);
 const key=process.argv[2];let ds=all[key]();
 if(!/relative/i.test(ds.type||'')){const keep=[];ds.data.samples.forEach((s,i)=>{if(s.val.reduce((a,b)=>a+b,0)>=1000)keep.push(i)});
