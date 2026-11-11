@@ -438,6 +438,7 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
     <li><b>Two or more samples per person.</b> Three or more works better. With exactly two, SwapSeq can say which two people do not fit, but not always which tube moved.</li>
     <li><b>People who live together share microbes.</b> Add a household column and look-alikes from one home move to the check list.</li>
     <li><b>Infants and same-donor animals carry little individual signal.</b> SwapSeq says so with a low measured power and rarely flags anything.</li>
+    <li><b>Mixtures are mostly missed.</b> A sample holding material from two people usually looks normal. In tests, about a third of half-and-half mixtures were listed and almost none at one part in ten.</li>
     <li><b>Antibiotics and illness</b> can make a sample unlike its owner without making it like anyone else. Those usually stay unflagged.</li>
     <li><b>A flag is a reason to check the lab records.</b> Look at plate maps, extraction batches and sample sheets before you relabel or drop anything.</li>
     <li><b>Your data stays on your computer.</b> Opening a file here reads it inside your browser. No server ever receives it.</li>
@@ -476,7 +477,7 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
     <div>
       <h2>Use it in R or in a pipeline</h2>
       <p class="lede">The <a href="https://github.com/bymankirat/swapseqr" target="_blank" rel="noopener">swapseqr</a> package runs the same engine on a phyloseq object or a count matrix, so the check fits into an existing analysis script. Tested on Mac, Windows and Linux at every change.</p>
-      <p class="lede" style="margin-top:14px">On a server or in a pipeline, the command-line version needs only Node.js 18. It writes one row per sample and a summary, and <span class="mono">--fail-on-flags</span> stops the pipeline when a sample is strongly flagged. <a href="https://github.com/bymankirat/swapseq/tree/main/pipelines" target="_blank" rel="noopener">Nextflow and Snakemake examples</a>.</p>
+      <p class="lede" style="margin-top:14px">On a server or in a pipeline, the command-line version needs only Node.js 18. It writes one row per sample, a summary and a report for your records, and <span class="mono">--fail-on-flags</span> stops the pipeline when a sample is strongly flagged. <a href="https://github.com/bymankirat/swapseq/tree/main/pipelines" target="_blank" rel="noopener">Nextflow and Snakemake examples</a>.</p>
     </div>
     <div class="codes">
     <div class="code" id="rcode"><button type="button" id="copyR">Copy</button><span class="c"># install once</span>
@@ -497,6 +498,7 @@ npx github:bymankirat/swapseq table.tsv metadata.tsv \
   </div>
   <details class="versions"><summary>What changed in each version</summary>
     <ul>
+      <li><b>1.1.1, third November update</b> &middot; A report for your records: one HTML file with the flags, four figures, plain-language notes and space to write what the lab records showed; open it and print to PDF (the command line writes it too). Clearer plots on this page: an at-a-glance bar, the share of hidden errors found, a card for each listed sample showing whose rare microbes it carries, and a sample map that names listed samples. Flags and probabilities are unchanged. Tested and reported, not added: strain markers help only a little in infants, and a check for mixtures of two people was not reliable.</li>
       <li><b>1.1.1, second November update</b> &middot; Small studies: a clear swap in a table of 24&ndash;40 samples is now a strong flag (about 60&ndash;70% caught on real data, up from 1&ndash;30%). Sturdier file reading: semicolon and old-Mac files, R tables without a corner cell, and clear messages for duplicate sample IDs, text in a count cell, empty files and Excel files. Relative abundances are handled as such. 17 defects found by an independent code review were fixed.</li>
       <li><b>1.1.1, November update</b> &middot; Strain-marker mode and a host-DNA check (beta) for shotgun data; a command-line tool for pipelines; a duplicate check; swap pairs that point at each other are strong flags in tables that separate swaps well, which helps most when a table holds several errors.</li>
       <li><b>1.1.1</b> &middot; Measured power no longer reads low when a table already holds errors.</li>
