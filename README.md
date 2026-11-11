@@ -40,7 +40,8 @@ sentence). Add `--fail-on-flags` to stop a pipeline when a sample is strongly fl
 **Shotgun data (new: web page, R and command line):**
 
 - Strain markers (command line `--type markers`, R `type = "markers"`) compare samples on strain markers, genes or SNVs, for example
-  MetaPhlAn marker presence, instead of species.
+  MetaPhlAn marker presence, instead of species. On public cohorts this matched the species table in adults and helped only a
+  little in infants ([results](validation/strain_markers/)).
 - Host DNA, beta (command line `--host host_counts.tsv`, R `host =`) adds an independent check from the host's own DNA in the reads,
   which works where microbes change too fast to identify anyone (newborns, antibiotics). Tested in simulation
   so far; see [docs/host-dna.md](docs/host-dna.md) for how to make the input and the privacy rules for human
@@ -69,6 +70,9 @@ sentence). Add `--fail-on-flags` to stop a pipeline when a sample is strongly fl
 - **Power on your data** – measured, not guessed: SwapSeq hides test swaps and relabels in copies
   of your labels, reruns the check and reports how many it caught (v1.1).
 - A QC audit table and a ready-made sentence for your Methods section.
+- A report for your records (web page: *Download report*; command line: `PREFIX.html`). It is one HTML file with no scripts;
+  open it in a browser and print it to PDF. It lists the flags, the reasons, the measured power and the limits, with space to
+  note what the lab records showed.
 
 ## Method (v3)
 

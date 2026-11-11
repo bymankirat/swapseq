@@ -4,7 +4,7 @@
 // SwapSeq on the command line: the same engine as the web page and the R package, for scripts and pipelines.
 // Node.js 18 or newer, no other software. Run `swapseq --help`.
 import fs from 'fs';import path from 'path';
-import {analyse,annotate,distances,markerDistances,measurePower,promotePairs,findDuplicates,findShifts,hostCheck,addHost} from '../method/core.mjs';
+import {analyse,annotate,distances,markerDistances,measurePower,promotePairs,findDuplicates,reportHTML,findShifts,hostCheck,addHost} from '../method/core.mjs';
 
 const VERSION='1.1.1';
 const HELP=`SwapSeq ${VERSION}: finds swapped and mislabelled samples in longitudinal microbiome studies.
@@ -33,7 +33,8 @@ Options:
   --min-depth N       Leave out samples with fewer than N reads (counts mode; default 0 = keep all).
                       Flags on samples under 1,000 reads are marked as low depth either way.
   --samples-in-rows   The table has samples in rows and features in columns
-  --out PREFIX        Write PREFIX.tsv (one row per sample) and PREFIX.json (summary). Default: swapseq
+  --out PREFIX        Write PREFIX.tsv (one row per sample), PREFIX.json (summary) and PREFIX.html
+                      (a report for your records; open it in a browser and print to PDF). Default: swapseq
   --no-power          Skip the measured-power step (faster on very large tables)
   --fail-on-flags     Exit with code 2 when any sample is strongly flagged (for pipelines)
   --quiet             Print nothing but errors
@@ -122,7 +123,7 @@ function readHost(f,ids){const L=splitLines(read(f));const sep=sepOf(f,L[0]),h=s
 
 // ---------- run ----------
 const t0=Date.now();
-for(const ext of ['.tsv','.json'])for(const f of [pos[0],pos[1],opt.host].filter(Boolean))if(path.resolve(opt.out+ext)===path.resolve(f))die(`--out ${opt.out} would overwrite the input file ${f}; choose another name`);
+for(const ext of ['.tsv','.json','.html'])for(const f of [pos[0],pos[1],opt.host].filter(Boolean))if(path.resolve(opt.out+ext)===path.resolve(f))die(`--out ${opt.out} would overwrite the input file ${f}; choose another name`);
 const table=readTable(pos[0]),meta=readMeta(pos[1]);
 if(table.textColumns)say(`Note: ${table.textColumns} text column${table.textColumns===1?' was':'s were'} not read as samples (taxonomy or notes).`);
 for(const c of ['subject','well','plate','household'])if(opt[c]&&!meta.head.includes(opt[c])){const m=meta.head.filter(h=>h.trim().toLowerCase()===String(opt[c]).trim().toLowerCase());if(m.length===1)opt[c]=m[0]}
@@ -167,6 +168,9 @@ const summary={version:VERSION,type:opt.type,samples:res.rows.length,scorable:re
   swapPairs:res.pairs,shifts:res.shifts||[],duplicates:dups.map(p=>({sampleA:p.idA,subjectA:p.subjectA,sampleB:p.idB,subjectB:p.subjectB,distance:+p.distance[0].toFixed(4)})),power,host:host?{ok:host.ok,reason:host.reason||null,samplesWithHostDNA:host.used||0,flaggedByHost:res.rows.filter(r=>r.byHost).length}:null,
   manyErrorsNote:!!manyErrors,methodsSentence:methods,seconds:(Date.now()-t0)/1000};
 fs.writeFileSync(opt.out+'.json',JSON.stringify(summary,null,1));
+fs.writeFileSync(opt.out+'.html',reportHTML({version:'SwapSeq '+VERSION,file:path.basename(pos[0]),metaFile:path.basename(pos[1]),date:new Date().toISOString().slice(0,10),type:opt.type,prior:opt.prior,
+  columns:['subject','well','plate','household'].filter(c=>opt[c]).map(c=>c+'='+opt[c]).join(', '),rows:res.rows,pairs:res.pairs,dups:dups.map(p=>({a:p.idA,sa:p.subjectA,b:p.idB,sb:p.subjectB})),power,nScorable:res.nScorable,nSubjects:res.nSubjects,
+  host:host?{ok:host.ok,reason:host.reason,used:host.used}:null,uncalibrated:res.uncalibrated,powerSkipped:!!opt.noPower,methods,notes:[missing?`${missing} table samples without a subject were left out.`:'',shallow?`${shallow} samples under ${minD} reads were left out.`:'',opt.noPower?'Power was not measured (--no-power).':''].filter(Boolean)}));
 say(`Strong flags: ${flags.length} · check list: ${checks.length} · swap pairs: ${res.pairs.filter(p=>p.level==='flag').length} · possible duplicates: ${dups.length}`);
 if(manyErrors)say(`Note: ${(100*2*res.pairs.length/res.nScorable).toFixed(1)}% of samples sit in swap pairs, more than a ${opt.prior*100}% error rate explains. Try --prior 0.02 or 0.05 (in tests with 3% of samples swapped: ~80% caught instead of 40-55%).`);
 if(res.uncalibrated)say('Too few samples with repeats to calibrate: no sample was judged. SwapSeq needs at least 5 samples from people with 2 or more samples.');
@@ -176,5 +180,5 @@ const low=r=>opt.type==='counts'&&depthOf(data.samples[r.i])<1000;
 for(const r of flags.slice(0,20))say(`  FLAG ${r.id} (labelled ${r.subject}) looks like ${r.looksLike??'?'}${r.kind==='swap'&&r.partner?`, swap partner ${r.partner}`:''}${r.byHost?' [host DNA]':''}${low(r)?` [low depth: ${depthOf(data.samples[r.i])} reads]`:''}`);
 if(flags.length>20)say(`  ... and ${flags.length-20} more in ${opt.out}.tsv`);
 for(const d of dups.slice(0,10))say(`  DUPLICATE? ${d.idA} (labelled ${d.subjectA}) and ${d.idB} (labelled ${d.subjectB}) are near-identical: one tube or file under two names, or a sample under the wrong person?`);
-say(`Wrote ${opt.out}.tsv and ${opt.out}.json (${summary.seconds.toFixed(1)} s)`);
+say(`Wrote ${opt.out}.tsv, ${opt.out}.json and ${opt.out}.html (${summary.seconds.toFixed(1)} s)`);
 process.exit(opt.failOnFlags&&flags.length?2:0);

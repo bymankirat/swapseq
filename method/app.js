@@ -223,8 +223,10 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
       :`<div class="empty">${lowPower&&checks.length?`${checks.length} weak look-alikes hidden because power is low here. They are in the copied results.`:'Nothing to show: every checked sample is closest to its own person.'}</div>`;
     el.appendChild(tw);
     const tools=document.createElement('div');tools.className='tools';
-    tools.innerHTML=`<button class="btn ghost" data-act="copy">Copy QC audit (TSV)</button>`+(window.self===window.top?`<button class="btn ghost" data-act="dl">Download QC audit (.tsv)</button>`:'');
-    tools.addEventListener('click',e=>{const a=e.target.dataset.act;if(!a)return;const tsv=toTSV(g);
+    tools.innerHTML=`<button class="btn ghost" data-act="copy">Copy QC audit (TSV)</button>`+(window.self===window.top?`<button class="btn ghost" data-act="dl">Download QC audit (.tsv)</button><button class="btn ghost" data-act="rep">Download report (.html)</button>`:'');
+    tools.addEventListener('click',e=>{const a=e.target.dataset.act;if(!a)return;
+      if(a==='rep'){const html=reportOf(g,prior),url=URL.createObjectURL(new Blob([html],{type:'text/html'}));const l=document.createElement('a');l.href=url;l.download=`swapseq_report_${g.name.replace(/\W+/g,'_')}.html`;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);return}
+      const tsv=toTSV(g);
       if(a==='copy'){navigator.clipboard.writeText(tsv).then(()=>{e.target.textContent='Copied'},()=>{fallbackCopy(tsv);e.target.textContent='Copied'})}
       else{const url=URL.createObjectURL(new Blob([tsv],{type:'text/tab-separated-values'}));const l=document.createElement('a');l.href=url;l.download=`swapseq_qc_${g.name.replace(/\W+/g,'_')}.tsv`;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(url),2000)}});
     el.appendChild(tools);
@@ -239,6 +241,10 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
     box.appendChild(el)}
   $('results').scrollIntoView({behavior:'smooth',block:'start'});
 }
+// The report builder lives in the engine (shared with the command line); the page keeps the engine as text for its worker.
+let coreFns=null;function reportOf(g,prior){coreFns=coreFns||new Function($('coreSrc').textContent+';return {reportHTML}')();
+  return coreFns.reportHTML({version:VERSION,file:st.tableName,group:g.name,date:new Date().toISOString().slice(0,10),type:g.type,prior,columns:Object.entries(st.lastCols||{}).filter(([k,v])=>v).map(([k,v])=>k+'='+v).join(', '),
+    rows:g.rows,pairs:g.pairs,dups:g.dups,power:g.power,nScorable:g.nScorable,nSubjects:g.nSubjects,host:g.host,methods:methodsText(g,prior)})}
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove()}
 const VERSION='SwapSeq 1.1.1 (method v3)';
 function methodsText(g,prior){const f=g.rows.filter(r=>r.level==='flag').length,c=g.rows.filter(r=>r.level==='check').length,fp=g.pairs.filter(p=>p.level==='flag').length;

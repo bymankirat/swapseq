@@ -17,7 +17,8 @@ let ok=0;const test=(name,fn)=>{fn();ok++;console.log('ok',name)};
 
 test('TSV table: finds the planted swap and nothing else',()=>{tsv(path.join(D,'t.tsv'));meta(path.join(D,'m.tsv'),swapped);
   run(['t.tsv','m.tsv','--subject','person','--out','a']);assert.deepEqual(flagged('a'),['P1_1','P2_1']);
-  const j=JSON.parse(fs.readFileSync(path.join(D,'a.json'),'utf8'));assert.equal(j.strongFlags,2);assert.ok(j.power.measured);assert.match(j.methodsSentence,/SwapSeq 1\.1\.1/)});
+  const j=JSON.parse(fs.readFileSync(path.join(D,'a.json'),'utf8'));assert.equal(j.strongFlags,2);assert.ok(j.power.measured);assert.match(j.methodsSentence,/SwapSeq 1\.1\.1/);
+  const h=fs.readFileSync(path.join(D,'a.html'),'utf8');assert.match(h,/Sample identity report/);assert.match(h,/P1_1/);assert.ok(!/<script/i.test(h),'report has no scripts')});
 test('clean labels: no strong flags',()=>{meta(path.join(D,'clean.tsv'),subj);run(['t.tsv','clean.tsv','--subject','person','--out','b','--no-power']);assert.deepEqual(flagged('b'),[])});
 test('BIOM 1.0 JSON and CSV metadata give the same answer',()=>{const data=[];cols.forEach((c,j)=>c.forEach((v,i)=>{if(v)data.push([i,j,v])}));
   fs.writeFileSync(path.join(D,'t.biom'),JSON.stringify({id:'x',format:'Biological Observation Matrix 1.0.0',type:'OTU table',matrix_type:'sparse',shape:[F,ids.length],rows:Array.from({length:F},(_,i)=>({id:'f'+i,metadata:null})),columns:ids.map(id=>({id,metadata:null})),data}));

@@ -538,6 +538,72 @@ function addHost(res,host){
     else if(h.verdict==='same person'&&r.level!=='ok'&&!r.byHost){r.hostClears=true}}
   return res;
 }
+
+// ---------- report (a self-contained HTML page for the lab's records) ----------
+// o: {version,file,metaFile,group,date,type,prior,columns,rows,pairs,dups:[{a,sa,b,sb}],power,nScorable,nSubjects,host,uncalibrated,notes:[...]}
+// rows are the rows of analyse/annotate. No scripts and no outside files: it opens anywhere and prints to PDF.
+function reportHTML(o){
+  const e=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const pct=v=>v==null||!Number.isFinite(v)?'not measured':Math.round(100*v)+'%';
+  const rows=o.rows||[],flags=rows.filter(r=>r.level==='flag').sort((a,b)=>(b.prob||0)-(a.prob||0)),checks=rows.filter(r=>r.level==='check').sort((a,b)=>Math.max(b.broad||0,b.prob||0)-Math.max(a.broad||0,a.prob||0));
+  const pw=o.power&&o.power.measured!==false?o.power:null,nPeople=new Set(rows.filter(r=>r.scorable).map(r=>r.subject)).size,notChecked=rows.filter(r=>!r.scorable&&!r.byHost).length;
+  const few=nPeople<8,low=!pw||few||!(pw.swapWithCheck>=.25),dups=o.dups||[],prior=o.prior??.01,fp=(o.pairs||[]).filter(p=>p.level==='flag').length;
+  let cls,head,text;
+  if(o.uncalibrated){cls='weak';head='Not checked.';text='Too few samples come from people with two or more samples, so no sample could be judged.'}
+  else if(!pw&&o.powerSkipped&&!few){cls=flags.length?'warn':'weak';head=flags.length?`${flags.length} sample${flags.length>1?'s':''} flagged${checks.length?`, and ${checks.length} to check`:''}.`:`No strong flags${checks.length?`, ${checks.length} to check`:''}.`;text='Power was not measured in this run, so this report cannot say how many errors would be missed.'}
+  else if(few||!pw){cls='weak';head='Too few people to check well.';text=(few?`Only ${nPeople} people have two or more samples.`:'Too few people have three or more samples to hide test errors in.')+' A clean result here proves little. Strong flags are still listed.'}
+  else if(low){cls='weak';head='Low power in this dataset.';text=`Even with the check list, only about ${pct(pw.swapWithCheck)} of hidden swaps could be told apart from normal variation. A clean result here does not show that the labels are right.`}
+  else if(flags.length){cls='warn';head=`${flags.length} sample${flags.length>1?'s':''} flagged${fp?`, including ${fp} likely swap${fp>1?'s':''}`:''}${checks.length?`, and ${checks.length} to check`:''}.`;text='Flags carry strong evidence. Compare each one with the laboratory records before changing any label.'}
+  else if(checks.length){cls='weak';head=`No strong flags, ${checks.length} sample${checks.length>1?'s':''} to check.`;text='These look somewhat like another person. Some will be natural look-alikes, so compare them with the laboratory records.'}
+  else{cls='good';head='No sample looks like it belongs to someone else.';text=`In this dataset SwapSeq would have caught about ${pct(pw.swapWithCheck)} of swapped tubes.`}
+  const why=r=>{const a=[];
+    if(r.kind==='swap'&&r.partner)a.push(`Swapping labels with ${e(r.partner)} (labelled ${e(r.partnerSubject)}) makes both samples fit their person.`);
+    else if(r.nearest||r.looksLike)a.push(`Closest sample is ${r.nearest?e(r.nearest)+' from ':''}${e(r.looksLike)}, not one of ${e(r.subject)}'s own samples.`);
+    if(r.rare&&r.rare.total)a.push(`Shares ${r.rare.withOther} of its ${r.rare.total} rare ${o.type==='markers'?'markers':'taxa'} with ${e(r.rare.other)}'s other samples and ${r.rare.withOwn} with ${e(r.subject)}'s.`);
+    if(r.host&&r.host.verdict==='other person')a.push(`Host DNA fits ${e(r.host.looksLike)} better than ${e(r.subject)}.`);
+    else if(r.host&&r.host.verdict==='identical DNA')a.push(`Host DNA is identical to ${e(r.host.looksLike)} (twins, or one person under two IDs).`);
+    else if(r.host&&r.host.verdict==='same person')a.push(`Host DNA fits ${e(r.subject)}, the labelled person.`);
+    if(r.byPair)a.push('Strong because both samples of the pair point at each other\'s person.');
+    if(r.shift)a.push(`Part of a possible sample-sheet shift (positions ${e(r.shift.from)} to ${e(r.shift.to)}).`);
+    if(r.cohab)a.push(`Same household (${e(r.cohab)}) as the look-alike${r.downgraded?', so it was moved to the check list':''}.`);
+    if(r.well)a.push(`Well ${e(r.well)}.`);return a.join(' ')};
+  const tab=(list,cap)=>list.length?`<table><thead><tr><th>Sample</th><th>Labelled as</th><th>Looks like</th><th>Kind</th><th>Why</th><th class="box">Records checked</th></tr></thead><tbody>${list.slice(0,cap).map(r=>`<tr><td class="m">${e(r.id)}</td><td class="m">${e(r.subject)}</td><td class="m">${e(r.kind==='swap'?r.partnerSubject:r.looksLike)}</td><td>${r.byHost?'Host DNA':r.kind==='swap'?'Swap':'Mismatch'}</td><td>${why(r)}</td><td class="box"></td></tr>`).join('')}</tbody></table>${list.length>cap?`<p class="s">${list.length-cap} more are in the results table (.tsv).</p>`:''}`:'<p class="s">None.</p>';
+  const set=[['Feature table',o.file],o.metaFile?['Metadata',o.metaFile]:null,o.group&&o.group!=='All samples'?['Group',o.group]:null,['Columns used',o.columns],['Data type',o.type==='markers'?'strain markers (presence)':'taxon counts'],['Expected error rate',prior*100+'%'],['Date',o.date],['Software',o.version]].filter(x=>x&&x[1]);
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SwapSeq report: ${e(o.file||'')}</title><style>
+:root{--ink:#1a2233;--mut:#5b667a;--line:#d5dae3;--bg:#fff;--soft:#f3f5f9;--warn:#b3261e;--ok:#1d6b3a;--weak:#8a5a00}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:860px;margin:0 auto;padding:28px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
+h1{font-size:24px;margin:0 0 2px}h2{font-size:16px;margin:26px 0 8px;padding-top:12px;border-top:1px solid var(--line)}p{margin:6px 0}.s{color:var(--mut);font-size:13px}
+.m{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;overflow-wrap:anywhere}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:3px 16px;margin:12px 0}dt{color:var(--mut)}dd{margin:0;overflow-wrap:anywhere}
+.v{border:1px solid var(--line);border-left:5px solid var(--mut);border-radius:6px;padding:10px 14px;margin:14px 0;background:var(--soft)}.v.warn{border-left-color:var(--warn)}.v.good{border-left-color:var(--ok)}.v.weak{border-left-color:var(--weak)}
+.n{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.n div{border:1px solid var(--line);border-radius:6px;padding:8px 10px}.n b{display:block;font-size:20px}.n span{color:var(--mut);font-size:12px}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}th,td{border:1px solid var(--line);padding:5px 7px;text-align:left;vertical-align:top}th{background:var(--soft);font-weight:600}.box{width:92px}
+.sign{display:grid;grid-template-columns:1fr 1fr;gap:26px 30px;margin-top:22px}.sign div{border-top:1px solid var(--ink);padding-top:4px;color:var(--mut);font-size:12px}
+ul{margin:6px 0;padding-left:20px}footer{margin-top:26px;color:var(--mut);font-size:12px;border-top:1px solid var(--line);padding-top:10px}
+@media(max-width:600px){.n{grid-template-columns:1fr 1fr}}
+@media print{main{max-width:none;padding:0}h2{break-after:avoid}tr{break-inside:avoid}.v,.n div,th{-webkit-print-color-adjust:exact;print-color-adjust:exact}@page{margin:16mm}}
+</style></head><body><main>
+<h1>Sample identity report</h1><p class="s">SwapSeq check for swapped and mislabelled samples</p>
+<dl>${set.map(([k,v])=>`<dt>${e(k)}</dt><dd>${e(v)}</dd>`).join('')}</dl>
+<div class="v ${cls}"><b>${e(head)}</b> ${e(text)}</div>
+<div class="n"><div><b>${(o.nScorable??0).toLocaleString('en')}</b><span>samples checked, ${o.nSubjects??nPeople} people${notChecked?`; ${notChecked} not checked (single sample)`:''}</span></div><div><b>${flags.length}</b><span>strong flags${fp?` (${fp} swap pair${fp>1?'s':''})`:''}</span></div><div><b>${checks.length}</b><span>on the check list</span></div><div><b>${pw?pct(pw.swapWithCheck):'n/a'}</b><span>of hidden swaps caught in this dataset${pw?` (${pct(pw.swap)} as strong flags)`:''}</span></div></div>
+${(o.notes||[]).map(t=>`<p class="s">${e(t)}</p>`).join('')}
+<h2>Strong flags</h2><div class="tw">${tab(flags,200)}</div>
+<h2>Check list</h2>${low&&checks.length?`<p class="s">Power is low here, so most of these are natural look-alikes.</p>`:''}<div class="tw">${tab(checks,200)}</div>
+${dups.length?`<h2>Possible duplicates</h2><p class="s">Samples labelled as different people with near-identical communities: one tube or file under two names, or a sample under the wrong person.</p><ul>${dups.slice(0,50).map(d=>`<li><span class="m">${e(d.a)}</span> (labelled ${e(d.sa)}) and <span class="m">${e(d.b)}</span> (labelled ${e(d.sb)})</li>`).join('')}</ul>`:''}
+${o.host?`<h2>Host DNA</h2><p>${o.host.ok?`${(o.host.used||0).toLocaleString('en')} samples had enough host reads to check; ${rows.filter(r=>r.byHost).length} flagged because their DNA fits another person.`:`Not used: ${e(o.host.reason)}.`}</p>`:''}
+<h2>How to read this</h2><ul>
+<li>A flag is a reason to check laboratory records. It is not proof of an error, and no label should be changed on this report alone.</li>
+<li>The share of hidden swaps caught was measured in this dataset, by swapping labels in copies of it. ${pw?`About ${pct(1-pw.swapWithCheck)} of real swaps would be missed here.`:'It could not be measured here.'}</li>
+<li>People who live together, twins and transplant pairs can look alike without any error. Samples from a person with only one sample cannot be checked.</li>
+<li>SwapSeq does not detect a sample that is a mixture of two people, and it catches few errors in newborns and infants.</li>
+<li>Research use only. Not for diagnosis.</li></ul>
+${o.methods?`<h2>For the Methods section</h2><p>${e(o.methods)}</p>`:''}
+<div class="sign"><div>Records checked by</div><div>Date</div><div>Outcome (labels corrected, samples removed, or no action)</div><div>Signature</div></div>
+<footer>${e(o.version)}. Singh M. (2026) SwapSeq. https://doi.org/10.5281/zenodo.23963612. The data were analysed on the user's own computer.</footer>
+</main></body></html>`;
+}
 // ---- bridge: called from R (V8 package) and from the command-line tool ----
 // input: {features:[...], samples:[{id, idx:[...0-based feature index], val:[...counts]}], subject:[...], prior,
 //         house, well, plate,
