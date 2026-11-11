@@ -230,10 +230,15 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
       if(a==='copy'){navigator.clipboard.writeText(tsv).then(()=>{e.target.textContent='Copied'},()=>{fallbackCopy(tsv);e.target.textContent='Copied'})}
       else{const url=URL.createObjectURL(new Blob([tsv],{type:'text/tab-separated-values'}));const l=document.createElement('a');l.href=url;l.download=`swapseq_qc_${g.name.replace(/\W+/g,'_')}.tsv`;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(url),2000)}});
     el.appendChild(tools);
+    if(window.self===window.top){const top=document.createElement('div');top.className='tools';top.style.margin='10px 0 14px';
+      top.innerHTML='<button class="btn primary small" data-act="rep">Download report (.html)</button><span class="muted" style="font-size:13px;align-self:center">One file with the flags, figures and plain-language notes. Open it and print to PDF.</span>';
+      top.addEventListener('click',e=>{if(e.target.dataset.act==='rep')tools.querySelector('[data-act="rep"]').click()});
+      const v=el.querySelector('.verdict');if(v)v.insertAdjacentElement('afterend',top)}
     const ms=methodsText(g,prior);const mb=document.createElement('div');mb.className='panel methods';
     mb.innerHTML=`<div class="label">For your Methods section</div><p class="mtext">${esc(ms)}</p><button class="btn ghost" data-m="1">Copy text</button>`;
     mb.querySelector('button').addEventListener('click',e=>{navigator.clipboard.writeText(ms).then(()=>{e.target.textContent='Copied'},()=>{fallbackCopy(ms);e.target.textContent='Copied'})});
     el.appendChild(mb);
+    el.insertBefore(glance(g),tools);{const ev=evidence(g,list);if(ev)el.insertBefore(ev,tools)}
     if(g.map){const mp=sampleMap(g);el.insertBefore(mp,tools);
       tw.addEventListener('click',e=>{const tr=e.target.closest('tr[data-sid]');if(tr)mp.select(tr.dataset.sid,true)});
       tw.addEventListener('keydown',e=>{if(e.key==='Enter'){const tr=e.target.closest('tr[data-sid]');if(tr)mp.select(tr.dataset.sid,true)}})}
@@ -244,7 +249,7 @@ function render(out,prior){lastOut=out;const box=$('groups');box.innerHTML='';$(
 // The report builder lives in the engine (shared with the command line); the page keeps the engine as text for its worker.
 let coreFns=null;function reportOf(g,prior){coreFns=coreFns||new Function($('coreSrc').textContent+';return {reportHTML}')();
   return coreFns.reportHTML({version:VERSION,file:st.tableName,group:g.name,date:new Date().toISOString().slice(0,10),type:g.type,prior,columns:Object.entries(st.lastCols||{}).filter(([k,v])=>v).map(([k,v])=>k+'='+v).join(', '),
-    rows:g.rows,pairs:g.pairs,dups:g.dups,power:g.power,nScorable:g.nScorable,nSubjects:g.nSubjects,host:g.host,methods:methodsText(g,prior)})}
+    rows:g.rows,pairs:g.pairs,dups:g.dups,power:g.power,nScorable:g.nScorable,nSubjects:g.nSubjects,host:g.host,planted:g.hist?g.hist.plant:null,map:g.map,methods:methodsText(g,prior)})}
 function fallbackCopy(t){const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}ta.remove()}
 const VERSION='SwapSeq 1.1.1 (method v3)';
 function methodsText(g,prior){const f=g.rows.filter(r=>r.level==='flag').length,c=g.rows.filter(r=>r.level==='check').length,fp=g.pairs.filter(p=>p.level==='flag').length;
@@ -271,12 +276,39 @@ function chart(g){const box=document.createElement('div');box.className='panel c
   g.rows.forEach(r=>{if(flaggedIds.has(r.id)&&Number.isFinite(r.pair))s+=`<circle cx="${xs(r.pair)}" cy="${T+ih-6}" r="5" fill="var(--swap)" stroke="var(--surface)" stroke-width="2"><title>${esc(r.id)}: flagged</title></circle>`});
   const ticks=5;for(let k=0;k<=ticks;k++){const v=lo+(hi-lo)*k/ticks;s+=`<text x="${xs(v)}" y="${H-14}" font-size="12" text-anchor="middle" fill="var(--muted)" font-family="var(--sans)">${v.toFixed(1)}</text>`}
   s+=`<line x1="${L}" x2="${W-R}" y1="${T+ih}" y2="${T+ih}" stroke="var(--line2)"/></svg>`;
-  box.innerHTML=`<div class="label" style="margin-bottom:8px">Swap score: your samples vs. errors planted in your data</div><div class="legend"><span><i style="background:var(--obs)"></i>Your samples</span><span><i style="background:var(--plant)"></i>Planted swaps</span><span><i style="background:var(--swap);border-radius:50%"></i>Flagged</span></div>${s}<p class="hint">The further apart the two shapes are, the better SwapSeq can tell a swapped tube from normal variation in this study.</p>`;
+  box.innerHTML=`<div class="map-h"><h3>Swap score of every sample</h3></div><div class="legend"><span><i style="background:var(--obs)"></i>Your samples</span><span><i style="background:var(--plant)"></i>Samples with labels swapped on purpose</span><span><i style="background:var(--swap);border-radius:50%"></i>Flagged</span></div>${s}<p class="hint">Grey bars count your samples at each score. The red line shows where samples land after their labels are swapped on purpose. The further apart the two shapes are, the better SwapSeq can tell a swapped tube from normal variation in this study.</p>`;
   return box}
 
 // ---------- validation table ----------
 
 
+
+// ---------- at a glance: where every sample landed, and how many hidden errors the check finds ----------
+function glance(g){const box=document.createElement('div');box.className='panel chart';
+  const rows=g.rows,nF=rows.filter(r=>r.level==='flag').length,nC=rows.filter(r=>r.level==='check').length,nN=rows.filter(r=>!r.scorable&&!r.byHost&&r.level==='ok').length,nO=rows.length-nF-nC-nN;
+  const parts=[['Fit their own person',nO,'var(--obs)'],['To check',nC,'var(--mis)'],['Strong flag',nF,'var(--swap)'],['Not checked (one sample only)',nN,'var(--line2)']].filter(p=>p[1]>0);
+  const W=900,gap=3,tot=parts.reduce((a,p)=>a+p[1],0)||1,free=W-gap*(parts.length-1),w=parts.map(p=>Math.max(10,p[1]/tot*free)),sc=free/w.reduce((a,b)=>a+b,0);let x=0;
+  const bar=parts.map((p,i)=>{const ww=w[i]*sc,r=`<rect x="${x.toFixed(1)}" y="0" width="${ww.toFixed(1)}" height="26" rx="4" fill="${p[2]}"><title>${p[0]}: ${p[1]}</title></rect>`;x+=ww+gap;return r}).join('');
+  let h=`<div class="map-h"><h3>At a glance</h3><p class="hint">Every sample is in one group. Most should fit their own person.</p></div>
+    <svg viewBox="0 0 ${W} 26" role="img" aria-label="How many samples fit, are to check, or are flagged">${bar}</svg>
+    <div class="legend" style="margin-top:8px">${parts.map(p=>`<span><i style="background:${p[2]}"></i>${p[0]}: <b>${p[1].toLocaleString()}</b></span>`).join('')}</div>`;
+  const pw=g.power;
+  if(pw&&pw.measured!==false&&Number.isFinite(pw.swapWithCheck)){const L=200,R=130,bw=W-L-R,cl=v=>Math.max(0,Math.min(1,v||0));
+    const row=(y,lab,strong,all)=>`<text x="${L-12}" y="${y+17}" text-anchor="end" font-size="14" fill="var(--ink)" font-family="var(--sans)">${lab}</text><rect x="${L}" y="${y}" width="${bw}" height="24" rx="4" fill="var(--grid)"/><rect x="${L}" y="${y}" width="${(cl(all)*bw).toFixed(1)}" height="24" rx="4" fill="var(--accent)" opacity=".35"/><rect x="${L}" y="${y}" width="${(Math.min(cl(strong),cl(all))*bw).toFixed(1)}" height="24" rx="4" fill="var(--accent)"/><text x="${L+bw+10}" y="${y+17}" font-size="14" fill="var(--ink)" font-family="var(--sans)"><tspan font-weight="700">${fmtPct(all)}</tspan> found</text>`;
+    const two=Number.isFinite(pw.singleWithCheck),H=two?96:60;
+    h+=`<div class="map-h" style="margin-top:22px"><h3>How many hidden errors this check finds in your data</h3><p class="hint">SwapSeq swapped labels on purpose in copies of your data and counted how many it found again. If 100 tubes had been swapped here, about ${Math.round(100*pw.swapWithCheck)} would be found${Math.round(100*pw.swapWithCheck)<100?'. The rest would be missed':''}.</p></div>
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Share of hidden errors found">${row(4,'Two tubes swapped',pw.swap,pw.swapWithCheck)}${two?row(40,'One sample mislabelled',pw.single,pw.singleWithCheck):''}${[0,.5,1].map(v=>`<text x="${L+v*bw}" y="${H-6}" text-anchor="middle" font-size="12" fill="var(--muted)" font-family="var(--sans)">${v*100}%</text>`).join('')}</svg>
+    <div class="legend" style="margin-top:6px"><span><i style="background:var(--accent)"></i>Found as a strong flag</span><span><i style="background:var(--accent);opacity:.35"></i>Found only on the check list</span></div>`}
+  box.innerHTML=h;return box}
+
+// ---------- evidence: for each listed sample, whose rare microbes does it carry? ----------
+function evidence(g,list){const L=list.filter(r=>r.rare&&r.rare.total).slice(0,12);if(!L.length)return null;
+  const box=document.createElement('div');box.className='panel chart';const word=g.type==='markers'?'markers':'microbes';
+  const bar=(lab,k,tot,col)=>`<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;align-items:center;margin-top:8px"><span style="font-size:13px;color:var(--muted);grid-column:1/3">${lab}</span><span style="display:block;height:14px;border-radius:4px;background:var(--grid);overflow:hidden"><span style="display:block;height:100%;width:${(100*k/tot).toFixed(1)}%;min-width:${k?3:0}px;background:${col};border-radius:4px"></span></span><b style="font-size:13px;white-space:nowrap">${k} of ${tot}</b></div>`;
+  box.innerHTML=`<div class="map-h"><h3>Whose rare ${word} does each listed sample carry?</h3><p class="hint">Rare ${word} are found in few people, so they point to one person. A sample with a wrong label shares many with the person it looks like and few with the person on its label.</p></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:14px">${L.map(r=>`<div style="border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0"><div style="font-size:14px"><span class="mono" style="font-weight:700;overflow-wrap:anywhere">${esc(r.id)}</span> <span style="color:var(--muted)">${r.level==='flag'?'strong flag':'to check'}</span></div>
+      ${bar(`Shared with <b style="color:var(--ink)">${esc(r.subject)}</b>, the person on its label`,r.rare.withOwn,r.rare.total,'var(--obs)')}${bar(`Shared with <b style="color:var(--ink)">${esc(r.rare.other)}</b>, the person it looks like`,r.rare.withOther,r.rare.total,r.level==='flag'?'var(--swap)':'var(--mis)')}</div>`).join('')}</div>${list.length>L.length?`<p class="hint">Showing the first ${L.length}. The rest are in the table and the report.</p>`:''}`;
+  return box}
 
 // ---------- sample map: PCoA of the fingerprint distances ----------
 function sampleMap(g){
@@ -291,15 +323,27 @@ function sampleMap(g){
   let dots='';for(const i of order){const r=rows[i],cls=r.level==='flag'?(r.kind==='swap'?'f-swap':'f-mis'):r.level==='check'?'f-check':'';
     dots+=`<circle class="pt ${cls}" data-i="${i}" cx="${sx(X[i]).toFixed(1)}" cy="${sy(Y[i]).toFixed(1)}" r="${r.level==='ok'?4:6.5}"/>`}
   const pct=v=>Math.round(v*100);
-  box.innerHTML=`<div class="map-h"><h3>Sample map</h3><p class="hint">Each dot is a sample. Samples with similar microbial fingerprints sit close together, so one person's samples usually form a cluster. Point at a dot to light up everyone else from that person; click a flagged one to see where it really belongs.</p></div>
-    <div class="legend"><span><i style="background:var(--obs)"></i>Sample</span><span><i style="background:var(--swap);border-radius:50%"></i>Flagged swap</span><span><i style="background:var(--mis);border-radius:50%"></i>Flagged or to check</span><span><i style="background:var(--accent);border-radius:50%"></i>Same person as the one you point at</span><span><i style="background:none;border:2px solid var(--ok);border-radius:50%"></i>Person it looks like</span></div>
+  // lines to the middle of each person's samples: a long line means "far from its person". Listed samples always show theirs
+  // (dashed); everybody else's are behind a switch, because they clutter a map where people overlap.
+  let legs='',own='',stat='',labs='';const showLegs=n<=2500;
+  for(const [,ix] of byPerson){if(ix.length<2)continue;const cx=ix.reduce((a,i)=>a+sx(X[i]),0)/ix.length,cy=ix.reduce((a,i)=>a+sy(Y[i]),0)/ix.length;
+    for(const i of ix){const r=rows[i],ln=`x1="${sx(X[i]).toFixed(1)}" y1="${sy(Y[i]).toFixed(1)}" x2="${cx.toFixed(1)}" y2="${cy.toFixed(1)}"`;
+      if(r.level==='ok'){if(showLegs)legs+=`<line ${ln} stroke="var(--obs)" stroke-width="1" opacity=".3"/>`}
+      else if(!(r.kind==='swap'&&r.level==='flag'))own+=`<line ${ln} stroke="var(--mis)" stroke-width="1.6" stroke-dasharray="5 4"/>`}}
+  const seen=new Set();let nl=0;for(const i of order){const r=rows[i];if(r.level==='ok')continue;
+    if(r.kind==='swap'&&r.level==='flag'){const j=idx.get(r.partner),key=[i,j].sort().join('-');if(j!=null&&!seen.has(key)){seen.add(key);stat+=`<line x1="${sx(X[i]).toFixed(1)}" y1="${sy(Y[i]).toFixed(1)}" x2="${sx(X[j]).toFixed(1)}" y2="${sy(Y[j]).toFixed(1)}" stroke="var(--swap)" stroke-width="2.5"/>`}}
+    if(nl++<14){const x=sx(X[i]),right=x<W-150;labs+=`<text x="${(x+(right?10:-10)).toFixed(1)}" y="${(sy(Y[i])+4).toFixed(1)}" text-anchor="${right?'start':'end'}" font-size="12" font-weight="700" fill="var(--ink)" font-family="var(--mono)" stroke="var(--surface)" stroke-width="3" paint-order="stroke" pointer-events="none">${esc(r.id.length>18?r.id.slice(0,17)+'…':r.id)}</text>`}}
+  box.innerHTML=`<div class="map-h"><h3>Sample map</h3><p class="hint">Each dot is a sample. Samples with similar microbes sit close together, so one person's samples usually sit near each other. Listed samples are coloured and named. Point at a dot to light up that person; click a listed one to see where it really belongs.</p></div>
+    <div class="legend"><span><i style="background:var(--obs)"></i>Sample</span><span><i style="background:var(--swap);border-radius:50%"></i>Flagged swap</span><span><i style="background:var(--mis);border-radius:50%"></i>Flagged or to check</span><span><i style="background:var(--accent);border-radius:50%"></i>Same person as the one you point at</span><span><i style="background:none;border:2px solid var(--ok);border-radius:50%"></i>Person it looks like</span><span><i style="background:var(--swap);height:3px;border-radius:0;vertical-align:4px"></i>Joins a swap pair</span>${own?`<span><i style="background:none;border-top:2px dashed var(--mis);height:0;border-radius:0;vertical-align:4px"></i>To the middle of the person on its label</span>`:''}</div>
+    ${showLegs?`<label style="display:inline-flex;gap:8px;align-items:center;font-size:14px;color:var(--muted);margin:6px 0 2px;cursor:pointer"><input type="checkbox" class="legtog"> Join every sample to the middle of its own person (a long line means far from its person)</label>`:''}
     <div class="map-wrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Map of samples by microbial fingerprint">
       <line x1="${L}" x2="${W-R}" y1="${H-Bm+6}" y2="${H-Bm+6}" stroke="var(--line)"/>
       <text x="${L}" y="${H-10}" font-size="12" fill="var(--faint)" font-family="var(--sans)">Horizontal axis ${pct(g.map.share[0])}% of variation, vertical ${pct(g.map.share[1])}%; PCoA of soft-Jaccard distances</text>
-      <g class="links"></g><g class="dots">${dots}</g></svg><div class="tip" hidden></div></div>
+      <g class="legs" style="display:none">${legs}</g><g class="static">${own}${stat}</g><g class="links"></g><g class="dots">${dots}</g><g class="labs">${labs}</g></svg><div class="tip" hidden></div></div>
     <p class="map-sel" aria-live="polite"></p>`;
   const svg=box.querySelector('svg'),tip=box.querySelector('.tip'),sel=box.querySelector('.map-sel'),links=box.querySelector('.links'),pts=[...box.querySelectorAll('.pt')];
   const ptOf=i=>pts.find(p=>+p.dataset.i===i);
+  {const tg=box.querySelector('.legtog');if(tg)tg.addEventListener('change',()=>{box.querySelector('.legs').style.display=tg.checked?'':'none'})}
   const clear=()=>pts.forEach(p=>p.classList.remove('hl','own','other','dim','sel'));
   let pinned=null;
   const light=(i,pin)=>{clear();links.innerHTML='';const r=rows[i];
