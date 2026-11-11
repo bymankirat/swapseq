@@ -1,0 +1,325 @@
+{
+ "note": "SwapSeq current pipeline (analyse + promotePairs), 10 repeats, same hidden swaps as fair.mjs; Find-abnormality numbers from fair_results.json",
+ "tables": {
+  "BrooksB_2017": {
+   "samples": 408,
+   "find_abnormality": {
+    "swaps_flagged_pct": 98.3,
+    "other_per_1000": 113.4
+   },
+   "swapseq": {
+    "0.01": {
+     "hidden": 60,
+     "flags_pct": 60.0,
+     "flags_other_per_1000": 1.0,
+     "flags_or_check_pct": 81.7,
+     "flags_or_check_other_per_1000": 13.2
+    },
+    "0.03": {
+     "hidden": 60,
+     "flags_pct": 76.7,
+     "flags_other_per_1000": 7.5,
+     "flags_or_check_pct": 96.7,
+     "flags_or_check_other_per_1000": 30.8
+    },
+    "0.05": {
+     "hidden": 60,
+     "flags_pct": 86.7,
+     "flags_other_per_1000": 15.4,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 44.3
+    },
+    "0.1": {
+     "hidden": 60,
+     "flags_pct": 100,
+     "flags_other_per_1000": 37.3,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 72.9
+    }
+   }
+  },
+  "HMP_2019_ibdmdb": {
+   "samples": 1585,
+   "find_abnormality": {
+    "swaps_flagged_pct": 100,
+    "other_per_1000": 43.6
+   },
+   "swapseq": {
+    "0.01": {
+     "hidden": 100,
+     "flags_pct": 83.0,
+     "flags_other_per_1000": 9.7,
+     "flags_or_check_pct": 98.0,
+     "flags_or_check_other_per_1000": 17.2
+    },
+    "0.03": {
+     "hidden": 100,
+     "flags_pct": 98.0,
+     "flags_other_per_1000": 17.7,
+     "flags_or_check_pct": 98.0,
+     "flags_or_check_other_per_1000": 19.6
+    },
+    "0.05": {
+     "hidden": 100,
+     "flags_pct": 98.0,
+     "flags_other_per_1000": 18.5,
+     "flags_or_check_pct": 99.0,
+     "flags_or_check_other_per_1000": 24
+    },
+    "0.1": {
+     "hidden": 100,
+     "flags_pct": 99.0,
+     "flags_other_per_1000": 21.6,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 30.7
+    }
+   }
+  },
+  "HMP_2019_t2d": {
+   "samples": 189,
+   "find_abnormality": {
+    "swaps_flagged_pct": 75,
+    "other_per_1000": 21.4
+   },
+   "swapseq": {
+    "0.01": {
+     "hidden": 20,
+     "flags_pct": 95.0,
+     "flags_other_per_1000": 10.7,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 12.8
+    },
+    "0.03": {
+     "hidden": 20,
+     "flags_pct": 100,
+     "flags_other_per_1000": 18.7,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 21.4
+    },
+    "0.05": {
+     "hidden": 20,
+     "flags_pct": 100,
+     "flags_other_per_1000": 21.4,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 21.4
+    },
+    "0.1": {
+     "hidden": 20,
+     "flags_pct": 100,
+     "flags_other_per_1000": 21.4,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 24.1
+    }
+   }
+  },
+  "HallAB_2017": {
+   "samples": 259,
+   "find_abnormality": {
+    "swaps_flagged_pct": 95,
+    "other_per_1000": 128.4
+   },
+   "swapseq": {
+    "0.01": {
+     "hidden": 20,
+     "flags_pct": 55.0,
+     "flags_other_per_1000": 7.8,
+     "flags_or_check_pct": 60.0,
+     "flags_or_check_other_per_1000": 15.2
+    },
+    "0.03": {
+     "hidden": 20,
+     "flags_pct": 70.0,
+     "flags_other_per_1000": 19.1,
+     "flags_or_check_pct": 80.0,
+     "flags_or_check_other_per_1000": 19.8
+    },
+    "0.05": {
+     "hidden": 20,
+     "flags_pct": 80.0,
+     "flags_other_per_1000": 19.5,
+     "flags_or_check_pct": 90.0,
+     "flags_or_check_other_per_1000": 24.5
+    },
+    "0.1": {
+     "hidden": 20,
+     "flags_pct": 80.0,
+     "flags_other_per_1000": 23.3,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 26.5
+    }
+   }
+  },
+  "PRJEB38984": {
+   "samples": 384,
+   "find_abnormality": {
+    "swaps_flagged_pct": 98.3,
+    "other_per_1000": 36.8
+   },
+   "swapseq": {
+    "0.01": {
+     "hidden": 60,
+     "flags_pct": 83.3,
+     "flags_other_per_1000": 25.4,
+     "flags_or_check_pct": 96.7,
+     "flags_or_check_other_per_1000": 39.4
+    },
+    "0.03": {
+     "hidden": 60,
+     "flags_pct": 100,
+     "flags_other_per_1000": 39.4,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 50.8
+    },
+    "0.05": {
+     "hidden": 60,
+     "flags_pct": 100,
+     "flags_other_per_1000": 44.2,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 60.8
+    },
+    "0.1": {
+     "hidden": 60,
+     "flags_pct": 100,
+     "flags_other_per_1000": 57.4,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 69.3
+    }
+   }
+  },
+  "PRJEB70966": {
+   "samples": 248,
+   "find_abnormality": {
+    "swaps_flagged_pct": 100,
+    "other_per_1000": 36.6
+   },
+   "swapseq": {
+    "0.01": {
+     "hidden": 20,
+     "flags_pct": 35.0,
+     "flags_other_per_1000": 4.9,
+     "flags_or_check_pct": 55.0,
+     "flags_or_check_other_per_1000": 15.9
+    },
+    "0.03": {
+     "hidden": 20,
+     "flags_pct": 75.0,
+     "flags_other_per_1000": 18.3,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 24.8
+    },
+    "0.05": {
+     "hidden": 20,
+     "flags_pct": 90.0,
+     "flags_other_per_1000": 23.2,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 31.7
+    },
+    "0.1": {
+     "hidden": 20,
+     "flags_pct": 100,
+     "flags_other_per_1000": 27.2,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 50
+    }
+   }
+  },
+  "PRJEB72385_FMT": {
+   "samples": 493,
+   "find_abnormality": {
+    "swaps_flagged_pct": 90,
+    "other_per_1000": 17.2
+   },
+   "swapseq": {
+    "0.01": {
+     "hidden": 60,
+     "flags_pct": 83.3,
+     "flags_other_per_1000": 4.7,
+     "flags_or_check_pct": 93.3,
+     "flags_or_check_other_per_1000": 6.8
+    },
+    "0.03": {
+     "hidden": 60,
+     "flags_pct": 93.3,
+     "flags_other_per_1000": 7.8,
+     "flags_or_check_pct": 95.0,
+     "flags_or_check_other_per_1000": 14.4
+    },
+    "0.05": {
+     "hidden": 60,
+     "flags_pct": 93.3,
+     "flags_other_per_1000": 12.9,
+     "flags_or_check_pct": 96.7,
+     "flags_or_check_other_per_1000": 17.0
+    },
+    "0.1": {
+     "hidden": 60,
+     "flags_pct": 96.7,
+     "flags_other_per_1000": 15.6,
+     "flags_or_check_pct": 100,
+     "flags_or_check_other_per_1000": 24.4
+    }
+   }
+  }
+ },
+ "all_seven": {
+  "find_abnormality": [
+   96,
+   52
+  ],
+  "swapseq": {
+   "0.01": {
+    "flags": [
+     75,
+     9.3
+    ],
+    "flags_or_check": [
+     89,
+     17.2
+    ]
+   },
+   "0.03": {
+    "flags": [
+     91,
+     17.7
+    ],
+    "flags_or_check": [
+     97,
+     24.0
+    ]
+   },
+   "0.05": {
+    "flags": [
+     94,
+     20.7
+    ],
+    "flags_or_check": [
+     99,
+     29.7
+    ]
+   },
+   "0.1": {
+    "flags": [
+     98,
+     26.9
+    ],
+    "flags_or_check": [
+     100,
+     39.5
+    ]
+   }
+  }
+ },
+ "cost_on_23_other_public_tables_published_labels": {
+  "samples": 13265,
+  "per_1000": {
+   "0.01": {
+    "flags": 2.1,
+    "check": 5.4
+   },
+   "0.05": {
+    "flags": 8.4,
+    "check": 22.5
+   }
+  }
+ }
+}

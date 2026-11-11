@@ -36,3 +36,30 @@ favoured both methods and is kept only for the record (`results.json`).
 Second November update (small-table rule): with the same hidden swaps at the 1% expected rate, strong flags catch
 79% instead of 65% in these seven tables (other samples flagged 9.2 instead of 8.4 per 1,000), and 60% instead of 41%
 with 3% of samples swapped; see `validation/robustness`.
+
+## Matched settings (current version)
+
+`settings.mjs` repeats the fair test with the current pipeline at several expected error rates (results in
+`settings_results.json`). Same seven tables, same 340 hidden swapped samples. Swaps flagged / other samples per 1,000:
+
+| Method and setting | Strong flags | Strong flags + check list |
+|---|---|---|
+| Find-abnormality (one setting) | 96% / 52 | |
+| SwapSeq, 1% (default) | 75% / 9.3 | 89% / 17.2 |
+| SwapSeq, 3% | 91% / 17.7 | 97% / 24.0 |
+| SwapSeq, 5% (the "known problems" setting) | 94% / 20.7 | 99% / 29.7 |
+| SwapSeq, 10% | 98% / 26.9 | 100% / 39.5 |
+
+So with a net as wide as Find-abnormality's or narrower, SwapSeq lists more of the hidden swaps and fewer other samples.
+
+Read this with care:
+
+- The SwapSeq setting was chosen after seeing the results; Find-abnormality has one setting. That favours SwapSeq.
+- It is not a win in every table. At 5% with the check list, Find-abnormality still finds more in one table
+  (95% vs 90%, 20 hidden samples) and flags fewer other samples in another (37 vs 61 per 1,000).
+- At its default 1% setting SwapSeq finds fewer swaps than Find-abnormality (75% vs 96%), with fewer other samples.
+- Seven tables, swaps made in the computer, "other samples" include real errors already in the published labels.
+- A wider net costs work everywhere: on the published labels of 23 other public tables (13,265 samples) the 5%
+  setting lists 31 samples per 1,000 (8 flags, 23 to check) against 7.5 per 1,000 at 1% (2 flags, 5 to check).
+- Eight other fingerprints were tried on these tables, among them Find-abnormality's log Bray-Curtis; none was better
+  across the seven tables, so the method is unchanged.
