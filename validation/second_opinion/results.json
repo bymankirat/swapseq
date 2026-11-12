@@ -1,0 +1,757 @@
+{
+ "note": "10 repeats per table, hidden reciprocal swaps as in ye2026_comparison/fair.mjs; counts are [hidden swapped samples, other samples]",
+ "tables": {
+  "cafe": {
+   "samples": 95,
+   "hidden": 20,
+   "others": 930,
+   "rank_rule": [
+    16,
+    0
+   ],
+   "strong_flags": [
+    18,
+    0
+   ],
+   "strong_flags_rule_agrees": [
+    14,
+    0
+   ],
+   "check_list": [
+    2,
+    0
+   ],
+   "check_list_rule_agrees": [
+    2,
+    0
+   ]
+  },
+  "david": {
+   "samples": 236,
+   "hidden": 20,
+   "others": 2340,
+   "rank_rule": [
+    16,
+    40
+   ],
+   "strong_flags": [
+    16,
+    0
+   ],
+   "strong_flags_rule_agrees": [
+    16,
+    0
+   ],
+   "check_list": [
+    1,
+    0
+   ],
+   "check_list_rule_agrees": [
+    0,
+    0
+   ]
+  },
+  "diet": {
+   "samples": 522,
+   "hidden": 60,
+   "others": 5160,
+   "rank_rule": [
+    59,
+    20
+   ],
+   "strong_flags": [
+    58,
+    2
+   ],
+   "strong_flags_rule_agrees": [
+    57,
+    1
+   ],
+   "check_list": [
+    1,
+    1
+   ],
+   "check_list_rule_agrees": [
+    1,
+    1
+   ]
+  },
+  "digiulio": {
+   "samples": 756,
+   "hidden": 60,
+   "others": 7500,
+   "rank_rule": [
+    56,
+    260
+   ],
+   "strong_flags": [
+    42,
+    43
+   ],
+   "strong_flags_rule_agrees": [
+    41,
+    32
+   ],
+   "check_list": [
+    10,
+    38
+   ],
+   "check_list_rule_agrees": [
+    9,
+    21
+   ]
+  },
+  "ecam": {
+   "samples": 875,
+   "hidden": 60,
+   "others": 8690,
+   "rank_rule": [
+    57,
+    1998
+   ],
+   "strong_flags": [
+    0,
+    2
+   ],
+   "strong_flags_rule_agrees": [
+    0,
+    1
+   ],
+   "check_list": [
+    19,
+    139
+   ],
+   "check_list_rule_agrees": [
+    18,
+    93
+   ]
+  },
+  "hmpNostril": {
+   "samples": 332,
+   "hidden": 60,
+   "others": 3260,
+   "rank_rule": [
+    50,
+    98
+   ],
+   "strong_flags": [
+    40,
+    13
+   ],
+   "strong_flags_rule_agrees": [
+    34,
+    3
+   ],
+   "check_list": [
+    8,
+    19
+   ],
+   "check_list_rule_agrees": [
+    8,
+    5
+   ]
+  },
+  "hmpPlaque": {
+   "samples": 747,
+   "hidden": 60,
+   "others": 7410,
+   "rank_rule": [
+    55,
+    283
+   ],
+   "strong_flags": [
+    56,
+    23
+   ],
+   "strong_flags_rule_agrees": [
+    51,
+    2
+   ],
+   "check_list": [
+    3,
+    16
+   ],
+   "check_list_rule_agrees": [
+    3,
+    1
+   ]
+  },
+  "hmpSkin": {
+   "samples": 729,
+   "hidden": 60,
+   "others": 7230,
+   "rank_rule": [
+    57,
+    687
+   ],
+   "strong_flags": [
+    51,
+    35
+   ],
+   "strong_flags_rule_agrees": [
+    48,
+    8
+   ],
+   "check_list": [
+    1,
+    78
+   ],
+   "check_list_rule_agrees": [
+    1,
+    54
+   ]
+  },
+  "hmpStool": {
+   "samples": 386,
+   "hidden": 60,
+   "others": 3800,
+   "rank_rule": [
+    55,
+    20
+   ],
+   "strong_flags": [
+    50,
+    15
+   ],
+   "strong_flags_rule_agrees": [
+    46,
+    2
+   ],
+   "check_list": [
+    9,
+    12
+   ],
+   "check_list_rule_agrees": [
+    9,
+    0
+   ]
+  },
+  "hmpTongue": {
+   "samples": 368,
+   "hidden": 60,
+   "others": 3620,
+   "rank_rule": [
+    55,
+    158
+   ],
+   "strong_flags": [
+    41,
+    17
+   ],
+   "strong_flags_rule_agrees": [
+    39,
+    6
+   ],
+   "check_list": [
+    7,
+    10
+   ],
+   "check_list_rule_agrees": [
+    5,
+    4
+   ]
+  },
+  "imp": {
+   "samples": 110,
+   "hidden": 20,
+   "others": 1080,
+   "rank_rule": [
+    17,
+    30
+   ],
+   "strong_flags": [
+    20,
+    0
+   ],
+   "strong_flags_rule_agrees": [
+    17,
+    0
+   ],
+   "check_list": [
+    0,
+    1
+   ],
+   "check_list_rule_agrees": [
+    0,
+    0
+   ]
+  },
+  "karelia": {
+   "samples": 1761,
+   "hidden": 100,
+   "others": 17510,
+   "rank_rule": [
+    96,
+    6026
+   ],
+   "strong_flags": [
+    0,
+    0
+   ],
+   "strong_flags_rule_agrees": [
+    0,
+    0
+   ],
+   "check_list": [
+    6,
+    360
+   ],
+   "check_list_rule_agrees": [
+    5,
+    213
+   ]
+  },
+  "mars": {
+   "samples": 444,
+   "hidden": 60,
+   "others": 4380,
+   "rank_rule": [
+    56,
+    187
+   ],
+   "strong_flags": [
+    45,
+    1
+   ],
+   "strong_flags_rule_agrees": [
+    43,
+    0
+   ],
+   "check_list": [
+    5,
+    51
+   ],
+   "check_list_rule_agrees": [
+    5,
+    20
+   ]
+  },
+  "ploeg_saliva": {
+   "samples": 427,
+   "hidden": 60,
+   "others": 4210,
+   "rank_rule": [
+    52,
+    442
+   ],
+   "strong_flags": [
+    49,
+    2
+   ],
+   "strong_flags_rule_agrees": [
+    41,
+    1
+   ],
+   "check_list": [
+    4,
+    12
+   ],
+   "check_list_rule_agrees": [
+    4,
+    8
+   ]
+  },
+  "ploeg_tongue": {
+   "samples": 429,
+   "hidden": 60,
+   "others": 4230,
+   "rank_rule": [
+    55,
+    0
+   ],
+   "strong_flags": [
+    57,
+    0
+   ],
+   "strong_flags_rule_agrees": [
+    52,
+    0
+   ],
+   "check_list": [
+    3,
+    7
+   ],
+   "check_list_rule_agrees": [
+    3,
+    0
+   ]
+  },
+  "poyet": {
+   "samples": 164,
+   "hidden": 20,
+   "others": 1620,
+   "rank_rule": [
+    18,
+    0
+   ],
+   "strong_flags": [
+    20,
+    0
+   ],
+   "strong_flags_rule_agrees": [
+    18,
+    0
+   ],
+   "check_list": [
+    0,
+    0
+   ],
+   "check_list_rule_agrees": [
+    0,
+    0
+   ]
+  },
+  "shao": {
+   "samples": 682,
+   "hidden": 60,
+   "others": 6760,
+   "rank_rule": [
+    47,
+    1427
+   ],
+   "strong_flags": [
+    0,
+    0
+   ],
+   "strong_flags_rule_agrees": [
+    0,
+    0
+   ],
+   "check_list": [
+    0,
+    0
+   ],
+   "check_list_rule_agrees": [
+    0,
+    0
+   ]
+  },
+  "smpForehead": {
+   "samples": 675,
+   "hidden": 60,
+   "others": 6690,
+   "rank_rule": [
+    58,
+    200
+   ],
+   "strong_flags": [
+    52,
+    1
+   ],
+   "strong_flags_rule_agrees": [
+    50,
+    1
+   ],
+   "check_list": [
+    7,
+    8
+   ],
+   "check_list_rule_agrees": [
+    7,
+    3
+   ]
+  },
+  "smpGut": {
+   "samples": 638,
+   "hidden": 60,
+   "others": 6320,
+   "rank_rule": [
+    57,
+    108
+   ],
+   "strong_flags": [
+    58,
+    6
+   ],
+   "strong_flags_rule_agrees": [
+    55,
+    6
+   ],
+   "check_list": [
+    2,
+    6
+   ],
+   "check_list_rule_agrees": [
+    2,
+    6
+   ]
+  },
+  "smpPalm": {
+   "samples": 515,
+   "hidden": 60,
+   "others": 5090,
+   "rank_rule": [
+    57,
+    329
+   ],
+   "strong_flags": [
+    49,
+    3
+   ],
+   "strong_flags_rule_agrees": [
+    49,
+    1
+   ],
+   "check_list": [
+    3,
+    20
+   ],
+   "check_list_rule_agrees": [
+    1,
+    11
+   ]
+  },
+  "smpTongue": {
+   "samples": 692,
+   "hidden": 60,
+   "others": 6860,
+   "rank_rule": [
+    52,
+    402
+   ],
+   "strong_flags": [
+    42,
+    15
+   ],
+   "strong_flags_rule_agrees": [
+    42,
+    11
+   ],
+   "check_list": [
+    0,
+    104
+   ],
+   "check_list_rule_agrees": [
+    0,
+    75
+   ]
+  },
+  "storage": {
+   "samples": 1300,
+   "hidden": 80,
+   "others": 12920,
+   "rank_rule": [
+    80,
+    161
+   ],
+   "strong_flags": [
+    77,
+    33
+   ],
+   "strong_flags_rule_agrees": [
+    77,
+    32
+   ],
+   "check_list": [
+    2,
+    21
+   ],
+   "check_list_rule_agrees": [
+    2,
+    17
+   ]
+  },
+  "ye:BrooksB_2017": {
+   "samples": 408,
+   "hidden": 60,
+   "others": 4020,
+   "rank_rule": [
+    59,
+    149
+   ],
+   "strong_flags": [
+    36,
+    4
+   ],
+   "strong_flags_rule_agrees": [
+    35,
+    0
+   ],
+   "check_list": [
+    13,
+    49
+   ],
+   "check_list_rule_agrees": [
+    13,
+    18
+   ]
+  },
+  "ye:HMP_2019_ibdmdb": {
+   "samples": 1585,
+   "hidden": 100,
+   "others": 15750,
+   "rank_rule": [
+    100,
+    409
+   ],
+   "strong_flags": [
+    83,
+    153
+   ],
+   "strong_flags_rule_agrees": [
+    83,
+    132
+   ],
+   "check_list": [
+    15,
+    118
+   ],
+   "check_list_rule_agrees": [
+    15,
+    63
+   ]
+  },
+  "ye:HMP_2019_t2d": {
+   "samples": 189,
+   "hidden": 20,
+   "others": 1870,
+   "rank_rule": [
+    20,
+    60
+   ],
+   "strong_flags": [
+    19,
+    20
+   ],
+   "strong_flags_rule_agrees": [
+    19,
+    10
+   ],
+   "check_list": [
+    1,
+    4
+   ],
+   "check_list_rule_agrees": [
+    1,
+    4
+   ]
+  },
+  "ye:HallAB_2017": {
+   "samples": 259,
+   "hidden": 20,
+   "others": 2570,
+   "rank_rule": [
+    19,
+    90
+   ],
+   "strong_flags": [
+    11,
+    20
+   ],
+   "strong_flags_rule_agrees": [
+    10,
+    0
+   ],
+   "check_list": [
+    1,
+    19
+   ],
+   "check_list_rule_agrees": [
+    1,
+    0
+   ]
+  },
+  "ye:PRJEB38984": {
+   "samples": 384,
+   "hidden": 60,
+   "others": 3780,
+   "rank_rule": [
+    59,
+    50
+   ],
+   "strong_flags": [
+    50,
+    96
+   ],
+   "strong_flags_rule_agrees": [
+    49,
+    44
+   ],
+   "check_list": [
+    8,
+    53
+   ],
+   "check_list_rule_agrees": [
+    8,
+    6
+   ]
+  },
+  "ye:PRJEB70966": {
+   "samples": 248,
+   "hidden": 20,
+   "others": 2460,
+   "rank_rule": [
+    20,
+    70
+   ],
+   "strong_flags": [
+    7,
+    12
+   ],
+   "strong_flags_rule_agrees": [
+    7,
+    4
+   ],
+   "check_list": [
+    4,
+    27
+   ],
+   "check_list_rule_agrees": [
+    4,
+    12
+   ]
+  },
+  "ye:PRJEB72385_FMT": {
+   "samples": 493,
+   "hidden": 60,
+   "others": 4870,
+   "rank_rule": [
+    53,
+    74
+   ],
+   "strong_flags": [
+    50,
+    23
+   ],
+   "strong_flags_rule_agrees": [
+    45,
+    23
+   ],
+   "check_list": [
+    6,
+    10
+   ],
+   "check_list_rule_agrees": [
+    5,
+    9
+   ]
+  }
+ },
+ "all": {
+  "tables": 29,
+  "hidden": 1560,
+  "others": 162930,
+  "counts": {
+   "flag": [
+    1097,
+    539
+   ],
+   "check": [
+    141,
+    1183
+   ],
+   "checkAgree": [
+    132,
+    644
+   ],
+   "rule": [
+    1451,
+    13778
+   ],
+   "flagAgree": [
+    1038,
+    320
+   ]
+  }
+ }
+}

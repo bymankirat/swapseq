@@ -27,7 +27,8 @@ function swapseq_run(json){
   let res=annotate(data,lab,analyse(data,lab,{prior:prior0},M),{house:input.house||null,well:input.well||null,plate:input.plate||null});
   const mp=measurePower(data,lab,res,M); // v1.1: power measured on errors hidden in copies of the labels
   res.power=mp||{single:null,swap:null,singleWithCheck:null,swapWithCheck:null,measured:false};
-  promotePairs(res,mp);
+  promotePairs(res,mp);secondOpinion(M,lab,res);
+  wideScreen(data,lab,res,M,{house:input.house||null,well:input.well||null,plate:input.plate||null});
   const dup=findDuplicates(M,lab,{},data.samples.map(s=>s.id)).pairs; // two people's labels, one near-identical community
   let host=null;
   if(input.host){const G=input.host.map(h=>h?new Map(Object.entries(h).map(([k,v])=>[k,v])):null);
@@ -40,10 +41,10 @@ function swapseq_run(json){
     scorable:!!r.scorable,rare_total:r.rare?num(r.rare.total):null,rare_shared_own:r.rare?num(r.rare.withOwn):null,rare_shared_lookalike:r.rare?num(r.rare.withOther):null,household_lookalike:!!r.cohab,
     well:r.well==null?null:String(r.well),in_shift:!!r.shift,
     host_verdict:r.host?r.host.verdict:null,host_looks_like:r.host&&r.host.looksLike!=null?String(r.host.looksLike):null,host_llr:r.host?num(r.host.llr):null,host_sites:r.host?num(r.host.sites):null,
-    flagged_by_host:!!r.byHost,flagged_as_pair:!!r.byPair}));
+    flagged_by_host:!!r.byHost,flagged_as_pair:!!r.byPair,flagged_by_plate:!!r.byPlate,second_opinion:r.second==null?null:!!r.second,wide_screen:!!r.wide}));
   // put back the samples that had no subject label, in the caller's order
   let outRows=rows;
-  if(keepIx.length!==input0.samples.length){const blank=id=>{const o={};for(const k in rows[0])o[k]=null;return Object.assign(o,{sample:String(id),level:'ok',scorable:false,household_lookalike:false,in_shift:false,flagged_by_host:false,flagged_as_pair:false})};
+  if(keepIx.length!==input0.samples.length){const blank=id=>{const o={};for(const k in rows[0])o[k]=null;return Object.assign(o,{sample:String(id),level:'ok',scorable:false,household_lookalike:false,in_shift:false,flagged_by_host:false,flagged_as_pair:false,flagged_by_plate:false,second_opinion:null,wide_screen:false})};
     outRows=input0.samples.map(s=>blank(s.id));keepIx.forEach((i,k)=>outRows[i]=rows[k])}
   return JSON.stringify({rows:outRows,no_subject:input0.samples.length-keepIx.length,calibrated:!res.uncalibrated,shifts:res.shifts||[],duplicates:dup.map(p=>({sample_a:String(p.idA),subject_a:String(p.subjectA),sample_b:String(p.idB),subject_b:String(p.subjectB),distance:num(p.distance[0])})),power:res.power,n_subjects:res.nSubjects,separation:num(res.separation),promoted_pairs:res.promoted||0,swap_pairs:res.pairs.length,many_errors:res.nScorable>0&&res.pairs.length>=3&&2*res.pairs.length/res.nScorable>=1.5*prior0,separation2:num(res.separation2),reidentified:num(res.reid),n_scorable:res.nScorable,threshold:num(res.threshold),prior:prior0,
     type,markers:type==='markers'?M.markers:null,host:host?{ok:host.ok,reason:host.reason||null,samples_with_host_dna:host.used||0}:null,version:'1.1.1'});

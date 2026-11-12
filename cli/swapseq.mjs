@@ -4,7 +4,7 @@
 // SwapSeq on the command line: the same engine as the web page and the R package, for scripts and pipelines.
 // Node.js 18 or newer, no other software. Run `swapseq --help`.
 import fs from 'fs';import path from 'path';
-import {analyse,annotate,distances,markerDistances,measurePower,promotePairs,findDuplicates,reportHTML,findShifts,hostCheck,addHost} from '../method/core.mjs';
+import {analyse,annotate,distances,markerDistances,measurePower,promotePairs,secondOpinion,wideScreen,findDuplicates,reportHTML,findShifts,hostCheck,addHost} from '../method/core.mjs';
 
 const VERSION='1.1.1';
 const HELP=`SwapSeq ${VERSION}: finds swapped and mislabelled samples in longitudinal microbiome studies.
@@ -36,6 +36,7 @@ Options:
   --out PREFIX        Write PREFIX.tsv (one row per sample), PREFIX.json (summary) and PREFIX.html
                       (a report for your records; open it in a browser and print to PDF). Default: swapseq
   --no-power          Skip the measured-power step (faster on very large tables)
+  --no-wide           Skip the wide screen (the second, wider list at a 5% expected rate)
   --fail-on-flags     Exit with code 2 when any sample is strongly flagged (for pipelines)
   --quiet             Print nothing but errors
   --version, --help
@@ -50,6 +51,7 @@ for(let i=0;i<argv.length;i++){const a=argv[i];
   if(a==='--version'||a==='-v'){console.log(VERSION);process.exit(0)}
   if(a==='--samples-in-rows'){opt.rowsAreSamples=true;continue}
   if(a==='--no-power'){opt.noPower=true;continue}
+  if(a==='--no-wide'){opt.noWide=true;continue}
   if(a==='--fail-on-flags'){opt.failOnFlags=true;continue}
   if(a==='--quiet'){opt.quiet=true;continue}
   if(a.startsWith('--')){const k=a.slice(2),v=argv[++i];if(v==null)die(`${a} needs a value`);
@@ -145,7 +147,8 @@ say(`SwapSeq ${VERSION}: ${inMeta.length} samples from ${new Set(lab).size} peop
 const M=opt.type==='markers'?markerDistances(data):distances(data);
 let res=annotate(data,lab,analyse(data,lab,{prior:opt.prior},M),{house:col('household'),well:col('well'),plate:col('plate')});
 const power=opt.noPower?null:measurePower(data,lab,res,M);
-promotePairs(res,power);
+promotePairs(res,power);secondOpinion(M,lab,res);
+if(!opt.noWide)wideScreen(data,lab,res,M,{house:col('household'),well:col('well'),plate:col('plate')});
 const dups=findDuplicates(M,lab,{},inMeta.map(x=>x.id)).pairs;
 let host=null;
 if(opt.host){host=hostCheck(readHost(opt.host,inMeta.map(s=>s.id)),lab);res=addHost(res,host);
@@ -155,22 +158,22 @@ const pct=v=>v==null||!Number.isFinite(v)?'n/a':Math.round(100*v)+'%';
 
 // ---------- output ----------
 const f4=v=>Number.isFinite(v)?(+v).toFixed(4):'';
-const cols=['sample','labelled_as','reads','level','kind','probability','looks_like','swap_partner','partner_labelled_as','rare_asvs','rare_shared_with_look_alike','rare_shared_with_own','well','same_household','in_sheet_shift','host_verdict','host_looks_like','host_llr','host_sites','flagged_by_host','flagged_as_pair'];
+const cols=['sample','labelled_as','reads','level','kind','probability','looks_like','swap_partner','partner_labelled_as','rare_asvs','rare_shared_with_look_alike','rare_shared_with_own','well','same_household','in_sheet_shift','host_verdict','host_looks_like','host_llr','host_sites','flagged_by_host','flagged_as_pair','flagged_by_plate','second_opinion','wide_screen'];
 const lines=[`# SwapSeq ${VERSION} QC audit; table: ${path.basename(pos[0])}; metadata: ${path.basename(pos[1])}; subject column: ${opt.subject}; type: ${opt.type}; date: ${new Date().toISOString().slice(0,10)}`,cols.join('\t')];
 for(const r of res.rows){const pair=r.kind==='swap';
   lines.push([r.id,r.subject,opt.type==='counts'?depthOf(data.samples[r.i]):'',(r.scorable||r.byHost)?r.level:'not_checked',r.level==='ok'?'':r.kind,f4(r.prob),r.looksLike??'',pair?r.partner??'':'',pair?r.partnerSubject??'':'',
     r.rare?r.rare.total:'',r.rare?r.rare.withOther:'',r.rare?r.rare.withOwn:'',r.well??'',r.cohab?'yes':'',r.shift?'yes':'',
-    r.host?r.host.verdict:'',r.host?.looksLike??'',r.host&&Number.isFinite(r.host.llr)?r.host.llr.toFixed(1):'',r.host?r.host.sites??'':'',r.byHost?'yes':'',r.byPair?'yes':''].join('\t'))}
+    r.host?r.host.verdict:'',r.host?.looksLike??'',r.host&&Number.isFinite(r.host.llr)?r.host.llr.toFixed(1):'',r.host?r.host.sites??'':'',r.byHost?'yes':'',r.byPair?'yes':'',r.byPlate?'yes':'',r.second===true?'agrees':r.second===false?'does_not':'',r.wide?'yes':''].join('\t'))}
 try{fs.writeFileSync(opt.out+'.tsv',lines.join('\n')+'\n')}catch(e){die(`cannot write ${opt.out}.tsv (${e.code||e.message}). Does the folder exist?`)}
 const methods=`Sample identity was checked with SwapSeq ${VERSION} (${opt.type==='markers'?'strain-marker Jaccard fingerprints':'soft Jaccard and Aitchison fingerprints'}${host&&host.ok?', plus host-DNA genotype matching':''}, calibrated on errors planted in this dataset; expected mislabel rate ${opt.prior*100}%). Of ${res.nScorable} samples from ${res.nSubjects} participants, ${flags.length} ${flags.length===1?'was':'were'} flagged with strong evidence and ${checks.length} listed for checking against laboratory records${dups.length?`; ${dups.length} pair${dups.length===1?'':'s'} of samples labelled as different people had near-identical communities (possible duplicates)`:''}.${power?` Measured detection in this dataset, from errors hidden in copies of the labels: ${pct(power.swapWithCheck)} of swapped tubes and ${pct(power.singleWithCheck)} of single mislabels (${pct(power.swap)} and ${pct(power.single)} as strong flags).`:''} (Singh 2026, https://doi.org/10.5281/zenodo.23963612)`;
 const manyErrors=res.nScorable&&res.pairs.length>=3&&2*res.pairs.length/res.nScorable>=1.5*opt.prior;
 const summary={version:VERSION,type:opt.type,samples:res.rows.length,scorable:res.nScorable,subjects:res.nSubjects,strongFlags:flags.length,checkList:checks.length,
   swapPairs:res.pairs,shifts:res.shifts||[],duplicates:dups.map(p=>({sampleA:p.idA,subjectA:p.subjectA,sampleB:p.idB,subjectB:p.subjectB,distance:+p.distance[0].toFixed(4)})),power,host:host?{ok:host.ok,reason:host.reason||null,samplesWithHostDNA:host.used||0,flaggedByHost:res.rows.filter(r=>r.byHost).length}:null,
-  manyErrorsNote:!!manyErrors,methodsSentence:methods,seconds:(Date.now()-t0)/1000};
+  manyErrorsNote:!!manyErrors,plate:res.plate||null,secondOpinion:res.second||null,wideScreen:res.wide&&res.wide.used?{expectedRate:res.wide.prior,extraSamples:res.wide.rows.map(w=>({sample:w.id,labelledAs:w.subject,looksLike:w.looksLike,kind:w.kind}))}:null,methodsSentence:methods,seconds:(Date.now()-t0)/1000};
 fs.writeFileSync(opt.out+'.json',JSON.stringify(summary,null,1));
 fs.writeFileSync(opt.out+'.html',reportHTML({version:'SwapSeq '+VERSION,file:path.basename(pos[0]),metaFile:path.basename(pos[1]),date:new Date().toISOString().slice(0,10),type:opt.type,prior:opt.prior,
   columns:['subject','well','plate','household'].filter(c=>opt[c]).map(c=>c+'='+opt[c]).join(', '),rows:res.rows,pairs:res.pairs,dups:dups.map(p=>({a:p.idA,sa:p.subjectA,b:p.idB,sb:p.subjectB})),power,nScorable:res.nScorable,nSubjects:res.nSubjects,
-  host:host?{ok:host.ok,reason:host.reason,used:host.used}:null,uncalibrated:res.uncalibrated,powerSkipped:!!opt.noPower,planted:res.planted?res.planted.single:null,methods,notes:[missing?`${missing} table samples without a subject were left out.`:'',shallow?`${shallow} samples under ${minD} reads were left out.`:'',opt.noPower?'Power was not measured (--no-power).':''].filter(Boolean)}));
+  host:host?{ok:host.ok,reason:host.reason,used:host.used}:null,uncalibrated:res.uncalibrated,powerSkipped:!!opt.noPower,wide:res.wide,plate:res.plate,planted:res.planted?res.planted.single:null,methods,notes:[missing?`${missing} table samples without a subject were left out.`:'',shallow?`${shallow} samples under ${minD} reads were left out.`:'',opt.noPower?'Power was not measured (--no-power).':''].filter(Boolean)}));
 say(`Strong flags: ${flags.length} · check list: ${checks.length} · swap pairs: ${res.pairs.filter(p=>p.level==='flag').length} · possible duplicates: ${dups.length}`);
 if(manyErrors)say(`Note: ${(100*2*res.pairs.length/res.nScorable).toFixed(1)}% of samples sit in swap pairs, more than a ${opt.prior*100}% error rate explains. Try --prior 0.02 or 0.05 (in tests with 3% of samples swapped: ~80% caught instead of 40-55%).`);
 if(res.uncalibrated)say('Too few samples with repeats to calibrate: no sample was judged. SwapSeq needs at least 5 samples from people with 2 or more samples.');
@@ -180,5 +183,7 @@ const low=r=>opt.type==='counts'&&depthOf(data.samples[r.i])<1000;
 for(const r of flags.slice(0,20))say(`  FLAG ${r.id} (labelled ${r.subject}) looks like ${r.looksLike??'?'}${r.kind==='swap'&&r.partner?`, swap partner ${r.partner}`:''}${r.byHost?' [host DNA]':''}${low(r)?` [low depth: ${depthOf(data.samples[r.i])} reads]`:''}`);
 if(flags.length>20)say(`  ... and ${flags.length-20} more in ${opt.out}.tsv`);
 for(const d of dups.slice(0,10))say(`  DUPLICATE? ${d.idA} (labelled ${d.subjectA}) and ${d.idB} (labelled ${d.subjectB}) are near-identical: one tube or file under two names, or a sample under the wrong person?`);
+if(res.plate&&res.plate.raised)say(`Plate map: ${res.plate.raised} sample${res.plate.raised>1?'s':''} flagged because the swap partner sits in the next well.`);
+if(res.wide&&res.wide.used&&res.wide.rows.length)say(`Wide screen (expected rate ${res.wide.prior*100}%): ${res.wide.rows.length} more sample${res.wide.rows.length>1?'s':''} to look at if you want to catch more (column wide_screen).`);
 say(`Wrote ${opt.out}.tsv, ${opt.out}.json and ${opt.out}.html (${summary.seconds.toFixed(1)} s)`);
 process.exit(opt.failOnFlags&&flags.length?2:0);

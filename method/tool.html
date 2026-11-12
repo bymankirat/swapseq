@@ -338,7 +338,7 @@ footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-con
       <details class="more colfield" hidden><summary>Household and plate columns (optional)</summary>
         <div class="s3-row">
           <div class="field"><label for="colH">Household or family</label><select id="colH"><option value="">None</option></select></div>
-          <div class="field"><label for="colW">Plate well (A01–H12) or plating order</label><select id="colW"><option value="">None</option></select></div>
+          <div class="field"><label for="colW">Plate well (A01–H12) or plating order <span class="muted" style="font-weight:400">(helps catch swaps between neighbours)</span></label><select id="colW"><option value="">None</option></select></div>
           <div class="field"><label for="colL">Plate ID</label><select id="colL"><option value="">None</option></select></div>
         </div>
       </details>
@@ -498,6 +498,7 @@ npx github:bymankirat/swapseq table.tsv metadata.tsv \
   </div>
   <details class="versions"><summary>What changed in each version</summary>
     <ul>
+      <li><b>1.1.1, fourth November update</b> &middot; With a plate map, a swap between two tubes in neighbouring wells needs less evidence to become a strong flag (in tests: 68% to 76% of such swaps caught, no more other flags). Listed samples now say whether a second, simpler check agrees. A wide screen lists, apart from the main result, what a wider net (5% expected rate) would add. A script makes the host-DNA file from BAM files. Without a plate map, flags and probabilities are unchanged. Details in <a href="validation.html#newchecks">the validation page</a>.</li>
       <li><b>1.1.1, third November update</b> &middot; A report for your records: one HTML file with the flags, four figures, plain-language notes and space to write what the lab records showed; open it and print to PDF (the command line writes it too). Clearer plots on this page: an at-a-glance bar, the share of hidden errors found, a card for each listed sample showing whose rare microbes it carries, and a sample map that names listed samples. Flags and probabilities are unchanged. Tested and reported, not added: strain markers help only a little in infants, and a check for mixtures of two people was not reliable.</li>
       <li><b>1.1.1, second November update</b> &middot; Small studies: a clear swap in a table of 24&ndash;40 samples is now a strong flag (about 60&ndash;70% caught on real data, up from 1&ndash;30%). Sturdier file reading: semicolon and old-Mac files, R tables without a corner cell, and clear messages for duplicate sample IDs, text in a count cell, empty files and Excel files. Relative abundances are handled as such. 17 defects found by an independent code review were fixed.</li>
       <li><b>1.1.1, November update</b> &middot; Strain-marker mode and a host-DNA check (beta) for shotgun data; a command-line tool for pipelines; a duplicate check; swap pairs that point at each other are strong flags in tables that separate swaps well, which helps most when a table holds several errors.</li>

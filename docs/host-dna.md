@@ -63,6 +63,16 @@ samtools index S1.host.bam
 
 ## 3. Allele counts at the panel sites
 
+The script `pipelines/host_counts.sh` does this step for a whole folder, checks the inputs, and reports how many
+sites each sample covers (samples under 1,500 are not judged):
+
+```bash
+pipelines/host_counts.sh -b host_bams/ -p panel.vcf.gz -f GRCh38.fa -o host_counts.tsv
+```
+
+It needs samtools and bcftools. It has been tested with stand-in tools only, not yet on real BAM files; please
+report problems. The same step by hand:
+
 ```bash
 echo -e "sample\tsite\talt\ttotal" > host_counts.tsv
 for bam in *.host.bam; do

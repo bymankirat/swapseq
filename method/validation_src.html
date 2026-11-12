@@ -329,8 +329,31 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
   </div>
 </section>
 
+<section id="newchecks">
+  <span class="secno">13</span><h2>Plate map, a second check and a wider net</h2>
+  <div class="prose">
+    <p>Three additions from November 2026. None of them changes a flag when no plate map is given.</p>
+    <p><b>Plate-aware prior.</b> A swap between two tubes that sit next to each other is more likely than a swap between two tubes anywhere on the plate. When two samples are each other&rsquo;s best swap partner and sit in directly neighbouring wells (or next to each other in a plating order), their swap probability is recomputed with the expected error rate multiplied by 5; nothing is lowered for other pairs. Tested on 24 public tables laid out on 96-well plates in the computer, with 1,000 hidden swapped samples per row of the table below. That real swaps are mostly between neighbours is an assumption; we have no data on where real swaps happen.</p>
+  </div>
+  <div class="tablewrap" style="margin-top:14px"><table>
+    <thead><tr><th>Strong flags: swaps caught / other samples flagged per 1,000</th><th>Without plate map</th><th>With plate map</th></tr></thead>
+    <tbody>
+    <tr><td>Swaps between neighbours, random layout</td><td>68% / 4.00</td><td>76% / 4.03</td></tr>
+    <tr><td>Swaps between neighbours, layout sorted by person</td><td>60% / 3.91</td><td>71% / 3.98</td></tr>
+    <tr><td>Swaps between random samples (either layout)</td><td>67&ndash;68% / 3.6&ndash;3.7</td><td>67&ndash;68% / 3.6&ndash;3.8</td></tr>
+    <tr><td>Published labels, nothing hidden</td><td>5.06</td><td>5.06</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p class="muted">In the 21 tables SwapSeq can check, neighbour swaps went from 85% to 93% (random layout) and from 75% to 86% (sorted). In the three infant tables almost nothing is caught either way. The measured power shown by the tool does not include this gain.</p>
+    <p><b>Second check.</b> Every listed sample is also judged by a much simpler rule, the rank rule of Find-abnormality (Ye et al. 2026) written again on SwapSeq&rsquo;s own distance: a person is in doubt when two of their samples are far from each other in both directions, and a sample is named when no close link joins it to the person&rsquo;s largest group of samples. The tool only reports whether this second check agrees. On 29 public tables with 1,560 hidden swapped samples, agreement kept 95% of flagged and 94% of check-list hidden swaps and dropped 41&ndash;46% of the other listed samples, so &ldquo;agrees&rdquo; marks the better candidates. It is not used to make flags: doing so would have raised strong flags from 70% to 78% of hidden swaps but more than doubled the other samples flagged (3.3 to 7.3 per 1,000). Alone the rule names 85 samples per 1,000, and more than one in four in infant cohorts.</p>
+    <p><b>Wide screen.</b> The tool now also runs the check with a 5% expected error rate and lists, apart from the main result, the samples that only this wider net catches. The numbers are those of the matched-settings test in section 11: 99% of hidden swaps instead of 89% in seven shotgun tables, and about four times as many samples listed on other public tables (31 against 7.5 per 1,000). These are weaker leads than the main lists.</p>
+    <p class="muted">Scripts and numbers: <span class="mono">validation/plate_prior</span>, <span class="mono">validation/second_opinion</span>, <span class="mono">validation/ye2026_comparison</span>.</p>
+  </div>
+</section>
+
 <section id="limits">
-  <span class="secno">13</span><h2>Limits</h2>
+  <span class="secno">14</span><h2>Limits</h2>
   <div class="prose"><ul>
     <li><b>One confirmed real error.</b> Everything else is planted. Planted errors are clean label exchanges; real mix-ups can also be partial, such as cross-contamination or a split sample.</li>
     <li><b>Narrow evidence base.</b> Adult 16S results come from two studies, shotgun from one, and plate patterns from one real plating order.</li>
@@ -347,7 +370,7 @@ pre.cmd{font-family:var(--mono);font-size:14px;background:var(--sunk);border:1px
 </section>
 
 <section id="reproduce">
-  <span class="secno">14</span><h2>Reproduce</h2>
+  <span class="secno">15</span><h2>Reproduce</h2>
   <div class="prose">
     <p>Node.js 22 and nothing else. Clone the five source repositories into one folder (the layout is in <span class="mono">method/load.mjs</span>), then:</p>
   </div>
@@ -369,7 +392,7 @@ node method/realswap.mjs       # the real diet-study swap</pre>
 </section>
 
 <section id="cite">
-  <span class="secno">15</span><h2>Cite and references</h2>
+  <span class="secno">16</span><h2>Cite and references</h2>
   <div class="panel cite">
     <p id="citeText">Singh M. (2026). <i>SwapSeq: a sample mix-up checker for longitudinal microbiome studies</i> (v1.1.1). Zenodo. https://doi.org/10.5281/zenodo.23963612</p>
     <div class="actions"><button class="btn ghost small" type="button" id="copyCite">Copy citation</button><span class="copied" id="copied" hidden>Copied</span><a href="https://doi.org/10.5281/zenodo.23963612" target="_blank" rel="noopener">doi:10.5281/zenodo.23963612</a><a href="https://orcid.org/0009-0005-3375-2123" target="_blank" rel="noopener">ORCID 0009-0005-3375-2123</a><a href="https://bio.tools/swapseq" target="_blank" rel="noopener">biotools:swapseq</a><a href="https://scicrunch.org/resolver/RRID:SCR_029248" target="_blank" rel="noopener">RRID:SCR_029248</a></div>

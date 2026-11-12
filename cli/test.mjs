@@ -47,5 +47,23 @@ test('duplicate check: one tube under two names',()=>{
   const j=JSON.parse(fs.readFileSync(path.join(D,'u.json'),'utf8'));
   assert.deepEqual(j.duplicates.map(d=>[d.sampleA,d.sampleB].sort()),[['P5_3','P6_2']]);
   const b=JSON.parse(fs.readFileSync(path.join(D,'b.json'),'utf8'));assert.equal(b.duplicates.length,0)});
+test('plate map, second check and wide screen leave the main result alone',()=>{
+  const wells=ids.map((_,i)=>String.fromCharCode(65+i%8)+String(Math.floor(i/8)%12+1).padStart(2,'0')),plates=ids.map((_,i)=>'p'+(1+Math.floor(i/96)));
+  // put the two swapped tubes side by side: P1_1 in A01 (already), P2_1 moved to B01
+  const j=ids.indexOf('P2_1'),k=wells.indexOf('B01');[wells[j],wells[k]]=[wells[k],wells[j]];
+  fs.writeFileSync(path.join(D,'mw.tsv'),'sample-id\tperson\twell\tplate\n'+ids.map((id,i)=>[id,swapped[i],wells[i],plates[i]].join('\t')).join('\n')+'\n');
+  run(['t.tsv','mw.tsv','--subject','person','--well','well','--plate','plate','--out','w','--no-power']);
+  assert.deepEqual(flagged('w'),['P1_1','P2_1']);
+  const L=fs.readFileSync(path.join(D,'w.tsv'),'utf8').split('\n').filter(Boolean),h=L[1].split('\t'),rows=L.slice(2).map(l=>l.split('\t'));
+  for(const c of ['flagged_by_plate','second_opinion','wide_screen'])assert.ok(h.includes(c),'column '+c);
+  const col=n=>h.indexOf(n);
+  for(const r of rows){if(r[col('wide_screen')]==='yes')assert.equal(r[col('level')],'ok','a wide-screen sample is not on the main lists');
+    if(r[col('second_opinion')])assert.notEqual(r[col('level')],'ok','the second check only annotates listed samples')}
+  for(const id of ['P1_1','P2_1'])assert.equal(rows.find(r=>r[0]===id)[col('second_opinion')],'agrees');
+  const s=JSON.parse(fs.readFileSync(path.join(D,'w.json'),'utf8'));assert.ok(s.plate&&s.plate.used,'plate map used');assert.ok(s.wideScreen&&Array.isArray(s.wideScreen.extraSamples));
+  // two samples in one well: the plate map is not trusted, and the result is the same as without it
+  fs.writeFileSync(path.join(D,'mw2.tsv'),'sample-id\tperson\twell\n'+ids.map((id,i)=>[id,swapped[i],'A01'].join('\t')).join('\n')+'\n');
+  run(['t.tsv','mw2.tsv','--subject','person','--well','well','--out','w2','--no-power','--no-wide']);assert.deepEqual(flagged('w2'),['P1_1','P2_1']);
+  const s2=JSON.parse(fs.readFileSync(path.join(D,'w2.json'),'utf8'));assert.equal(s2.plate.used,false);assert.equal(s2.wideScreen,null)});
 test('helpful errors',()=>{run(['t.tsv','m.tsv','--subject','nope'],1);run(['missing.tsv','m.tsv','--subject','person'],1);run(['t.tsv'],1)});
 console.log(`\n${ok} tests passed`);fs.rmSync(D,{recursive:true,force:true});

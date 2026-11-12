@@ -330,6 +330,46 @@ function promotePairs(res,power,opt={}){
   res.promoted=n;return res;
 }
 
+// ---------- second opinion (November 2026) ----------
+// A second, much simpler rule looks at every listed sample: the rank rule of Find-abnormality (Ye et al. 2026, MIT
+// licence), written again here on the soft-Jaccard distance. A person is in doubt when two of their samples are far
+// from each other in both directions (each ranks beyond 5% of all samples in the other's list of neighbours); within
+// such a person, a sample is named when no close link (rank under 10 either way) joins it to the person's largest
+// group of samples. It uses no calibration, so it errs differently from the main check.
+// Only an annotation: r.second = true (also named by the rank rule) or false, on listed samples. It never makes or
+// removes a flag, because on its own the rule names far too many samples (85 per 1,000 over 29 public tables, and
+// more than one in four in infant cohorts). Where the two agree, the sample is a better candidate: agreement kept
+// 94-95% of listed hidden swaps and dropped 41-46% of the other listed samples (validation/second_opinion).
+function secondOpinion(M,lab,res){
+  const D=M&&M.J,n=lab.length;if(!D||res.uncalibrated||n<20)return res;
+  const by=new Map();lab.forEach((l,i)=>{if(!by.has(l))by.set(l,[]);by.get(l).push(i)});
+  const rank=(a,b)=>{const d=D[a*n+b];let r=0;for(let j=0;j<n;j++)if(j!==a&&j!==b&&D[a*n+j]<d)r++;return r},lim=Math.floor(.05*n),done=new Map();
+  const judge=l=>{if(done.has(l))return done.get(l);const ix=by.get(l)||[],named=new Set();done.set(l,named);if(ix.length<2)return named;
+    const m=ix.length,R=Array.from({length:m},()=>new Int32Array(m));for(let a=0;a<m;a++)for(let b=0;b<m;b++)if(a!==b)R[a][b]=rank(ix[a],ix[b]);
+    let bad=false;for(let a=0;a<m&&!bad;a++)for(let b=a+1;b<m;b++)if(R[a][b]>lim&&R[b][a]>lim){bad=true;break}
+    if(!bad)return named;if(m===2){named.add(ix[0]);named.add(ix[1]);return named}
+    const par=ix.map((_,k)=>k),find=x=>{while(par[x]!==x)x=par[x];return x};
+    for(let a=0;a<m;a++)for(let b=a+1;b<m;b++)if(R[a][b]<10||R[b][a]<10)par[find(a)]=find(b);
+    const size=new Map();for(let a=0;a<m;a++){const r=find(a);size.set(r,(size.get(r)||0)+1)}let big=-1;for(const [r,c] of size)if(big<0||c>size.get(big))big=r;
+    for(let a=0;a<m;a++)if(find(a)!==big)named.add(ix[a]);return named};
+  let agree=0,listed=0;for(const r of res.rows){if(r.level==='ok'||!r.scorable)continue;listed++;r.second=judge(lab[r.i]).has(r.i);if(r.second)agree++}
+  res.second={listed,agree};return res;
+}
+
+// ---------- wide screen (November 2026) ----------
+// The same check with a wider net: the expected error rate set to 5%. Samples that would be listed then, but are not
+// listed at the chosen rate, are returned as a second list ("wide screen"). In the seven shotgun tables of Ye et al.
+// (2026) strong flags plus check list caught 89% of hidden swaps at 1% and 99% at 5%; on the published labels of 23
+// other public tables the 5% setting listed 31 samples per 1,000 against 7.5. Nothing in the main result changes.
+function wideScreen(data,lab,res,M,extra={},opt={}){
+  const prior=opt.prior??.05;res.wide={prior,used:false,rows:[]};
+  if(res.uncalibrated||!((res.prior??.01)<prior))return res;
+  const w=promotePairs(annotate(data,lab,analyse(data,lab,{prior,seed:opt.seed,visit:opt.visit},M),extra),null),base=new Map(res.rows.map(r=>[r.id,r]));
+  for(const x of w.rows){if(x.level==='ok')continue;const b=base.get(x.id);if(!b||b.level!=='ok'||!b.scorable)continue;b.wide=true;
+    res.wide.rows.push({id:x.id,subject:x.subject,kind:x.kind,strong:x.level==='flag',looksLike:x.kind==='swap'?x.partnerSubject:x.looksLike,partner:x.kind==='swap'?x.partner:null,nearest:x.nearest,rare:x.rare||null,well:x.well||null,cohab:x.cohab||null})}
+  res.wide.used=true;return res;
+}
+
 // ---------- duplicate check (November 2026) ----------
 // Duplicate check: two samples labelled as different people whose communities are near-identical.
 // That happens when one tube is sequenced twice under two names, a DNA extract is reused, or a file is
@@ -380,6 +420,7 @@ function annotate(data,lab,res,extra={}){
   const rareMax=Math.max(2,Math.floor(.05*n)),byPerson=new Map(),idxOf=new Map(S.map((s,i)=>[s.id,i]));
   lab.forEach((l,i)=>{if(!byPerson.has(l))byPerson.set(l,[]);byPerson.get(l).push(i)});
   const featsOf=(person,ex)=>{const set=new Set();for(const j of byPerson.get(person)||[])if(!ex.has(j))for(const f of P[j])set.add(f);return set};
+  if(extra.well&&extra.plateBoost!==false)plateBoost(res,extra.well,extra.plate,{k:extra.plateK});
   const house=extra.house,well=extra.well?extra.well.map(parseWell):null,plate=extra.plate;
   for(const r of res.rows){if(r.level==='ok')continue;const i=r.i,other=r.kind==='swap'?r.partnerSubject:r.looksLike;if(other==null)continue;
     const ex=new Set([i]);if(r.kind==='swap'&&idxOf.has(r.partner))ex.add(idxOf.get(r.partner));
@@ -392,6 +433,36 @@ function annotate(data,lab,res,extra={}){
     if(ra.downgraded||rb.downgraded||ra.level==='check'||rb.level==='check')p.level='check';
     if(well&&well[a]&&well[b]&&(!plate||plate[a]===plate[b])){const wa=well[a],wb=well[b],d=Math.abs(wa.r-wb.r)+Math.abs(wa.c-wb.c);
       p.wells={a:wa.name,b:wb.name,plate:plate?plate[a]:null,relation:d===1?'adjacent':(wa.c===wb.c&&wa.r+wb.r===7)?'mirror':(d===2&&wa.r!==wb.r&&wa.c!==wb.c)?'diagonal':'apart'}}}
+  return res;
+}
+
+// ---------- plate-aware prior (November 2026) ----------
+// A swap between two tubes that sit next to each other on the plate is far more likely than a swap between two
+// tubes at random positions: with n samples, a given sample has up to 4 direct neighbours but n-1 possible partners.
+// When two samples are each other's best swap partner AND sit in directly neighbouring wells of the same plate
+// (same row or column, one step apart; or next to each other in a plating order), their swap probability is recomputed with the expected error rate
+// multiplied by k (default 5). Nothing is lowered for pairs that are not neighbours, so the check is never weaker
+// than without a plate map. Needs unique well positions (per plate); otherwise it does nothing.
+function plateBoost(res,wellRaw,plate,opt={}){
+  const k=opt.k??5,thr=res.threshold??.5;res.plate={used:false,raised:0,k};
+  if(!wellRaw||res.uncalibrated||!res.planted||!(k>1))return res;
+  // positions are wells (A01..H12) or, failing that, a plating order (whole numbers: neighbours are one step apart)
+  let well=wellRaw.map(parseWell);
+  if(well.filter(Boolean).length<8){well=wellRaw.map(w=>{const t=String(w??'').trim(),v=+t;return t!==''&&Number.isInteger(v)?{r:0,c:v,name:t}:null});res.plate.order=true}
+  const seen=new Set();
+  for(const r of res.rows){const w=well[r.i];if(!w)continue;const key=(plate&&plate[r.i]!=null?plate[r.i]:'')+'|'+w.name;if(seen.has(key)){res.plate.reason='two samples share a position';return res}seen.add(key)}
+  if(seen.size<8){res.plate.reason='too few positions';return res}
+  const byId=new Map(res.rows.map(r=>[r.id,r])),Pk=calibrate(res.rows.map(r=>r.pair),res.planted.pair,Math.min(.5,(res.prior??.01)*k));
+  if(!Number.isFinite(Pk.pi))return res;res.plate.used=true;
+  const pairKey=new Set(res.pairs.map(p=>[p.a,p.b].sort().join('|')));
+  for(const r of res.rows){if(!r.scorable||r.partner==null)continue;const o=byId.get(r.partner);if(!o||o.partner!==r.id||!o.scorable)continue;
+    const wa=well[r.i],wb=well[o.i];if(!wa||!wb||(plate&&plate[r.i]!==plate[o.i]))continue;if(Math.abs(wa.r-wb.r)+Math.abs(wa.c-wb.c)!==1)continue;
+    r.neighbour=o.id;const p=Pk(r.pair);if(!(p>(r.pSwap||0)))continue;
+    r.pSwapPlate=p;if(p>r.prob)r.prob=p;
+    if(!r.flag&&r.prob>=thr){r.flag=true;r.check=false;r.level='flag';r.byPlate=true;res.plate.raised++}}
+  for(const r of res.rows){if(!r.byPlate)continue;const o=byId.get(r.partner);if(o.level==='ok')continue;r.kind='swap';o.kind='swap';
+    const key=[r.id,o.id].sort().join('|');if(pairKey.has(key)){const p=res.pairs.find(p=>[p.a,p.b].sort().join('|')===key);if(r.flag&&o.flag)p.level='flag'}
+    else{pairKey.add(key);res.pairs.push({a:r.id,b:o.id,subjectA:r.subject,subjectB:o.subject,level:r.flag&&o.flag?'flag':'check',plate:true})}}
   return res;
 }
 
@@ -566,6 +637,8 @@ function reportHTML(o){
     else if(r.host&&r.host.verdict==='identical DNA')a.push(`Host DNA is identical to ${e(r.host.looksLike)} (twins, or one person under two IDs).`);
     else if(r.host&&r.host.verdict==='same person')a.push(`Host DNA fits ${e(r.subject)}, the labelled person.`);
     if(r.byPair)a.push('Strong because both samples of the pair point at each other\'s person.');
+    if(r.byPlate)a.push('Strong because its swap partner sits in the next well, where a swap is more likely.');
+    if(r.second===true)a.push('Second check (rank rule) agrees.');else if(r.second===false&&r.level==='check')a.push('Second check does not name it.');
     if(r.shift)a.push(`Part of a possible sample-sheet shift (positions ${e(r.shift.from)} to ${e(r.shift.to)}).`);
     if(r.cohab)a.push(`Same household (${e(r.cohab)}) as the look-alike${r.downgraded?', so it was moved to the check list':''}.`);
     if(r.well)a.push(`Well ${e(r.well)}.`);return a.join(' ')};
@@ -645,6 +718,7 @@ ${figs.status||''}
 <p><b>Strong flags</b> (${flags.length})</p>${tab(flags,200)}
 <p style="margin-top:14px"><b>Check list</b> (${checks.length})</p>${low&&checks.length?`<p class="s">Power is low here, so most of these are natural look-alikes.</p>`:''}${tab(checks,200)}
 ${figs.rare||''}
+${o.wide&&o.wide.used?`<p style="margin-top:14px"><b>Wide screen</b> (${o.wide.rows.length})</p><p class="s">The same check with a wider net (expected error rate ${o.wide.prior*100}% instead of ${prior*100}%). It finds more real errors and lists more look-alikes, so these are weaker leads than the lists above.</p>${o.wide.rows.length?`<div class="tw"><table><thead><tr><th>Sample</th><th>Labelled as</th><th>Looks like</th><th>Kind</th><th class="box">Records checked</th></tr></thead><tbody>${o.wide.rows.slice(0,60).map(w=>`<tr><td class="m">${e(w.id)}</td><td class="m">${e(w.subject)}</td><td class="m">${e(w.looksLike)}</td><td>${w.kind==='swap'?'Swap with '+e(w.partner):'Mismatch'}</td><td class="box"></td></tr>`).join('')}</tbody></table></div>${o.wide.rows.length>60?`<p class="s">${o.wide.rows.length-60} more are in the results table (column wide_screen).</p>`:''}`:'<p class="s">None.</p>'}`:''}
 ${dups.length?`<p style="margin-top:14px"><b>Possible duplicates</b> (${dups.length})</p><p class="s">Samples labelled as different people with almost the same microbes: one tube or file under two names, or a sample under the wrong person.</p><ul>${dups.slice(0,50).map(d=>`<li><span class="m">${e(d.a)}</span> (labelled ${e(d.sa)}) and <span class="m">${e(d.b)}</span> (labelled ${e(d.sb)})</li>`).join('')}</ul>`:''}
 ${o.host?`<p style="margin-top:14px"><b>Host DNA</b></p><p>${o.host.ok?`${(o.host.used||0).toLocaleString('en')} samples had enough host reads to check; ${rows.filter(r=>r.byHost).length} flagged because their DNA fits another person.`:`Not used: ${e(o.host.reason)}.`}</p>`:''}
 <h2>3. How much to trust this result</h2>
@@ -709,7 +783,8 @@ function swapseq_run(json){
   let res=annotate(data,lab,analyse(data,lab,{prior:prior0},M),{house:input.house||null,well:input.well||null,plate:input.plate||null});
   const mp=measurePower(data,lab,res,M); // v1.1: power measured on errors hidden in copies of the labels
   res.power=mp||{single:null,swap:null,singleWithCheck:null,swapWithCheck:null,measured:false};
-  promotePairs(res,mp);
+  promotePairs(res,mp);secondOpinion(M,lab,res);
+  wideScreen(data,lab,res,M,{house:input.house||null,well:input.well||null,plate:input.plate||null});
   const dup=findDuplicates(M,lab,{},data.samples.map(s=>s.id)).pairs; // two people's labels, one near-identical community
   let host=null;
   if(input.host){const G=input.host.map(h=>h?new Map(Object.entries(h).map(([k,v])=>[k,v])):null);
@@ -722,10 +797,10 @@ function swapseq_run(json){
     scorable:!!r.scorable,rare_total:r.rare?num(r.rare.total):null,rare_shared_own:r.rare?num(r.rare.withOwn):null,rare_shared_lookalike:r.rare?num(r.rare.withOther):null,household_lookalike:!!r.cohab,
     well:r.well==null?null:String(r.well),in_shift:!!r.shift,
     host_verdict:r.host?r.host.verdict:null,host_looks_like:r.host&&r.host.looksLike!=null?String(r.host.looksLike):null,host_llr:r.host?num(r.host.llr):null,host_sites:r.host?num(r.host.sites):null,
-    flagged_by_host:!!r.byHost,flagged_as_pair:!!r.byPair}));
+    flagged_by_host:!!r.byHost,flagged_as_pair:!!r.byPair,flagged_by_plate:!!r.byPlate,second_opinion:r.second==null?null:!!r.second,wide_screen:!!r.wide}));
   // put back the samples that had no subject label, in the caller's order
   let outRows=rows;
-  if(keepIx.length!==input0.samples.length){const blank=id=>{const o={};for(const k in rows[0])o[k]=null;return Object.assign(o,{sample:String(id),level:'ok',scorable:false,household_lookalike:false,in_shift:false,flagged_by_host:false,flagged_as_pair:false})};
+  if(keepIx.length!==input0.samples.length){const blank=id=>{const o={};for(const k in rows[0])o[k]=null;return Object.assign(o,{sample:String(id),level:'ok',scorable:false,household_lookalike:false,in_shift:false,flagged_by_host:false,flagged_as_pair:false,flagged_by_plate:false,second_opinion:null,wide_screen:false})};
     outRows=input0.samples.map(s=>blank(s.id));keepIx.forEach((i,k)=>outRows[i]=rows[k])}
   return JSON.stringify({rows:outRows,no_subject:input0.samples.length-keepIx.length,calibrated:!res.uncalibrated,shifts:res.shifts||[],duplicates:dup.map(p=>({sample_a:String(p.idA),subject_a:String(p.subjectA),sample_b:String(p.idB),subject_b:String(p.subjectB),distance:num(p.distance[0])})),power:res.power,n_subjects:res.nSubjects,separation:num(res.separation),promoted_pairs:res.promoted||0,swap_pairs:res.pairs.length,many_errors:res.nScorable>0&&res.pairs.length>=3&&2*res.pairs.length/res.nScorable>=1.5*prior0,separation2:num(res.separation2),reidentified:num(res.reid),n_scorable:res.nScorable,threshold:num(res.threshold),prior:prior0,
     type,markers:type==='markers'?M.markers:null,host:host?{ok:host.ok,reason:host.reason||null,samples_with_host_dna:host.used||0}:null,version:'1.1.1'});
