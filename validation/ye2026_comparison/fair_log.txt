@@ -1,0 +1,8 @@
+HMP_2019_t2d     n 189 hidden 20 | ye 75% other 21.4 | s1 80% other 8.6 | s1c 100% other 12.8 | s2 100% other 10.7 | s3 100% other 18.7
+BrooksB_2017     n 408 hidden 60 | ye 98% other 113.4 | s1 20% other 0.5 | s1c 78% other 13.2 | s2 57% other 6.2 | s3 77% other 7.5
+HallAB_2017      n 259 hidden 20 | ye 95% other 128.4 | s1 50% other 7.8 | s1c 60% other 15.2 | s2 60% other 9.7 | s3 70% other 19.1
+PRJEB70966       n 248 hidden 20 | ye 100% other 36.6 | s1 10% other 4.9 | s1c 55% other 15.9 | s2 45% other 14.6 | s3 75% other 18.3
+PRJEB38984       n 384 hidden 60 | ye 98% other 36.8 | s1 48% other 19.0 | s1c 97% other 39.4 | s2 95% other 35.2 | s3 100% other 39.4
+PRJEB72385_FMT   n 493 hidden 60 | ye 90% other 17.2 | s1 77% other 4.7 | s1c 93% other 6.8 | s2 90% other 6.4 | s3 93% other 7.8
+HMP_2019_ibdmdb  n 1585 hidden 100 | ye 100% other 43.6 | s1 70% other 9.3 | s1c 98% other 17.2 | s2 91% other 15.7 | s3 98% other 17.7
+DONE

@@ -1,0 +1,160 @@
+[
+ {
+  "dataset": "SMP gut",
+  "samples": 638,
+  "people": 75,
+  "swappedSamplesCaught": 0.922,
+  "swapPairsNamedExactly": 0.911,
+  "oneWayCaught": 0.767,
+  "falseFlagsPer1000": 0.05,
+  "withReview": {
+   "swaps": 0.967,
+   "oneWay": 0.883,
+   "falsePer1000": 0.37
+  },
+  "selfEstimatedPower": {
+   "single": 0.762,
+   "swap": 0.936
+  },
+  "flagsOnOriginal": 1,
+  "checksOnOriginal": 0,
+  "reps": 30,
+  "prior": 0.01
+ },
+ {
+  "dataset": "SMP tongue",
+  "samples": 692,
+  "people": 80,
+  "swappedSamplesCaught": 0.428,
+  "swapPairsNamedExactly": 0.467,
+  "oneWayCaught": 0.133,
+  "falseFlagsPer1000": 0.15,
+  "withReview": {
+   "swaps": 0.611,
+   "oneWay": 0.6,
+   "falsePer1000": 2.82
+  },
+  "selfEstimatedPower": {
+   "single": 0.022,
+   "swap": 0.616
+  },
+  "flagsOnOriginal": 10,
+  "checksOnOriginal": 4,
+  "reps": 30,
+  "prior": 0.01
+ },
+ {
+  "dataset": "SMP palm",
+  "samples": 515,
+  "people": 61,
+  "swappedSamplesCaught": 0.517,
+  "swapPairsNamedExactly": 0.678,
+  "oneWayCaught": 0.1,
+  "falseFlagsPer1000": 0.4,
+  "withReview": {
+   "swaps": 0.822,
+   "oneWay": 0.467,
+   "falsePer1000": 2.17
+  },
+  "selfEstimatedPower": {
+   "single": 0.269,
+   "swap": 0.551
+  },
+  "flagsOnOriginal": 1,
+  "checksOnOriginal": 0,
+  "reps": 30,
+  "prior": 0.01
+ },
+ {
+  "dataset": "SMP forehead",
+  "samples": 675,
+  "people": 80,
+  "swappedSamplesCaught": 0.894,
+  "swapPairsNamedExactly": 0.844,
+  "oneWayCaught": 0.617,
+  "falseFlagsPer1000": 0.3,
+  "withReview": {
+   "swaps": 0.978,
+   "oneWay": 0.683,
+   "falsePer1000": 1.3
+  },
+  "selfEstimatedPower": {
+   "single": 0.622,
+   "swap": 0.805
+  },
+  "flagsOnOriginal": 0,
+  "checksOnOriginal": 1,
+  "reps": 30,
+  "prior": 0.01
+ },
+ {
+  "dataset": "ECAM infants",
+  "samples": 875,
+  "people": 43,
+  "swappedSamplesCaught": 0.022,
+  "swapPairsNamedExactly": 0.1,
+  "oneWayCaught": 0,
+  "falseFlagsPer1000": 0.31,
+  "withReview": {
+   "swaps": 0.239,
+   "oneWay": 0.25,
+   "falsePer1000": 14.57
+  },
+  "selfEstimatedPower": {
+   "single": 0.009,
+   "swap": 0.072
+  },
+  "flagsOnOriginal": 0,
+  "checksOnOriginal": 16,
+  "reps": 30,
+  "prior": 0.01
+ },
+ {
+  "dataset": "SMP gut (2 per person)",
+  "samples": 150,
+  "people": 75,
+  "swappedSamplesCaught": 0.533,
+  "swapPairsNamedExactly": 0.633,
+  "oneWayCaught": null,
+  "falseFlagsPer1000": 0,
+  "withReview": {
+   "swaps": 0.65,
+   "oneWay": null,
+   "falsePer1000": 0.68
+  },
+  "selfEstimatedPower": {
+   "single": 0.031,
+   "swap": 0.536
+  },
+  "peopleInSwapFlagged": 0.533,
+  "uninvolvedPeopleFlagged": 0,
+  "flagsOnOriginal": 0,
+  "checksOnOriginal": 1,
+  "reps": 30,
+  "prior": 0.01
+ },
+ {
+  "dataset": "SMP forehead (2 per person)",
+  "samples": 160,
+  "people": 80,
+  "swappedSamplesCaught": 0.4,
+  "swapPairsNamedExactly": 0.8,
+  "oneWayCaught": null,
+  "falseFlagsPer1000": 0,
+  "withReview": {
+   "swaps": 0.8,
+   "oneWay": null,
+   "falsePer1000": 0.21
+  },
+  "selfEstimatedPower": {
+   "single": 0.02,
+   "swap": 0.249
+  },
+  "peopleInSwapFlagged": 0.417,
+  "uninvolvedPeopleFlagged": 0,
+  "flagsOnOriginal": 0,
+  "checksOnOriginal": 0,
+  "reps": 30,
+  "prior": 0.01
+ }
+]

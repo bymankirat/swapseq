@@ -1,0 +1,67 @@
+# Rerun of the SwapSeq benchmark on the author's own computer
+# MacBook (Apple silicon), macOS, Node.js v26.13.1, 18 November 2026, fresh clone of github.com/bymankirat/swapseq at commit 4e868aa.
+# Terminal output below is copied unchanged from the author's terminal (from 'node -v' to the end of the run).
+
+(base) mankiratsingh@Mac swapseq_test % node -v
+v26.13.1
+(base) mankiratsingh@Mac swapseq_test % bash validation/reproduce.sh
+Downloading smp ...
+remote: Enumerating objects: 5, done.
+remote: Total 5 (delta 0), reused 0 (delta 0), pack-reused 5 (from 1)
+Receiving objects: 100% (5/5), 4.41 MiB | 5.11 MiB/s, done.
+Downloading q2-longitudinal ...
+remote: Enumerating objects: 2, done.
+remote: Counting objects: 100% (1/1), done.
+remote: Total 2 (delta 0), reused 0 (delta 0), pack-reused 1 (from 1)
+Receiving objects: 100% (2/2), 428.84 KiB | 2.36 MiB/s, done.
+remote: Enumerating objects: 1, done.
+remote: Total 1 (delta 0), reused 0 (delta 0), pack-reused 1 (from 1)
+Receiving objects: 100% (1/1), 70 bytes | 70.00 KiB/s, done.
+Downloading dietstudy_analyses ...
+remote: Enumerating objects: 3, done.
+remote: Counting objects: 100% (1/1), done.
+remote: Total 3 (delta 0), reused 0 (delta 0), pack-reused 2 (from 1)
+Receiving objects: 100% (3/3), 659.19 KiB | 3.51 MiB/s, done.
+Downloading IMP_analyses ...
+remote: Enumerating objects: 2, done.
+remote: Counting objects: 100% (1/1), done.
+remote: Total 2 (delta 0), reused 0 (delta 0), pack-reused 1 (from 1)
+Receiving objects: 100% (2/2), 7.78 MiB | 5.73 MiB/s, done.
+Downloading MDSINE2_Paper ...
+remote: Enumerating objects: 14, done.
+remote: Counting objects: 100% (11/11), done.
+remote: Compressing objects: 100% (9/9), done.
+remote: Total 14 (delta 5), reused 2 (delta 2), pack-reused 3 (from 1)
+Receiving objects: 100% (14/14), 313.83 KiB | 6.68 MiB/s, done.
+Resolving deltas: 100% (6/6), done.
+Running: gut,tongue,palm,forehead,ecam,gut2,forehead2 (30 repetitions)
+Running: imp (60 repetitions)
+Running: diet,dietsp,mdh,mdu,diet2 (30 repetitions)
+Running: gut,tongue,palm,forehead,ecam,gut2,forehead2 (30 repetitions, Bray-Curtis)
+Running: imp (60 repetitions, Bray-Curtis)
+
+Comparing with the published results:
+MATCH  [Bray-Curtis] IMP adults (16S)                   caught 28.3%  other flags per 1,000: 0
+MATCH  [Bray-Curtis] SMP gut                            caught 22.8%  other flags per 1,000: 0.16
+MATCH  [Bray-Curtis] SMP tongue                         caught 2.8%  other flags per 1,000: 0.1
+MATCH  [Bray-Curtis] SMP palm                           caught 2.2%  other flags per 1,000: 0.13
+MATCH  [Bray-Curtis] SMP forehead                       caught 38.3%  other flags per 1,000: 0.15
+MATCH  [Bray-Curtis] ECAM infants                       caught 0.0%  other flags per 1,000: 0
+MATCH  [Bray-Curtis] SMP gut (2 per person)             caught 0.0%  other flags per 1,000: 0
+MATCH  [Bray-Curtis] SMP forehead (2 per person)        caught 3.3%  other flags per 1,000: 0
+MATCH  IMP adults (16S)                                 caught 43.3%  other flags per 1,000: 0
+MATCH  SMP gut                                          caught 92.2%  other flags per 1,000: 0.05
+MATCH  SMP tongue                                       caught 42.8%  other flags per 1,000: 0.15
+MATCH  SMP palm                                         caught 51.7%  other flags per 1,000: 0.4
+MATCH  SMP forehead                                     caught 89.4%  other flags per 1,000: 0.3
+MATCH  ECAM infants                                     caught 2.2%  other flags per 1,000: 0.31
+MATCH  SMP gut (2 per person)                           caught 53.3%  other flags per 1,000: 0
+MATCH  SMP forehead (2 per person)                      caught 40.0%  other flags per 1,000: 0
+MATCH  Diet study (strain-level)                        caught 88.3%  other flags per 1,000: 0.39
+MATCH  Diet study (species)                             caught 93.9%  other flags per 1,000: 0.14
+MATCH  MDSINE2 mice (healthy donor)                     caught 2.8%  other flags per 1,000: 0.11
+MATCH  MDSINE2 mice (uc donor)                          caught 0.0%  other flags per 1,000: 0
+MATCH  Diet study (strain-level) (2 per person)         caught 0.0%  other flags per 1,000: 0
+
+21 of 21 results match the published numbers exactly.
+(base) mankiratsingh@Mac swapseq_test % 

@@ -1,0 +1,11 @@
+study,group,data,samples,people,swaps_flagged_pct,with_check_list_pct,other_flags_per_1000
+HMP_2019_ibdmdb,adults and children (IBD cohort),species,1183,81,95,98,1.76
+HMP_2019_ibdmdb,adults and children (IBD cohort),markers,1183,81,95,98,1.68
+KosticAD_2015,infants,species,120,19,70,72,0.21
+KosticAD_2015,infants,markers,120,19,78,90,0.43
+VatanenT_2016,infants,species,682,147,0,5,0.00
+VatanenT_2016,infants,markers,682,147,0,50,0.00
+ShaoY_2019,newborns,species,961,282,0,45,0.00
+ShaoY_2019,newborns,markers,961,282,18,25,0.05
+BackhedF_2015,newborns to 12 months,species,300,100,0,0,0.00
+BackhedF_2015,newborns to 12 months,markers,300,100,0,0,0.00

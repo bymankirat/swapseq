@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SwapSeq Atlas</title>
+<meta name="description" content="How checkable are public longitudinal microbiome datasets for swapped samples? SwapSeq tested 42 public tables, 20,974 samples, with hidden test swaps.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SwapSeq Atlas: can public microbiome data be checked for swapped samples?">
+<meta property="og:description" content="How checkable are public longitudinal microbiome datasets for swapped samples? SwapSeq tested 42 public tables, 20,974 samples, with hidden test swaps.">
+<meta property="og:url" content="https://bymankirat.github.io/swapseq/atlas/">
+<meta property="og:image" content="https://bymankirat.github.io/swapseq/atlas/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="627">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="author" content="Mankirat Singh">
+<style>
+@font-face{font-family:"Bricolage Grotesque";src:url("../fonts/BricolageGrotesque.ttf") format("truetype");font-weight:200 800;font-stretch:75% 100%;font-display:swap}
+@font-face{font-family:"Instrument Sans";src:url("../fonts/InstrumentSans.ttf") format("truetype");font-weight:400 700;font-stretch:75% 100%;font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url("../fonts/JetBrainsMono.ttf") format("truetype");font-weight:100 800;font-display:swap}
+:root{
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --sans:"Instrument Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --color-bg:#F3F5F8; --color-panel:#FFFFFF; --color-fg:#172036; --color-fg-muted:#56617A; --color-border-line:#DCE1E9;
+  --color-ok:#1E8458; --color-warn:#A86200; --color-bad:#D2304A; --accent:#2B47C9; --accent-ink:#FFFFFF;
+  --cds-chart-grid:#E4E8EF; --cds-chart-axis:#9AA3B5; --cds-chart-muted:#B9C1CF; --cds-chart-reference:#7C869B;
+  --cds-surface-popover:#FFFFFF; --cds-border:#D3D9E3; --cds-shadow-popover:0 8px 28px rgba(20,30,60,.14); --cds-text-secondary:#56617A;
+  --c1:#2B47C9; --c2:#E5762F; --c3:#1E9E74; --c4:#D2304A; --c5:#7B5BD6; --c6:#D9A21B; --c7:#1F97B8; --c8:#7C8A25;
+  --cds-font-size-caption:.8125rem; --cds-font-size-body:1rem; --cds-font-size-heading:1.125rem; --cds-font-size-title:2rem;
+  --cds-font-weight-medium:600; --cds-gap-xs:.25rem; --cds-gap-sm:.5rem; --cds-gap-md:1rem; --cds-gap-lg:1.5rem; --cds-gap-xl:2rem;
+  --cds-pad-xs:.25rem; --cds-pad-sm:.5rem; --cds-pad-md:.875rem; --cds-pad-lg:1.25rem; --cds-radius:12px; --cds-dur-slow:.6s; --cds-ease-out:cubic-bezier(.2,.8,.2,1);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --color-bg:#0E1424; --color-panel:#151D31; --color-fg:#E9EDF6; --color-fg-muted:#A0AAC0; --color-border-line:#263049;
+  --color-ok:#56D195; --color-warn:#F3B24C; --color-bad:#FF6F80; --accent:#93A4FF; --accent-ink:#0E1424;
+  --cds-chart-grid:#222C44; --cds-chart-axis:#4A5677; --cds-chart-muted:#3A4664; --cds-chart-reference:#7C869B;
+  --cds-surface-popover:#1A2338; --cds-border:#2E3955; --cds-shadow-popover:0 8px 28px rgba(0,0,0,.5); --cds-text-secondary:#A0AAC0;
+  --c1:#93A4FF; --c2:#FF9D5C; --c3:#4CD3A2; --c4:#FF6F80; --c5:#B79CFF; --c6:#F3C64A; --c7:#5CC8E6; --c8:#C2CF55; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --color-bg:#0E1424; --color-panel:#151D31; --color-fg:#E9EDF6; --color-fg-muted:#A0AAC0; --color-border-line:#263049;
+  --color-ok:#56D195; --color-warn:#F3B24C; --color-bad:#FF6F80; --accent:#93A4FF; --accent-ink:#0E1424;
+  --cds-chart-grid:#222C44; --cds-chart-axis:#4A5677; --cds-chart-muted:#3A4664; --cds-chart-reference:#7C869B;
+  --cds-surface-popover:#1A2338; --cds-border:#2E3955; --cds-shadow-popover:0 8px 28px rgba(0,0,0,.5); --cds-text-secondary:#A0AAC0;
+  --c1:#93A4FF; --c2:#FF9D5C; --c3:#4CD3A2; --c4:#FF6F80; --c5:#B79CFF; --c6:#F3C64A; --c7:#5CC8E6; --c8:#C2CF55; color-scheme:dark }
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--color-bg);color:var(--color-fg);font:16px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+a{color:var(--accent);text-underline-offset:3px}
+.ss-top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--color-bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--color-border-line)}
+.ss-top .in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:24px;padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.ss-brand{display:flex;align-items:center;gap:10px;font:700 20px/1 var(--display);letter-spacing:-.02em;color:var(--color-fg);text-decoration:none}
+.ss-brand small{font:500 13px var(--sans);color:var(--color-fg-muted);letter-spacing:0}
+.ss-top nav{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}
+.ss-top nav a{color:var(--color-fg-muted);text-decoration:none;font-size:15px;white-space:nowrap}
+.ss-top nav a:hover,.ss-top nav a[aria-current="page"]{color:var(--color-fg)}
+@media (max-width:720px){.ss-top nav a:not(.keep){display:none}}
+#dash-root{max-width:1180px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+/* SwapSeq look for the atlas page */
+.sa-title,.sa-h2,.sa-profile h3{font-weight:700 !important;letter-spacing:-.025em}
+.sa-title{font-size:clamp(2.2rem,5vw,3.6rem) !important;line-height:1.02 !important}
+.sa-h2{font-size:clamp(1.6rem,3.2vw,2.2rem) !important}
+.sa-tile-num{font-weight:700 !important;letter-spacing:-.02em}
+.sa-hero{--color-panel:#0B1122;--color-fg:#F4F6FB;--color-fg-muted:#AAB3CB;--color-border-line:#26314F;color:var(--color-fg);
+  background-color:#0B1122 !important;background-image:radial-gradient(rgba(147,164,255,.16) 1px,transparent 1.3px),radial-gradient(120% 90% at 85% 10%,rgba(43,71,201,.35),transparent 60%) !important;
+  background-size:20px 20px,100% 100% !important;border-color:#1D2745 !important;min-height:28rem !important}
+.sa-hero .sa-kicker{color:#93A4FF}
+.sa-hero .sa-lede b{color:#FFFFFF}
+.sa-nav{top:57px !important}
+.sa-chip[aria-pressed="true"]{background:var(--accent) !important;border-color:var(--accent) !important;color:var(--accent-ink) !important}
+.sa-btn{border-color:var(--accent) !important;color:var(--accent) !important}
+.foot{margin-top:48px;padding-top:18px;border-top:1px solid var(--color-border-line);font-size:.8125rem;color:var(--color-fg-muted);display:grid;gap:10px;line-height:1.55}
+.foot b{color:var(--color-fg)}
+.dash-select{font:inherit;font-size:.8125rem;padding:.35em 1.6em .35em .7em;border:1px solid var(--color-border-line);border-radius:10px;background-color:var(--color-panel);color:var(--color-fg)}
+.sa-search{min-width:0}
+.sa-label svg text{font-size:.9rem !important;font-weight:700}
+.sa-section{scroll-margin-top:118px}
+</style>
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<script src="vendor/d3.min.js"></script>
+</head>
+<body>
+<header class="ss-top"><div class="in"><a class="ss-brand" href="../"><svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1.5" y="1.5" width="25" height="25" rx="6" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".35"/><circle cx="9" cy="14" r="4.6" fill="var(--accent)"/><circle cx="19" cy="14" r="4.6" fill="var(--color-bad)"/><path d="M8 7.2c3-3 9-3 12 0M20 20.8c-3 3-9 3-12 0" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>SwapSeq <small>Atlas</small></span></a>
+<nav aria-label="Site"><a class="keep" href="../">Tool</a><a href="../validation.html">Methods</a><a class="keep" href="./" aria-current="page">Atlas</a><a href="https://github.com/bymankirat/swapseq/tree/main/atlas">Code and data</a></nav></div></header>
+<div id="dash-root">
+<script>const ROWS=[{"key":"poyet","supported":0,"name":"BIO-ML stool donors (Poyet 2019)","ref":"Poyet et al. 2019, Nat Med","type":"Shotgun (genus counts)","group":"Adult gut","design":"Healthy donors sampled repeatedly over up to 2 years","validation":false,"control":null,"samples":164,"dropped":0,"subjects":83,"scorable":128,"perSubject":2,"reid":100,"caught":100,"review":100,"pairNamed":100,"relabel":100,"fp":0,"fpCheck":0,"reps":80,"testsPerRep":1.5,"flags":0,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"High","selfPowerSwap":0,"short":"BIO-ML stool donors","powerV111":95,"possibleDuplicates":0,"engine":"November update 2"},{"key":"hmpStool","supported":0,"name":"HMP1 stool (HMP Consortium 2012)","ref":"Human Microbiome Project Consortium 2012, Nature; table from MLRepo","type":"16S (V3-V5, closed-reference OTUs)","group":"Adult gut","design":"Healthy adults, one to three visits over up to two years","validation":false,"control":null,"samples":386,"dropped":11,"subjects":209,"scorable":292,"perSubject":2,"reid":96.9,"caught":99,"review":100,"pairNamed":98,"relabel":95,"fp":1.51,"fpCheck":4.6,"reps":80,"testsPerRep":1.5,"flags":0,"checks":1,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"High","selfPowerSwap":0,"short":"HMP1 stool","powerV111":100,"possibleDuplicates":0,"engine":"November update 2"},{"key":"smpGut","supported":0,"name":"Student Microbiome gut","ref":"Flores et al. 2014, Genome Biol","type":"16S","group":"Adult gut","design":"Weekly self-sampling for 10 weeks","validation":true,"control":null,"samples":638,"dropped":0,"subjects":75,"scorable":638,"perSubject":9,"reid":97.3,"caught":98,"review":99,"pairNamed":95,"relabel":85,"fp":0,"fpCheck":0.7,"reps":20,"testsPerRep":5,"flags":1,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":1.6,"grade":"High","selfPowerSwap":0,"short":"Student Microbiome, gut","powerV111":100,"possibleDuplicates":0,"engine":"November update 2"},{"key":"hagan","supported":0,"name":"Antibiotics and vaccines (Hagan 2019)","ref":"Hagan et al. 2019, Cell","type":"16S (relative abundance)","group":"Adult gut","design":"Antibiotics before flu vaccination, stool to day 180","validation":false,"control":null,"samples":264,"dropped":0,"subjects":33,"scorable":264,"perSubject":8,"reid":92.4,"caught":95,"review":100,"pairNamed":90,"relabel":100,"fp":0.14,"fpCheck":0.2,"reps":80,"testsPerRep":1.5,"flags":0,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"High","selfPowerSwap":0,"short":"Antibiotics + vaccine (Hagan)","powerV111":85,"possibleDuplicates":0,"engine":"November update (source files not available for this run)"},{"key":"smpForehead","supported":0,"name":"Student Microbiome forehead","ref":"Flores et al. 2014, Genome Biol","type":"16S","group":"Skin and nose","design":"Weekly self-sampling for 10 weeks","validation":true,"control":null,"samples":675,"dropped":0,"subjects":80,"scorable":675,"perSubject":9,"reid":87.4,"caught":94,"review":96,"pairNamed":92,"relabel":70,"fp":0.6,"fpCheck":1.3,"reps":20,"testsPerRep":5,"flags":0,"checks":1,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"High","selfPowerSwap":94,"short":"Student Microbiome, forehead","powerV111":90,"possibleDuplicates":0,"engine":"November update 2"},{"key":"diet","supported":0,"name":"Diet and microbiome (Johnson 2019)","ref":"Johnson et al. 2019, Cell Host Microbe","type":"Shotgun (strain-level)","group":"Adult gut","design":"Daily stool for 17 days","validation":true,"control":null,"samples":522,"dropped":4,"subjects":37,"scorable":522,"perSubject":16,"reid":99.0,"caught":92,"review":99,"pairNamed":85,"relabel":90,"fp":0,"fpCheck":0.5,"reps":20,"testsPerRep":5,"flags":0,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"High","selfPowerSwap":0,"short":"Diet study (Johnson)","powerV111":95,"possibleDuplicates":0,"engine":"November update 2"},{"key":"ploeg_lower_jaw_lingual","supported":4,"name":"Gingivitis challenge, lower jaw, lingual (van der Ploeg 2024)","ref":"van der Ploeg et al. 2024","type":"16S","group":"Oral","design":"Experimental gingivitis, 7 visits over 6 weeks","validation":false,"control":null,"samples":418,"dropped":0,"subjects":63,"scorable":416,"perSubject":7,"reid":90.1,"caught":92,"review":98,"pairNamed":90,"relabel":28,"fp":0.06,"fpCheck":0.2,"reps":80,"testsPerRep":1.5,"flags":4,"checks":4,"pairs":1,"allPairs":1,"flagsPer1000":9.6,"grade":"High","selfPowerSwap":80,"short":"Gingivitis, lower jaw lingual","powerV111":100,"possibleDuplicates":0,"engine":"November update 2"},{"key":"hmpPlaque","supported":0,"name":"HMP1 dental plaque (HMP Consortium 2012)","ref":"Human Microbiome Project Consortium 2012, Nature; table from MLRepo","type":"16S (V3-V5, closed-reference OTUs)","group":"Oral","design":"Healthy adults, one to three visits over up to two years","validation":false,"control":null,"samples":747,"dropped":15,"subjects":208,"scorable":743,"perSubject":4,"reid":90.2,"caught":92,"review":99,"pairNamed":92,"relabel":40,"fp":1.77,"fpCheck":4.1,"reps":20,"testsPerRep":5,"flags":1,"checks":1,"pairs":0,"allPairs":0,"flagsPer1000":1.3,"grade":"High","selfPowerSwap":95,"short":"HMP1 dental plaque","powerV111":80,"possibleDuplicates":0,"engine":"November update 2"},{"key":"cafe","supported":0,"name":"Controlled feeding, COMBO-CAFE (Wu 2011)","ref":"Wu et al. 2011, Science; table from MLRepo","type":"16S (V1-V2, closed-reference OTUs)","group":"Adult gut","design":"Ten inpatients on a fixed diet, stool daily for ten days","validation":false,"control":null,"samples":95,"dropped":0,"subjects":10,"scorable":95,"perSubject":10,"reid":100,"caught":91,"review":100,"pairNamed":90,"relabel":98,"fp":0,"fpCheck":0,"reps":80,"testsPerRep":1.5,"flags":0,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"High","selfPowerSwap":0,"short":"Controlled feeding (Wu)","powerV111":80,"possibleDuplicates":0,"engine":"November update 2"},{"key":"yePRJEB38984","supported":6,"name":"Shotgun cohort ENA PRJEB38984","ref":"ENA PRJEB38984; table from Ye et al. 2026","type":"Shotgun (MetaPhlAn relative abundance)","group":"Gut, other cohorts","design":"Repeated stool","validation":false,"control":null,"samples":384,"dropped":0,"subjects":101,"scorable":382,"perSubject":4,"reid":96.1,"caught":91,"review":95,"pairNamed":75,"relabel":98,"fp":0,"fpCheck":0,"reps":80,"testsPerRep":1.5,"flags":13,"checks":2,"pairs":2,"allPairs":2,"flagsPer1000":34.0,"grade":"High","selfPowerSwap":3,"short":"Shotgun cohort PRJEB38984","powerV111":95,"possibleDuplicates":6,"engine":"November update 2"},{"key":"dietOriginal","supported":2,"name":"Diet and microbiome, labels before the authors' correction","ref":"Johnson et al. 2019, Cell Host Microbe","type":"Shotgun (strain-level)","group":"Adult gut","design":"Same data with one tube swap the authors later corrected","validation":true,"control":"known real swap","samples":522,"dropped":4,"subjects":37,"scorable":522,"perSubject":16,"reid":98.1,"caught":90,"review":96,"pairNamed":80,"relabel":90,"fp":0,"fpCheck":0.3,"reps":20,"testsPerRep":5,"flags":2,"checks":0,"pairs":1,"allPairs":1,"flagsPer1000":3.8,"grade":"High","selfPowerSwap":65,"short":"Diet study, labels before correction","powerV111":100,"possibleDuplicates":0,"engine":"November update 2"},{"key":"ploeg_tongue","supported":0,"name":"Gingivitis challenge, tongue (van der Ploeg 2024)","ref":"van der Ploeg et al. 2024","type":"16S","group":"Oral","design":"Experimental gingivitis, 7 visits over 6 weeks","validation":false,"control":null,"samples":429,"dropped":0,"subjects":63,"scorable":427,"perSubject":7,"reid":99.8,"caught":90,"review":96,"pairNamed":88,"relabel":88,"fp":0,"fpCheck":0,"reps":80,"testsPerRep":1.5,"flags":0,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"High","selfPowerSwap":0,"short":"Gingivitis study, tongue","powerV111":100,"possibleDuplicates":0,"engine":"November update 2"},{"key":"storage","supported":2,"name":"Stool storage conditions (Song 2016)","ref":"Song et al. 2016, mSystems","type":"16S","group":"Same-stool aliquots","design":"Aliquots of one stool per donor, many preservation methods, up to 8 weeks","validation":false,"control":null,"samples":1300,"dropped":104,"subjects":16,"scorable":1299,"perSubject":86,"reid":97.5,"caught":89,"review":92,"pairNamed":71,"relabel":82,"fp":0.27,"fpCheck":1.3,"reps":20,"testsPerRep":11,"flags":4,"checks":0,"pairs":1,"allPairs":1,"flagsPer1000":3.1,"grade":"High","selfPowerSwap":95,"short":"Stool storage aliquots (Song)","powerV111":97,"possibleDuplicates":0,"engine":"November update 2"},{"key":"hmpNostril","supported":0,"name":"HMP1 nostril (HMP Consortium 2012)","ref":"Human Microbiome Project Consortium 2012, Nature; table from MLRepo","type":"16S (V3-V5, closed-reference OTUs)","group":"Skin and nose","design":"Healthy adults, one to three visits over up to two years","validation":false,"control":null,"samples":332,"dropped":69,"subjects":185,"scorable":243,"perSubject":2,"reid":74.9,"caught":88,"review":90,"pairNamed":85,"relabel":60,"fp":1.51,"fpCheck":2.5,"reps":80,"testsPerRep":1.5,"flags":0,"checks":1,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"High","selfPowerSwap":92,"short":"HMP1 nostril","powerV111":90,"possibleDuplicates":0,"engine":"November update 2"},{"key":"hmpTongue","supported":0,"name":"HMP1 tongue (HMP Consortium 2012)","ref":"Human Microbiome Project Consortium 2012, Nature; table from MLRepo","type":"16S (V3-V5, closed-reference OTUs)","group":"Oral","design":"Healthy adults, one to three visits over up to two years","validation":false,"control":null,"samples":368,"dropped":4,"subjects":207,"scorable":276,"perSubject":2,"reid":71.4,"caught":88,"review":92,"pairNamed":82,"relabel":28,"fp":2.37,"fpCheck":2.8,"reps":80,"testsPerRep":1.5,"flags":0,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"High","selfPowerSwap":88,"short":"HMP1 tongue","powerV111":100,"possibleDuplicates":0,"engine":"November update 2"},{"key":"imp","supported":0,"name":"Immigration Microbiome Project (Vangay 2018)","ref":"Vangay et al. 2018, Cell","type":"16S","group":"Adult gut","design":"Immigrants sampled before and after moving to the US","validation":true,"control":null,"samples":110,"dropped":0,"subjects":18,"scorable":110,"perSubject":6,"reid":88.2,"caught":88,"review":94,"pairNamed":85,"relabel":0,"fp":0,"fpCheck":0,"reps":80,"testsPerRep":1.5,"flags":0,"checks":1,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"High","selfPowerSwap":0,"short":"Immigration Microbiome (IMP)","powerV111":62,"possibleDuplicates":0,"engine":"November update 2"},{"key":"digiulio","supported":2,"name":"Pregnancy vaginal (DiGiulio 2015)","ref":"DiGiulio et al. 2015, PNAS","type":"16S","group":"Vaginal","design":"Weekly swabs through pregnancy","validation":false,"control":null,"samples":756,"dropped":11,"subjects":40,"scorable":755,"perSubject":21,"reid":94.4,"caught":88,"review":92,"pairNamed":82,"relabel":52,"fp":1.21,"fpCheck":2.3,"reps":20,"testsPerRep":6,"flags":5,"checks":2,"pairs":1,"allPairs":1,"flagsPer1000":6.6,"grade":"High","selfPowerSwap":93,"short":"Pregnancy vaginal (DiGiulio)","powerV111":98,"possibleDuplicates":0,"engine":"November update 2"},{"key":"yeHall","supported":0,"name":"IBD patients and controls (Hall 2017)","ref":"Hall et al. 2017, Genome Med; table from Ye et al. 2026","type":"Shotgun (MetaPhlAn relative abundance)","group":"Gut, other cohorts","design":"Repeated stool over about a year","validation":false,"control":null,"samples":259,"dropped":0,"subjects":32,"scorable":259,"perSubject":8,"reid":91.9,"caught":86,"review":91,"pairNamed":85,"relabel":50,"fp":0.05,"fpCheck":0.7,"reps":80,"testsPerRep":1.5,"flags":2,"checks":2,"pairs":0,"allPairs":0,"flagsPer1000":7.7,"grade":"High","selfPowerSwap":87,"short":"IBD patients and controls (Hall)","powerV111":82,"possibleDuplicates":1,"engine":"November update 2"},{"key":"mars","supported":3,"name":"Irritable bowel syndrome (Mars 2020)","ref":"Mars et al. 2020, Cell","type":"Shotgun (species counts)","group":"Adult gut","design":"Stool over 6 months, including flares","validation":false,"control":null,"samples":444,"dropped":0,"subjects":75,"scorable":440,"perSubject":7,"reid":89.1,"caught":86,"review":91,"pairNamed":85,"relabel":32,"fp":0,"fpCheck":0.1,"reps":80,"testsPerRep":1.5,"flags":4,"checks":2,"pairs":0,"allPairs":0,"flagsPer1000":9.1,"grade":"High","selfPowerSwap":82,"short":"IBS cohort (Mars)","powerV111":70,"possibleDuplicates":1,"engine":"November update 2"},{"key":"david","supported":0,"name":"Diet switch (David 2014)","ref":"David et al. 2014, Nature","type":"16S","group":"Adult gut","design":"Daily stool before, during and after 5-day plant or animal diet","validation":false,"control":null,"samples":236,"dropped":0,"subjects":20,"scorable":236,"perSubject":12,"reid":82.6,"caught":85,"review":88,"pairNamed":82,"relabel":82,"fp":0,"fpCheck":0.3,"reps":80,"testsPerRep":1.5,"flags":0,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"High","selfPowerSwap":0,"short":"Diet switch (David)","powerV111":82,"possibleDuplicates":0,"engine":"November update 2"},{"key":"yeBrooks","supported":1,"name":"Preterm infants in NICU (Brooks 2017)","ref":"Brooks et al. 2017, Nat Commun; table from Ye et al. 2026","type":"Shotgun (MetaPhlAn relative abundance)","group":"Infant gut","design":"Repeated stool in the first weeks of life","validation":false,"control":null,"samples":408,"dropped":0,"subjects":30,"scorable":407,"perSubject":14,"reid":91.2,"caught":85,"review":85,"pairNamed":85,"relabel":57,"fp":2.2,"fpCheck":3.5,"reps":80,"testsPerRep":1.5,"flags":2,"checks":1,"pairs":1,"allPairs":1,"flagsPer1000":4.9,"grade":"High","selfPowerSwap":79,"short":"Preterm infants, NICU (Brooks)","powerV111":75,"possibleDuplicates":0,"engine":"November update 2"},{"key":"ploeg_saliva","supported":0,"name":"Gingivitis challenge, saliva (van der Ploeg 2024)","ref":"van der Ploeg et al. 2024","type":"16S","group":"Oral","design":"Experimental gingivitis, 7 visits over 6 weeks","validation":false,"control":null,"samples":427,"dropped":0,"subjects":61,"scorable":427,"perSubject":7,"reid":91.8,"caught":82,"review":85,"pairNamed":78,"relabel":8,"fp":0.12,"fpCheck":1.1,"reps":80,"testsPerRep":1.5,"flags":0,"checks":2,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"High","selfPowerSwap":0,"short":"Gingivitis study, saliva","powerV111":100,"possibleDuplicates":0,"engine":"November update 2"},{"key":"smpPalm","supported":1,"name":"Student Microbiome palm","ref":"Flores et al. 2014, Genome Biol","type":"16S","group":"Skin and nose","design":"Weekly self-sampling for 10 weeks","validation":true,"control":null,"samples":515,"dropped":0,"subjects":61,"scorable":515,"perSubject":9,"reid":82.9,"caught":78,"review":85,"pairNamed":75,"relabel":40,"fp":0.49,"fpCheck":2.8,"reps":20,"testsPerRep":5,"flags":1,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":1.9,"grade":"Medium","selfPowerSwap":88,"short":"Student Microbiome, palm","powerV111":100,"possibleDuplicates":0,"engine":"November update 2"},{"key":"yeFMT","supported":3,"name":"Faecal transplant cohort ENA PRJEB72385","ref":"ENA PRJEB72385; table from Ye et al. 2026","type":"Shotgun (MetaPhlAn relative abundance)","group":"Gut, other cohorts","design":"Repeated stool around faecal microbiota transplantation","validation":false,"control":null,"samples":493,"dropped":0,"subjects":124,"scorable":493,"perSubject":4,"reid":93.3,"caught":76,"review":86,"pairNamed":75,"relabel":35,"fp":0.1,"fpCheck":0.2,"reps":80,"testsPerRep":1.5,"flags":3,"checks":2,"pairs":1,"allPairs":1,"flagsPer1000":6.1,"grade":"Medium","selfPowerSwap":92,"short":"Faecal transplant cohort","powerV111":95,"possibleDuplicates":0,"engine":"November update 2"},{"key":"hmpSkin","supported":0,"name":"HMP1 skin behind the ear (HMP Consortium 2012)","ref":"Human Microbiome Project Consortium 2012, Nature; table from MLRepo","type":"16S (V3-V5, closed-reference OTUs)","group":"Skin and nose","design":"Healthy adults, one to three visits over up to two years","validation":false,"control":null,"samples":729,"dropped":97,"subjects":209,"scorable":715,"perSubject":3,"reid":71.6,"caught":75,"review":79,"pairNamed":75,"relabel":30,"fp":1.78,"fpCheck":4.0,"reps":20,"testsPerRep":5,"flags":2,"checks":4,"pairs":1,"allPairs":1,"flagsPer1000":2.8,"grade":"Medium","selfPowerSwap":74,"short":"HMP1 skin behind the ear","powerV111":60,"possibleDuplicates":0,"engine":"November update 2"},{"key":"ploeg_upper_jaw_interproximal","supported":2,"name":"Gingivitis challenge, upper jaw, interproximal (van der Ploeg 2024)","ref":"van der Ploeg et al. 2024","type":"16S","group":"Oral","design":"Experimental gingivitis, 7 visits over 6 weeks","validation":false,"control":null,"samples":425,"dropped":0,"subjects":63,"scorable":423,"perSubject":7,"reid":86.3,"caught":72,"review":75,"pairNamed":72,"relabel":8,"fp":2.64,"fpCheck":2.7,"reps":80,"testsPerRep":1.5,"flags":3,"checks":6,"pairs":1,"allPairs":1,"flagsPer1000":7.1,"grade":"Medium","selfPowerSwap":54,"short":"Gingivitis, upper jaw between teeth","powerV111":80,"possibleDuplicates":0,"engine":"November update 2"},{"key":"yeT2d","supported":0,"name":"Prediabetes, iHMP (Zhou 2019)","ref":"Zhou et al. 2019, Nature; table from Ye et al. 2026","type":"Shotgun (MetaPhlAn relative abundance)","group":"Adult gut","design":"Repeated stool over up to four years","validation":false,"control":null,"samples":189,"dropped":0,"subjects":28,"scorable":189,"perSubject":5,"reid":95.2,"caught":69,"review":94,"pairNamed":68,"relabel":0,"fp":0,"fpCheck":0,"reps":80,"testsPerRep":1.5,"flags":2,"checks":1,"pairs":1,"allPairs":1,"flagsPer1000":10.6,"grade":"Medium","selfPowerSwap":95,"short":"Prediabetes, iHMP (Zhou)","powerV111":95,"possibleDuplicates":0,"engine":"November update 2"},{"key":"smpTongue","supported":5,"name":"Student Microbiome tongue","ref":"Flores et al. 2014, Genome Biol","type":"16S","group":"Oral","design":"Weekly self-sampling for 10 weeks","validation":true,"control":null,"samples":692,"dropped":0,"subjects":80,"scorable":692,"perSubject":9,"reid":77.7,"caught":68,"review":71,"pairNamed":62,"relabel":5,"fp":0.07,"fpCheck":0.2,"reps":20,"testsPerRep":5,"flags":10,"checks":4,"pairs":0,"allPairs":0,"flagsPer1000":14.5,"grade":"Medium","selfPowerSwap":70,"short":"Student Microbiome, tongue","powerV111":90,"possibleDuplicates":0,"engine":"November update 2"},{"key":"ploeg_upper_jaw_lingual","supported":2,"name":"Gingivitis challenge, upper jaw, lingual (van der Ploeg 2024)","ref":"van der Ploeg et al. 2024","type":"16S","group":"Oral","design":"Experimental gingivitis, 7 visits over 6 weeks","validation":false,"control":null,"samples":429,"dropped":0,"subjects":63,"scorable":427,"perSubject":7,"reid":76.8,"caught":65,"review":72,"pairNamed":65,"relabel":5,"fp":0.76,"fpCheck":0.8,"reps":80,"testsPerRep":1.5,"flags":2,"checks":10,"pairs":0,"allPairs":0,"flagsPer1000":4.7,"grade":"Medium","selfPowerSwap":34,"short":"Gingivitis, upper jaw lingual","powerV111":70,"possibleDuplicates":0,"engine":"November update 2"},{"key":"yePRJEB70966","supported":3,"name":"Shotgun cohort ENA PRJEB70966","ref":"ENA PRJEB70966; table from Ye et al. 2026","type":"Shotgun (MetaPhlAn relative abundance)","group":"Gut, other cohorts","design":"Repeated stool","validation":false,"control":null,"samples":248,"dropped":0,"subjects":105,"scorable":225,"perSubject":3,"reid":92.0,"caught":46,"review":62,"pairNamed":32,"relabel":25,"fp":0.06,"fpCheck":0.1,"reps":80,"testsPerRep":1.5,"flags":3,"checks":3,"pairs":0,"allPairs":0,"flagsPer1000":13.3,"grade":"Low","selfPowerSwap":69,"short":"Shotgun cohort PRJEB70966","powerV111":85,"possibleDuplicates":0,"engine":"November update 2"},{"key":"mdsH","supported":0,"name":"Gnotobiotic mice, healthy donor (Gibson 2025)","ref":"Gibson et al. 2025 (MDSINE2)","type":"16S","group":"Mouse gut","design":"Mice colonised with one donor community","validation":true,"control":null,"samples":320,"dropped":0,"subjects":5,"scorable":320,"perSubject":76,"reid":88.8,"caught":35,"review":66,"pairNamed":28,"relabel":12,"fp":0.04,"fpCheck":0.4,"reps":80,"testsPerRep":1.5,"flags":0,"checks":7,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"Low","selfPowerSwap":36,"short":"Gnotobiotic mice, healthy donor","powerV111":30,"possibleDuplicates":0,"engine":"November update 2"},{"key":"ecam","supported":0,"name":"ECAM infants (Bokulich 2016)","ref":"Bokulich et al. 2016, Sci Transl Med","type":"16S","group":"Infant gut","design":"Monthly stool, birth to 2 years","validation":true,"control":null,"samples":875,"dropped":0,"subjects":43,"scorable":875,"perSubject":22,"reid":74.4,"caught":2,"review":32,"pairNamed":17,"relabel":0,"fp":0,"fpCheck":0.4,"reps":20,"testsPerRep":8,"flags":0,"checks":16,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"Very low","selfPowerSwap":10,"short":"ECAM infants (Bokulich)","powerV111":0,"possibleDuplicates":0,"engine":"November update 2"},{"key":"taur","supported":0,"name":"Stem-cell transplant patients (Taur 2018)","ref":"Taur et al. 2018, Sci Transl Med","type":"16S","group":"Hospital patients","design":"Stool from 25 days before to 100 days after allo-HSCT","validation":false,"control":null,"samples":2479,"dropped":95,"subjects":674,"scorable":2370,"perSubject":3,"reid":57.4,"caught":1,"review":23,"pairNamed":10,"relabel":0,"fp":0,"fpCheck":0.4,"reps":10,"testsPerRep":19,"flags":10,"checks":24,"pairs":2,"allPairs":4,"flagsPer1000":4.2,"grade":"Very low","selfPowerSwap":3,"short":"Stem-cell transplant patients (Taur)","powerV111":0,"possibleDuplicates":1,"engine":"November update (source files not available for this run)"},{"key":"palleja","supported":0,"name":"Antibiotic recovery (Palleja 2018)","ref":"Palleja et al. 2018, Nat Microbiol","type":"Shotgun (mOTU relative)","group":"Adult gut","design":"4-day antibiotic cocktail, stool to day 180","validation":false,"control":null,"samples":59,"dropped":0,"subjects":12,"scorable":59,"perSubject":5,"reid":64.4,"caught":0,"review":6,"pairNamed":0,"relabel":0,"fp":0,"fpCheck":0.2,"reps":80,"testsPerRep":1.5,"flags":0,"checks":1,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"Very low","selfPowerSwap":0,"short":"Antibiotic recovery (Palleja)","powerV111":0,"possibleDuplicates":0,"engine":"November update (source files not available for this run)"},{"key":"shao","supported":0,"name":"Baby Biome infants (Shao 2019)","ref":"Shao et al. 2019, Nature","type":"Shotgun (mOTU counts)","group":"Infant gut","design":"Neonatal stool days 4-21 and infancy","validation":false,"control":null,"samples":682,"dropped":0,"subjects":429,"scorable":440,"perSubject":2,"reid":23.2,"caught":0,"review":2,"pairNamed":2,"relabel":0,"fp":0,"fpCheck":0,"reps":20,"testsPerRep":5,"flags":0,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"Very low","selfPowerSwap":0,"short":"Baby Biome (Shao)","powerV111":0,"possibleDuplicates":1,"engine":"November update 2"},{"key":"karelia","supported":0,"name":"DIABIMMUNE infants (Vatanen 2016)","ref":"Vatanen et al. 2016, Cell","type":"16S","group":"Infant gut","design":"3 countries, monthly stool, birth to 3 years","validation":false,"control":null,"samples":1761,"dropped":98,"subjects":221,"scorable":1759,"perSubject":8,"reid":61.8,"caught":0,"review":4,"pairNamed":0,"relabel":0,"fp":0,"fpCheck":0.4,"reps":10,"testsPerRep":14,"flags":0,"checks":37,"pairs":0,"allPairs":3,"flagsPer1000":0,"grade":"Very low","selfPowerSwap":0,"short":"DIABIMMUNE infants (Vatanen)","powerV111":0,"possibleDuplicates":1,"engine":"November update 2"},{"key":"ploeg_lower_jaw_interproximal","supported":0,"name":"Gingivitis challenge, lower jaw, interproximal (van der Ploeg 2024)","ref":"van der Ploeg et al. 2024","type":"16S","group":"Oral","design":"Experimental gingivitis, 7 visits over 6 weeks","validation":false,"control":null,"samples":402,"dropped":1,"subjects":63,"scorable":400,"perSubject":7,"reid":72.0,"caught":0,"review":9,"pairNamed":8,"relabel":0,"fp":0,"fpCheck":0.4,"reps":80,"testsPerRep":1.5,"flags":0,"checks":2,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"Very low","selfPowerSwap":15,"short":"Gingivitis, lower jaw between teeth","powerV111":10,"possibleDuplicates":0,"engine":"November update 2"},{"key":"mdsU","supported":0,"name":"Gnotobiotic mice, UC donor (Gibson 2025)","ref":"Gibson et al. 2025 (MDSINE2)","type":"16S","group":"Mouse gut","design":"Mice colonised with one donor community","validation":true,"control":null,"samples":380,"dropped":1,"subjects":5,"scorable":380,"perSubject":77,"reid":85.5,"caught":0,"review":35,"pairNamed":2,"relabel":0,"fp":0,"fpCheck":0.1,"reps":80,"testsPerRep":1.5,"flags":0,"checks":7,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"Very low","selfPowerSwap":0,"short":"Gnotobiotic mice, UC donor","powerV111":0,"possibleDuplicates":0,"engine":"November update 2"},{"key":"ibdmdb","supported":0,"name":"IBD multi-omics, HMP2 (Lloyd-Price 2019)","ref":"Lloyd-Price et al. 2019, Nature","type":"Shotgun (species counts)","group":"Adult gut","design":"Stool every 2 weeks for 1 year (subset with metabolomics)","validation":false,"control":null,"samples":382,"dropped":0,"subjects":105,"scorable":376,"perSubject":4,"reid":52.7,"caught":0,"review":0,"pairNamed":0,"relabel":0,"fp":0,"fpCheck":0,"reps":80,"testsPerRep":1.5,"flags":0,"checks":1,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"Very low","selfPowerSwap":0,"short":"IBD, HMP2 (Lloyd-Price)","powerV111":0,"possibleDuplicates":0,"engine":"November update 2"},{"key":"heInfants","supported":0,"name":"Infant formula trial (He 2019)","ref":"He et al. 2019, Sci Rep","type":"16S (genus counts)","group":"Infant gut","design":"Stool at 2, 4, 6 and 12 months","validation":false,"control":null,"samples":277,"dropped":0,"subjects":80,"scorable":273,"perSubject":4,"reid":24.9,"caught":0,"review":0,"pairNamed":0,"relabel":0,"fp":0,"fpCheck":0,"reps":80,"testsPerRep":1.5,"flags":0,"checks":2,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"Very low","selfPowerSwap":0,"short":"Infant formula trial (He)","powerV111":0,"possibleDuplicates":1,"engine":"November update 2"},{"key":"kostic","supported":0,"name":"Infants at risk of type 1 diabetes (Kostic 2015)","ref":"Kostic et al. 2015, Cell Host Microbe","type":"16S (genus counts)","group":"Infant gut","design":"Monthly stool, birth to 3 years (subset with metabolomics)","validation":false,"control":null,"samples":103,"dropped":0,"subjects":19,"scorable":103,"perSubject":5,"reid":69.9,"caught":0,"review":25,"pairNamed":25,"relabel":0,"fp":0,"fpCheck":0,"reps":80,"testsPerRep":1.5,"flags":0,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"Very low","selfPowerSwap":0,"short":"Type 1 diabetes infants (Kostic)","powerV111":0,"possibleDuplicates":0,"engine":"November update 2"},{"key":"muVRE","supported":0,"name":"Mouse VRE colonisation (Mu 2021)","ref":"lecaolab case study (mouse VRE)","type":"16S (batch-corrected)","group":"Mouse gut","design":"Mice sampled daily, days 0-5","validation":false,"control":null,"samples":97,"dropped":0,"subjects":9,"scorable":97,"perSubject":11,"reid":51.5,"caught":0,"review":0,"pairNamed":0,"relabel":0,"fp":0,"fpCheck":0,"reps":80,"testsPerRep":1.5,"flags":0,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"Very low","selfPowerSwap":0,"short":"Mouse VRE colonisation","powerV111":0,"possibleDuplicates":0,"engine":"November update 2"},{"key":"wandro","supported":0,"name":"Preterm infants in NICU (Wandro 2018)","ref":"Wandro et al. 2018, mSphere","type":"16S (genus counts)","group":"Infant gut","design":"Stool over the first weeks in intensive care","validation":false,"control":null,"samples":75,"dropped":0,"subjects":32,"scorable":63,"perSubject":3,"reid":49.2,"caught":0,"review":2,"pairNamed":2,"relabel":0,"fp":0,"fpCheck":0,"reps":80,"testsPerRep":1.5,"flags":0,"checks":0,"pairs":0,"allPairs":0,"flagsPer1000":0,"grade":"Very low","selfPowerSwap":0,"short":"Preterm infants, NICU (Wandro)","powerV111":0,"possibleDuplicates":0,"engine":"November update 2"}];
+window.dash=(function(){
+  const DATA={atlas:{status:'ok',data:ROWS,columns:Object.keys(ROWS[0]),meta:[]}};
+  const calcs={},draws=new Map();
+  function data(id){if(DATA[id])return DATA[id];const c=calcs[id];if(c){if(!c.out){try{c.out={status:'ok',data:c.fn(...c.inputs.map(i=>data(i).data)),meta:[]}}catch(e){console.error(e);c.out={status:'error',data:[]}}}return c.out}return {status:'missing',data:[]}}
+  function run(name){const d=draws.get(name);if(!d)return;document.querySelectorAll('[data-draw="'+name+'"]').forEach(el=>{if(el.closest('[hidden]'))return;try{if(typeof d.fn==='function')d.fn(el);else{let m=d.made.get(el);if(m===undefined){m=d.fn.mount(el);d.made.set(el,m)}if(d.fn.update)d.fn.update(el,m)}}catch(e){console.error(name,e)}})}
+  return {data,calc:(id,o)=>{calcs[id]=o},draw:(name,fn)=>{if(fn===undefined){run(name);return}draws.set(name,{fn,made:new Map()})},
+    onData:f=>f(),colors:['var(--c1)','var(--c2)','var(--c3)','var(--c4)','var(--c5)','var(--c6)','var(--c7)','var(--c8)'],
+    setLink:id=>{try{history.replaceState(null,'','#'+id)}catch(e){}},params:()=>({}),setParams(){},resetParams(){},refresh(){},loader(){},
+    _runAll(){for(const k of draws.keys())run(k)}};
+})();
+</script>
+<style>
+  .sa { font-family: var(--sans); color: var(--color-fg); display: grid; gap: calc(var(--cds-gap-xl) * 1.5); }
+  .sa b { font-weight: 600; }
+  .sa-hero { position: relative; overflow: hidden; border-radius: calc(var(--cds-radius) * 2); border: 1px solid var(--color-border-line); background-color: var(--color-panel);
+    background-image: radial-gradient(var(--color-border-line) 1px, transparent 1.2px); background-size: 18px 18px; min-height: 24rem; display: grid; align-items: end; }
+  .sa-hero-live { position: absolute; inset: 0; }
+  .sa-hero-live canvas { display: block; width: 100%; height: 100%; }
+  .sa-hero-fade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(100deg, var(--color-panel) 0%, var(--color-panel) 34%, transparent 72%); opacity: .92; }
+  .sa-head { position: relative; display: grid; gap: var(--cds-gap-sm); max-width: 40rem; padding: calc(var(--cds-pad-lg) * 1.6); }
+  .sa-hero-note { position: absolute; right: var(--cds-pad-md); bottom: var(--cds-pad-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); background: var(--color-panel); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--color-border-line); }
+  @media (max-width: 640px) { .sa-hero { min-height: 0; align-items: start; } .sa-hero-live { position: relative; inset: auto; height: 12rem; } .sa-hero-fade { display: none; } .sa-hero-note { display: none; } .sa-head { padding-top: var(--cds-pad-sm); } }
+  .sa-pack { position: relative; min-height: 18rem; }
+  .sa-nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; gap: var(--cds-gap-xs); overflow-x: auto; padding-block: var(--cds-pad-xs); background: var(--color-bg); border-bottom: 1px solid var(--color-border-line); scrollbar-width: none; }
+  .sa-nav a { flex: none; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); text-decoration: none; padding: .35em .85em; border-radius: 999px; }
+  .sa-nav a:hover, .sa-nav a[aria-current="true"] { color: var(--color-fg); background: var(--color-panel); }
+  .sa-nav a:focus-visible { outline: 2px solid var(--cds-chart-axis); }
+  .sa-eyebrow { font-size: var(--cds-font-size-caption); letter-spacing: .08em; text-transform: uppercase; color: var(--color-fg-muted); }
+  .sa-tools { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; }
+  .sa-tools select { font: inherit; font-size: var(--cds-font-size-caption); }
+  .sa-label { cursor: pointer; transition: border-color var(--cds-dur-slow), transform var(--cds-dur-slow); }
+  .sa-label:hover { border-color: var(--cds-chart-axis); }
+  .sa-label[aria-pressed="true"] { border-color: var(--color-fg); box-shadow: 0 0 0 1px var(--color-fg); }
+  .sa-label:focus-visible { outline: 2px solid var(--cds-chart-axis); outline-offset: 2px; }
+  .sa-profile { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: var(--cds-gap-lg); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: calc(var(--cds-radius) * 2); padding: calc(var(--cds-pad-lg) * 1.2);
+    background-image: radial-gradient(var(--color-border-line) 1px, transparent 1.2px); background-size: 18px 18px; background-position: right top; }
+  @media (max-width: 720px) { .sa-profile { grid-template-columns: 1fr; } }
+  .sa-profile h3 { font-family: var(--display); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; line-height: 1.15; }
+  .sa-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); gap: var(--cds-gap-sm); margin: 0; }
+  .sa-facts div { display: grid; gap: 2px; }
+  .sa-facts dt { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .sa-facts dd { margin: 0; font-family: var(--display); font-size: var(--cds-font-size-heading); font-variant-numeric: tabular-nums; }
+  .sa-cite { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--cds-font-size-caption); background: var(--color-bg); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-sm); line-height: 1.5; user-select: all; }
+  .sa-btn { font: inherit; font-size: var(--cds-font-size-caption); padding: .4em .9em; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg); cursor: pointer; justify-self: start; }
+  .sa-btn.copied::after { content: ' \2713'; }
+  .sa-btn:focus-visible { outline: 2px solid var(--cds-chart-axis); outline-offset: 2px; }
+  .sa-band { border-radius: calc(var(--cds-radius) * 2); padding: var(--cds-pad-lg); background-color: var(--color-panel); border: 1px solid var(--color-border-line);
+    background-image: radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--color-border-line) 70%, transparent) 0 2px, transparent 2px); background-size: 22px 22px; }
+  .sa-kicker { font-size: var(--cds-font-size-caption); letter-spacing: .08em; text-transform: uppercase; color: var(--color-fg-muted); }
+  .sa-title { font-family: var(--display); font-weight: 400; font-size: calc(var(--cds-font-size-title) * 1.35); line-height: 1.1; margin: 0; text-wrap: balance; }
+  .sa-lede { font-size: var(--cds-font-size-body); margin: 0; line-height: 1.6; max-width: 64ch; }
+  .sa-muted { color: var(--color-fg-muted); }
+  .sa-section { display: grid; gap: var(--cds-gap-md); }
+  .sa-h2 { font-family: var(--display); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  .sa-sub { margin: 0; font-size: var(--cds-font-size-body); color: var(--color-fg-muted); max-width: 64ch; line-height: 1.55; }
+  .sa-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0; }
+  .sa-card h3 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .sa-card p { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.5; }
+  .sa-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: var(--cds-gap-md); }
+
+  /* how it works */
+  .sa-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--cds-gap-md); counter-reset: step; }
+  .sa-step { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); align-content: start; }
+  .sa-step-n { font-family: var(--display); font-size: var(--cds-font-size-title); line-height: 1; color: var(--color-fg-muted); }
+  .sa-step h3 { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+  .sa-step p { margin: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.5; }
+  .sa-illo { min-height: 6.5rem; }
+  .sa-illo svg { display: block; }
+
+  /* scorecard */
+  .sa-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-md); }
+  .sa-tile { display: grid; gap: var(--cds-gap-xs); align-content: start; padding-block: var(--cds-pad-sm); border-top: 2px solid var(--color-border-line); }
+  .sa-tile-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .sa-tile-num { font-family: var(--display); font-weight: 400; font-size: calc(var(--cds-font-size-title) * 1.2); font-variant-numeric: tabular-nums; line-height: 1.05; }
+  .sa-chart { position: relative; min-height: 4rem; }
+  .sa-chart svg { display: block; }
+  .sa-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .sa-legend span { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+  .sa-sw { width: .75rem; height: .75rem; border-radius: 2px; display: inline-block; }
+  .sa-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); max-width: 17rem; z-index: 3; line-height: 1.45; }
+  .sa-tip .t { color: var(--cds-text-secondary); }
+
+  /* trust labels */
+  .sa-chips { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); }
+  .sa-chip { font: inherit; font-size: var(--cds-font-size-caption); padding: .3em .8em; border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg); cursor: pointer; }
+  .sa-chip[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+  .sa-chip:focus-visible { outline: 2px solid var(--cds-chart-axis); outline-offset: 2px; }
+  .sa-labels { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr)); gap: var(--cds-gap-md); }
+  .sa-label { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md); display: grid; grid-template-columns: auto 1fr; gap: var(--cds-gap-sm) var(--cds-gap-md); align-items: center; }
+  .sa-label .nm { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); line-height: 1.3; }
+  .sa-label .meta { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.4; }
+  .sa-label .row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); align-items: center; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-sm); }
+  .sa-pill { display: inline-block; padding: 0 .55em; border-radius: 999px; border: 1px solid currentColor; font-size: var(--cds-font-size-caption); white-space: nowrap; }
+  .sa-pill.High { color: var(--color-ok); }
+  .sa-pill.Medium { color: var(--color-fg); }
+  .sa-pill.Low { color: var(--color-warn); }
+  .sa-pill.Very-low { color: var(--color-fg-muted); }
+  .sa-flag { color: var(--color-fg); }
+
+  /* findings */
+  .sa-findings { display: grid; gap: var(--cds-gap-md); margin: 0; padding: 0; list-style: none; }
+  .sa-findings li { display: grid; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-body); line-height: 1.55; padding-left: var(--cds-pad-md); border-left: 2px solid var(--color-border-line); max-width: 70ch; }
+  .sa-findings li strong { font-weight: var(--cds-font-weight-medium); }
+
+  /* table */
+  .sa-tablebox { max-height: 32rem; overflow: auto; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); }
+  .sa-table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .sa-table th { position: sticky; top: 0; background: var(--color-panel); text-align: right; padding: 0; border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .sa-table th.sa-l { text-align: left; }
+  .sa-table th button { all: unset; cursor: pointer; display: block; padding: var(--cds-pad-xs) var(--cds-pad-sm); font-weight: var(--cds-font-weight-medium); color: var(--color-fg); }
+  .sa-table th button:focus-visible { outline: 2px solid var(--cds-chart-axis); outline-offset: -2px; }
+  .sa-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); text-align: right; white-space: nowrap; }
+  .sa-table td:first-child { text-align: left; white-space: normal; min-width: 12rem; }
+  .sa-table td.sa-l { text-align: left; }
+  .sa-search { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); width: min(100%, 18rem); }
+  .sa-details { font-size: var(--cds-font-size-caption); line-height: 1.6; max-width: 75ch; }
+  .sa-details summary { cursor: pointer; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+  .sa-details dl { display: grid; gap: var(--cds-gap-sm); margin: var(--cds-gap-md) 0 0; }
+  .sa-details dt { font-weight: var(--cds-font-weight-medium); }
+  .sa-details dd { margin: 0; color: var(--color-fg-muted); }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+  @media (prefers-reduced-motion: no-preference) {
+    .sa-grow { animation: sa-grow var(--cds-dur-slow) var(--cds-ease-out) both; transform-origin: left center; transform-box: fill-box; }
+    @keyframes sa-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  }
+</style>
+
+<div class="sa">
+  <div class="sa-hero">
+  <div class="sa-hero-live" data-draw="hero" aria-hidden="true"></div>
+  <div class="sa-hero-fade" aria-hidden="true"></div>
+  <span class="sa-hero-note">Live: each colour is one person's samples. Watch for swapped tubes being caught.</span>
+  <header class="sa-head" id="top">
+    <span class="sa-kicker">SwapSeq Atlas · version 0.4</span>
+    <h1 class="sa-title">Can public microbiome data be checked for swapped samples?</h1>
+    <p class="sa-lede">When the same people give samples again and again, each person's microbes work like a fingerprint, so a tube with the wrong label stands out. We tested how well that works on <b data-draw="v" data-source="summary" data-field="datasets" data-fmt="int">—</b> public studies' tables, <b data-draw="v" data-source="summary" data-field="samples" data-fmt="int">—</b> samples in all. The answer depends mostly on which part of the body the samples come from.</p>
+  </header>
+  </div>
+
+  <nav class="sa-nav" aria-label="Sections">
+    <a href="#how" data-go="how">How it works</a>
+    <a href="#scorecard" data-go="scorecard">Scorecard</a>
+    <a href="#glance" data-go="glance">At a glance</a>
+    <a href="#explore" data-go="explore">Explore tables</a>
+    <a href="#flags" data-go="flags">Findings</a>
+    <a href="#why" data-go="why">Behind the numbers</a>
+    <a href="#table" data-go="table">Data</a>
+    <a href="#cite" data-go="cite">Cite</a>
+  </nav>
+
+  <section class="sa-section" id="how">
+    <h2 class="sa-h2">How the test works</h2>
+    <div class="sa-steps">
+      <div class="sa-step">
+        <span class="sa-step-n">1</span>
+        <div class="sa-illo" data-draw="how" data-step="1" aria-hidden="true"></div>
+        <h3>Take a public study</h3>
+        <p>Each colour is one person. Every person gave several samples over weeks or months.</p>
+      </div>
+      <div class="sa-step">
+        <span class="sa-step-n">2</span>
+        <div class="sa-illo" data-draw="how" data-step="2" aria-hidden="true"></div>
+        <h3>Secretly swap a few labels</h3>
+        <p>We exchange the labels of a few real samples, about 1 in 200, as a lab mix-up would.</p>
+      </div>
+      <div class="sa-step">
+        <span class="sa-step-n">3</span>
+        <div class="sa-illo" data-draw="how" data-step="3" aria-hidden="true"></div>
+        <h3>Count what SwapSeq finds</h3>
+        <p>SwapSeq does not know which ones we swapped. We repeat this 10 to 80 times per table (more often for small tables) and count how many it catches.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sa-section" id="scorecard">
+    <h2 class="sa-h2">The scorecard</h2>
+    <div class="sa-tiles">
+      <div class="sa-tile"><span class="sa-tile-label">Public tables tested</span><span class="sa-tile-num" data-anim="1" data-draw="v" data-source="summary" data-field="datasets" data-fmt="int">—</span></div>
+      <div class="sa-tile"><span class="sa-tile-label">Samples</span><span class="sa-tile-num" data-anim="1" data-draw="v" data-source="summary" data-field="samples" data-fmt="int">—</span></div>
+      <div class="sa-tile"><span class="sa-tile-label">People and animals</span><span class="sa-tile-num" data-anim="1" data-draw="v" data-source="summary" data-field="subjects" data-fmt="int">—</span></div>
+      <div class="sa-tile"><span class="sa-tile-label">Tables where SwapSeq catches half or more</span><span class="sa-tile-num" data-anim="1" data-draw="v" data-source="summary" data-field="checkedWell" data-fmt="int">—</span></div>
+    </div>
+    <div class="sa-card">
+      <h3>Every table, by how well it can be checked</h3>
+      <p>One block per table. High: catches 80% or more of hidden swaps. Medium: 50-79%. Low: 20-49%. Very low: under 20%.</p>
+      <div class="sa-chart" id="gradebar" data-draw="gradebar" data-source="atlas"></div>
+    </div>
+  </section>
+
+  <section class="sa-section" id="glance">
+    <h2 class="sa-h2">The atlas at a glance</h2>
+    <p class="sa-sub">Every bubble is one public table, sized by its number of samples and grouped by where the samples come from. Solid bubbles are tables SwapSeq checks well; faint ones it cannot vouch for.</p>
+    <div class="sa-band">
+      <div class="sa-pack" id="pack" data-draw="pack" data-source="atlas"></div>
+      <div class="sa-legend">
+        <span><i class="sa-sw" data-draw="swg" data-g="1"></i>High</span>
+        <span><i class="sa-sw" data-draw="swg" data-g=".7"></i>Medium</span>
+        <span><i class="sa-sw" data-draw="swg" data-g=".45"></i>Low</span>
+        <span><i class="sa-sw" data-draw="swg" data-g=".2"></i>Very low</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="sa-section" id="body">
+    <h2 class="sa-h2">It depends on where the samples come from</h2>
+    <p class="sa-sub">Each dot is one table. Adult stool, skin and vaginal swabs keep a clear personal fingerprint. Baby stool changes too fast, patients on heavy antibiotics lose theirs, and lab mice from one donor all look alike.</p>
+    <div class="sa-card">
+      <h3>Hidden swaps caught, by sample type</h3>
+      <p>The line marks the middle table of each group.</p>
+      <div class="sa-chart" id="strip" data-draw="strip" data-source="atlas"></div>
+    </div>
+  </section>
+
+  <section class="sa-section" id="explore">
+    <span class="sa-eyebrow">Explore</span>
+    <h2 class="sa-h2">A trust label for every table</h2>
+    <p class="sa-sub">The ring shows how many hidden swaps SwapSeq caught in that table. Below it: how many samples the published labels put in doubt. Pick a table to open its profile.</p>
+
+    <article class="sa-profile" id="profile" aria-live="polite">
+      <div style="display:grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0;">
+        <span class="sa-eyebrow">Table profile</span>
+        <h3 data-draw="pv" data-source="atlas" data-field="name">—</h3>
+        <p class="sa-muted" style="margin:0; font-size: var(--cds-font-size-caption)"><span data-draw="pv" data-source="atlas" data-field="ref">—</span> · <span data-draw="pv" data-source="atlas" data-field="type">—</span></p>
+        <p style="margin:0; font-size: var(--cds-font-size-body); line-height:1.5"><span data-draw="pv" data-source="atlas" data-field="design">—</span></p>
+        <dl class="sa-facts">
+          <div><dt>Samples</dt><dd data-draw="pv" data-source="atlas" data-field="samples" data-fmt="int">—</dd></div>
+          <div><dt>People or animals</dt><dd data-draw="pv" data-source="atlas" data-field="subjects" data-fmt="int">—</dd></div>
+          <div><dt>Samples per person</dt><dd data-draw="pv" data-source="atlas" data-field="perSubject" data-fmt="int">—</dd></div>
+          <div><dt>Checkability</dt><dd data-draw="pv" data-source="atlas" data-field="grade">—</dd></div>
+          <div><dt>Strong flags as published</dt><dd data-draw="pv" data-source="atlas" data-field="flags" data-fmt="int">—</dd></div>
+          <div><dt>With rare-strain support</dt><dd data-draw="pv" data-source="atlas" data-field="supported" data-fmt="int">—</dd></div>
+        </dl>
+      </div>
+      <div style="display:grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0;">
+        <span class="sa-eyebrow">Measured on hidden test errors</span>
+        <div class="sa-chart" data-draw="pbars" data-source="atlas" style="min-height: 13rem"></div>
+      </div>
+    </article>
+
+    <div class="sa-tools">
+      <label class="sa-muted" for="sa-lq" style="font-size: var(--cds-font-size-caption)">Find</label>
+      <input id="sa-lq" class="sa-search" type="search" placeholder="Study, body site, author">
+      <label class="sa-muted" for="sa-ls" style="font-size: var(--cds-font-size-caption)">Sort by</label>
+      <select id="sa-ls" class="dash-select" aria-label="Sort tables">
+        <option value="caught">Swaps caught</option>
+        <option value="samples">Samples</option>
+        <option value="flags">Flags as published</option>
+        <option value="reid">Re-identified</option>
+        <option value="short">Name</option>
+      </select>
+    </div>
+    <div class="sa-chips" role="group" aria-label="Filter by sample type">
+      <button type="button" class="sa-chip" data-group="" aria-pressed="true">All</button>
+      <button type="button" class="sa-chip" data-group="Adult gut" aria-pressed="false">Adult gut</button>
+      <button type="button" class="sa-chip" data-group="Oral" aria-pressed="false">Oral</button>
+      <button type="button" class="sa-chip" data-group="Skin and nose" aria-pressed="false">Skin and nose</button>
+      <button type="button" class="sa-chip" data-group="Vaginal" aria-pressed="false">Vaginal</button>
+      <button type="button" class="sa-chip" data-group="Infant gut" aria-pressed="false">Infant gut</button>
+      <button type="button" class="sa-chip" data-group="Hospital patients" aria-pressed="false">Hospital patients</button>
+      <button type="button" class="sa-chip" data-group="Mouse gut" aria-pressed="false">Mouse gut</button>
+      <button type="button" class="sa-chip" data-group="Same-stool aliquots" aria-pressed="false">Same-stool aliquots</button>
+      <button type="button" class="sa-chip" data-group="Gut, other cohorts" aria-pressed="false">Gut, other cohorts</button>
+    </div>
+    <div class="sa-labels" data-draw="labels" data-source="atlas"></div>
+  </section>
+
+  <section class="sa-section" id="flags">
+    <h2 class="sa-h2">What it found in the data as published</h2>
+    <div class="sa-grid2">
+      <div class="sa-card">
+        <h3>From flags to strong candidates</h3>
+        <p>A flag is a sample that looks like a different person. It becomes a strong candidate when it also shares rare strains with that person, and the table is one SwapSeq can check well.</p>
+        <div class="sa-chart" id="funnel" data-draw="funnel" data-source="funnel"></div>
+      </div>
+      <div class="sa-card">
+        <h3>What this means</h3>
+        <ul class="sa-findings">
+          <li><strong>It finds a known swap.</strong><span>The diet study's authors fixed one tube swap before publishing. With the old labels put back, SwapSeq flags exactly that pair (<b data-draw="v" data-source="atlas" data-where="key=dietOriginal" data-field="flags" data-fmt="int">—</b> flags, nothing else).</span></li>
+          <li><strong>Same stool, different labels.</strong><span>In the storage study every tube from one donor holds the same stool, yet two donors' tubes look exchanged, with rare strains to back it.</span></li>
+          <li><strong>A flag alone is not proof.</strong><span>The transplant study has <b data-draw="v" data-source="atlas" data-where="key=taur" data-field="flags" data-fmt="int">—</b> flags and <b data-draw="v" data-source="atlas" data-where="key=taur" data-field="supported" data-fmt="int">—</b> with rare-strain support: treatment wiped out those patients' gut microbes, so they stop looking like anyone.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="sa-section" id="why">
+    <h2 class="sa-h2">Behind the numbers</h2>
+    <div class="sa-grid2">
+      <div class="sa-card">
+        <h3>People must look like themselves</h3>
+        <p>Each dot is one table. Re-identified means a sample's closest match is another sample from the same person. When people keep looking like themselves (85% or more), SwapSeq catches most hidden swaps. Below 75% their microbes change too much and it catches almost none. Tap a dot for the table.</p>
+        <div class="sa-chart" id="scatter" data-draw="scatter" data-source="atlas"></div>
+        <div class="sa-legend" data-draw="groups" data-source="atlas"></div>
+      </div>
+      <div class="sa-card">
+        <h3>Is SwapSeq's power figure right?</h3>
+        <p>After each run SwapSeq tells you its power: the share of swaps it would catch in your table. Each dot is one table, placed by how far that figure was from the catch rate measured here. Dots on the green line are spot on. Version 1.0 often said near 0% for tables it checks well, so many of its dots sit far to the left. Version 1.1 measures power on hidden test errors (the November update also counts swap pairs), and the average gap fell from <b data-draw="v" data-source="powerfix" data-field="oldGap" data-fmt="int">—</b> to <b data-draw="v" data-source="powerfix" data-field="newGap" data-fmt="int">—</b> points.</p>
+                <div class="sa-chart" id="gap" data-draw="gap" data-source="atlas"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sa-section" id="table">
+    <h2 class="sa-h2">All tables</h2>
+    <label class="sa-muted" for="sa-q" style="font-size: var(--cds-font-size-caption)">Search tables</label>
+    <input id="sa-q" class="sa-search" type="search" placeholder="Gut, infant, oral">
+    <div class="sa-tablebox">
+      <table class="sa-table" data-source="atlas" data-row-key="key">
+        <thead>
+          <tr>
+            <th data-field="short" class="sa-l"><button type="button" data-sort="short">Table</button></th>
+            <th data-field="group" class="sa-l"><button type="button" data-sort="group">Samples from</button></th>
+            <th data-field="samples"><button type="button" data-sort="samples">Samples</button></th>
+            <th data-field="subjects"><button type="button" data-sort="subjects">People or animals</button></th>
+            <th data-field="reid"><button type="button" data-sort="reid">Re-identified %</button></th>
+            <th data-field="caught"><button type="button" data-sort="caught" aria-sort="descending">Swaps caught %</button></th>
+            <th data-field="review"><button type="button" data-sort="review">With check list %</button></th>
+            <th data-field="fp"><button type="button" data-sort="fp">False flags per 1,000</button></th>
+            <th data-field="flags"><button type="button" data-sort="flags">Flags as published</button></th>
+            <th data-field="supported"><button type="button" data-sort="supported">With rare-strain support</button></th>
+            <th data-field="grade" class="sa-l"><button type="button" data-sort="grade">Checkability</button></th>
+          </tr>
+        </thead>
+        <tbody data-draw="tbody" data-source="atlas"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="sa-section" id="cite">
+    <span class="sa-eyebrow">Cite and reuse</span>
+    <h2 class="sa-h2">Use the Atlas</h2>
+    <div class="sa-grid2">
+      <div class="sa-card">
+        <h3>Cite</h3>
+        <p class="sa-cite" id="sa-cite-text">Singh M. (2026). SwapSeq Atlas v0.4: how checkable are public longitudinal microbiome datasets for sample swaps? Built with SwapSeq (doi:10.5281/zenodo.23963612, RRID:SCR_029248).</p>
+        <button type="button" class="sa-btn" id="sa-copy">Copy citation</button>
+      </div>
+      <div class="sa-card">
+        <h3>Get the numbers</h3>
+        <p>Every figure on this page comes from one table of study-level results: <a href="data/atlas.csv">atlas.csv</a> · <a href="data/atlas.json">atlas.json</a>. Code: <a href="https://github.com/bymankirat/swapseq/tree/main/atlas">github.com/bymankirat/swapseq/atlas</a>. Sample IDs are not included; they go to each study's authors first.</p>
+        <p>Check your own study in the browser with <a href="https://bymankirat.github.io/swapseq/">SwapSeq</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <details class="sa-details" id="method">
+    <summary>Method, limits and sources</summary>
+    <dl>
+      <dt>Who made this</dt>
+      <dd>Mankirat Singh, with SwapSeq 1.1.1, second November update (reciprocal swap pairs become strong flags in tables that separate swaps well, also in small tables), for the flags, catch rates and power figure; the version 1.0 power figure is shown for comparison (doi.org/10.5281/zenodo.23963612, RRID:SCR_029248). Study-level results only: sample IDs stay private until each study's authors have been told.</dd>
+      <dt>Data</dt>
+      <dd>Public longitudinal tables hosted on GitHub with a person ID per sample: the five SwapSeq validation studies, the GPZ longitudinal collection, the MITRE example data, the parafac4microbiome data, MicrobeDS, the Borenstein lab curated collection, six longitudinal shotgun tables (MetaPhlAn profiles) released by Ye et al. (2026; their HMP2 IBD table is left out because the Atlas already holds HMP2), and, new in version 0.4, five body sites of the first Human Microbiome Project and a controlled-feeding study from the Knights lab MLRepo. Three tables (Hagan, Palleja, Taur) could not be fetched again for version 0.4 and keep their version 0.3 results; all three are tables SwapSeq cannot check. Samples under 1,000 reads were dropped. Tables given as relative abundance were scaled to counts.</dd>
+      <dt>Hidden test swaps</dt>
+      <dd>About 0.3% of samples in reciprocal swaps and 0.2% in one-way relabels per repeat; tables under 500 samples get a single error per repeat (a swap or a relabel, alternating) and 80 repeats, larger tables 20 repeats (10 above 1,500 samples). Errors are drawn from people with three or more samples; default settings. Version 0.2 planted at least three swaps and two relabels from 300 samples up, up to 2.7% errors at once in mid-size tables, which under-rated them. "Swaps caught" counts strong flags. "With check list" adds samples sent for a records review.</dd>
+      <dt>False flags</dt>
+      <dd>Strong flags on samples whose labels were not changed, per 1,000 samples, leaving out samples already flagged on the data as published.</dd>
+      <dt>Rare-strain support</dt>
+      <dd>The flagged sample shares at least three rare features (present in 5% or fewer of samples) with the person it looks like, and at least twice as many as with its own label.</dd>
+      <dt>Left out</dt>
+      <dd>Tables only available as R objects or on sites this build could not reach (Qiita, ENA, figshare), the HMP1 16S table (no person ID per sample) and one-sample-per-person cohorts. The diet study with its labels restored to before the authors' correction is a positive control, shown in the table but not counted in the totals.</dd>
+      <dt>Limits</dt>
+      <dd>A low grade means SwapSeq cannot vouch for a table either way, not that the data are poor. Reprocessed tables can score differently from the authors' own. Catch rates in small tables carry several points of noise. Flags are candidates for a records check, not proof of error.</dd>
+      <dt>Sources</dt>
+      <dd>Flores 2014 (Student Microbiome Project); Bokulich 2016 (ECAM); Johnson 2019 (diet); Gibson 2025 (MDSINE2); Vangay 2018 (IMP); Vatanen 2016 (DIABIMMUNE); DiGiulio 2015; David 2014; Shao 2019; van der Ploeg 2024; Taur 2018; Hagan 2019; Palleja 2018; Song 2016; Mu 2021 (mouse VRE); He 2019; Kostic 2015; Mars 2020; Poyet 2019; Wandro 2018; Lloyd-Price 2019 (HMP2); Brooks 2017; Zhou 2019 (iHMP prediabetes); Hall 2017; ENA PRJEB38984, PRJEB70966 and PRJEB72385, as profiled and released by Ye et al. 2026 (Find-abnormality, MIT licence); Human Microbiome Project Consortium 2012 and Wu 2011, as curated in MLRepo (Vangay, Hillmann and Knights 2019).</dd>
+    </dl>
+  </details>
+</div>
+
+<script>
+  dash.calc('summary', {
+    inputs: ['atlas'],
+    title: 'Atlas totals',
+    description: 'Totals over the public tables, leaving out the before-correction control.',
+    fn: (atlas) => {
+      const m = atlas.filter((r) => !r.control);
+      const sum = (f) => m.reduce((a, r) => a + (Number(r[f]) || 0), 0);
+      const studies = new Set(m.map((r) => String(r.ref || r.name).split(',')[0]));
+      return [{
+        datasets: m.length, studies: studies.size, samples: sum('samples'), subjects: sum('subjects'),
+        checkedWell: m.filter((r) => r.caught >= 50).length, high: m.filter((r) => r.caught >= 80).length,
+        flags: sum('flags'), supported: sum('supported'),
+        tablesWithFlags: m.filter((r) => r.flags > 0).length, tablesWithSupported: m.filter((r) => r.supported > 0).length,
+        lowSelf: m.filter((r) => r.caught >= 80 && r.selfPowerSwap != null && r.selfPowerSwap < 20).length
+      }];
+    }
+  });
+
+  dash.calc('powerfix', {
+    inputs: ['atlas'],
+    title: 'Power figure error, 1.0 and 1.1',
+    description: 'Average gap in points between the power SwapSeq shows and the measured catch rate, per version.',
+    fn: (atlas) => {
+      const m = atlas.filter((r) => !r.control && r.caught != null && r.selfPowerSwap != null && r.powerV111 != null);
+      const gap = (f) => Math.round(m.reduce((a, r) => a + Math.abs(r[f] - r.caught), 0) / m.length);
+      return [{ oldGap: gap('selfPowerSwap'), newGap: gap('powerV111'), tables: m.length }];
+    }
+  });
+
+  dash.calc('funnel', {
+    inputs: ['atlas'],
+    title: 'Flags to strong candidates',
+    description: 'Strong flags on the published labels, those with rare-strain support, and those in tables graded High or Medium.',
+    fn: (atlas) => {
+      const m = atlas.filter((r) => !r.control);
+      const sum = (rows, f) => rows.reduce((a, r) => a + (Number(r[f]) || 0), 0);
+      const good = m.filter((r) => r.caught >= 50);
+      return [
+        { step: 'Strong flags', n: sum(m, 'flags') },
+        { step: 'With rare-strain support', n: sum(m, 'supported') },
+        { step: 'In tables SwapSeq checks well', n: sum(good, 'supported') }
+      ];
+    }
+  });
+
+  window.SA = {
+    rows(id) { const d = dash.data(id); if (d.status !== 'ok') return null; const x = d.data; return Array.isArray(x) ? x : (x && x.rows) || []; },
+    fmt: { int: (v) => d3.format(',')(v), pct: (v) => d3.format('d')(v) + '%', raw: (v) => String(v) },
+    GROUPS: ['Adult gut', 'Oral', 'Skin and nose', 'Vaginal', 'Same-stool aliquots', 'Infant gut', 'Hospital patients', 'Mouse gut', 'Gut, other cohorts'],
+    GRADES: ['High', 'Medium', 'Low', 'Very low'],
+    gradeOpacity: { 'High': 1, 'Medium': .7, 'Low': .45, 'Very low': .2 },
+    color(g) { if (g === 'Gut, other cohorts') return 'var(--cds-chart-reference)'; const i = SA.GROUPS.indexOf(g); return dash.colors[(i < 0 ? 7 : i) % dash.colors.length]; },
+    tip(box) { let t = box.querySelector('.sa-tip'); if (!t) { t = document.createElement('div'); t.className = 'sa-tip'; t.hidden = true; box.appendChild(t); } return t; },
+    show(box, t, ev, lines) { t.hidden = false; t.replaceChildren(); lines.forEach((s, i) => { const d = document.createElement('div'); if (i === 0) d.className = 't'; d.textContent = s; t.appendChild(d); }); const [x, y] = d3.pointer(ev, box); const w = box.clientWidth, tw = t.offsetWidth; t.style.left = Math.max(0, Math.min(w - tw, x + 12)) + 'px'; t.style.top = Math.max(0, y - t.offsetHeight - 8) + 'px'; },
+    text(sel, x, y, s, anchor = 'start', muted = true) { return sel.append('text').attr('x', x).attr('y', y).attr('text-anchor', anchor).style('fill', muted ? 'var(--color-fg-muted)' : 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(s); },
+    sort: { key: 'caught', dir: -1 }, q: '', group: '', sel: 'smpGut', lq: '', ls: 'caught'
+  };
+
+  dash.draw('v', (el) => {
+    const rows = SA.rows(el.dataset.source);
+    if (!rows) { el.textContent = '—'; return; }
+    let r = rows[0];
+    if (el.dataset.where) { const [k, v] = el.dataset.where.split('=').map(decodeURIComponent); r = rows.find((x) => String(x[k]) === v); }
+    const v = r ? r[el.dataset.field] : null;
+    const f = SA.fmt[el.dataset.fmt || 'raw'];
+    if (v == null) { el.textContent = '—'; return; }
+    const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (el.dataset.anim && !el.dataset.done && !calm && typeof v === 'number') {
+      el.dataset.done = '1';
+      d3.select(el).transition().duration(1200).ease(d3.easeCubicOut || ((t) => t)).tween('text', () => { const i = d3.interpolateNumber(0, v); return (t) => { el.textContent = f(Math.round(i(t))); }; });
+    } else { el.textContent = f(v); }
+  });
+
+  // resolve a theme colour (a CSS value such as var(--x)) to rgb for canvas
+  SA.rgb = (c) => { const p = document.createElement('i'); p.style.color = c; p.style.display = 'none'; document.body.appendChild(p); const v = getComputedStyle(p).color; p.remove(); return v; };
+  SA.alpha = (rgb, a) => rgb.replace(/^rgba?\(([^)]+)\)$/, (m, x) => { const q = x.split(',').map((t) => t.trim()); return `rgba(${q[0]},${q[1]},${q[2]},${a})`; });
+
+  // live hero: clusters of samples (one colour per person); now and then two tubes swap places and get caught
+  dash.draw('hero', {
+    mount(el) {
+      const cv = document.createElement('canvas'); el.appendChild(cv);
+      const ctx = cv.getContext('2d'), st = { raf: 0, t0: performance.now(), events: [], next: 1800 };
+      const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      // small seeded random source (this page's d3 has no d3-random)
+      let seed = 7; const R = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+      const gauss = () => { const u = Math.max(1e-9, R()), v = R(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(6.283185 * v); };
+      const setup = () => {
+        const w = el.clientWidth || 600, h = el.clientHeight || 380, dpr = Math.min(2, window.devicePixelRatio || 1);
+        cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        const narrow = w < 640, people = narrow ? 5 : 7, cols = dash.colors.slice(0, people).map(SA.rgb);
+        const ink = getComputedStyle(el).color;
+        const centers = d3.range(people).map((k) => narrow
+          ? { x: w * (.12 + .76 * (k / (people - 1))), y: h * (.38 + .24 * (k % 2)) }
+          : { x: w * (.6 + .34 * ((k % 4) / 3)), y: h * (.18 + .5 * (Math.floor(k / 4) + (k % 2) * .25)) });
+        const g = gauss, dots = [];
+        centers.forEach((c, k) => { const n = 9 + Math.floor(R() * 5), sp = Math.min(w, h) * (narrow ? .05 : .065);
+          for (let i = 0; i < n; i++) dots.push({ k, hx: c.x + g() * sp, hy: c.y + g() * sp, ph: R() * 6.28, sp: .3 + R() * .5, r: 3 + R() * 2.5, ox: 0, oy: 0 }); });
+        Object.assign(st, { w, h, cols, ink, centers, dots, people });
+      };
+      const pickPair = () => { const a = st.dots[Math.floor(R() * st.dots.length)]; let b; for (let i = 0; i < 50; i++) { b = st.dots[Math.floor(R() * st.dots.length)]; if (b.k !== a.k && !b.busy && !a.busy) break; b = null; } return b ? [a, b] : null; };
+      const draw = (now) => {
+        const t = (now - st.t0) / 1000; ctx.clearRect(0, 0, st.w, st.h);
+        // faint links inside each person's cluster
+        ctx.lineWidth = 1;
+        for (const d of st.dots) { d.x = d.hx + Math.sin(t * d.sp + d.ph) * 4 + d.ox; d.y = d.hy + Math.cos(t * d.sp * .8 + d.ph) * 4 + d.oy; }
+        for (let k = 0; k < st.people; k++) { const ds = st.dots.filter((d) => d.k === k && !d.busy); ctx.strokeStyle = SA.alpha(st.cols[k], .14); ctx.beginPath();
+          for (let i = 1; i < ds.length; i++) { ctx.moveTo(ds[i - 1].x, ds[i - 1].y); ctx.lineTo(ds[i].x, ds[i].y); } ctx.stroke(); }
+        for (const d of st.dots) { ctx.fillStyle = SA.alpha(st.cols[d.k], .85); ctx.beginPath(); ctx.arc(d.x, d.y, d.r, 0, 6.283); ctx.fill(); }
+        // swap events: travel 1.2 s, caught ring 1.6 s, hold, travel back
+        if (!calm && now - st.t0 > st.next) { const pr = pickPair(); if (pr) { const [a, b] = pr; a.busy = b.busy = true; st.events.push({ a, b, s: now }); } st.next += 3600 + R() * 1800; }
+        st.events = st.events.filter((e) => {
+          const u = (now - e.s) / 1000, ease = d3.easeCubicInOut || ((x) => x), dx = e.b.hx - e.a.hx, dy = e.b.hy - e.a.hy;
+          let f = u < 1.2 ? ease(u / 1.2) : u < 4.6 ? 1 : u < 5.8 ? 1 - ease((u - 4.6) / 1.2) : 0;
+          e.a.ox = dx * f; e.a.oy = dy * f; e.b.ox = -dx * f; e.b.oy = -dy * f;
+          if (u > 1.3 && u < 4.6) { const q = Math.min(1, (u - 1.3) / .5);
+            for (const d of [e.a, e.b]) { ctx.strokeStyle = SA.alpha(st.ink, .85 * q); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(d.x, d.y, d.r + 7 + 3 * Math.sin(u * 5), 0, 6.283); ctx.stroke(); }
+            ctx.strokeStyle = SA.alpha(st.ink, .35 * q); ctx.setLineDash([3, 4]); ctx.beginPath(); ctx.moveTo(e.a.x, e.a.y); ctx.lineTo(e.b.x, e.b.y); ctx.stroke(); ctx.setLineDash([]); }
+          if (u >= 5.8) { e.a.ox = e.a.oy = e.b.ox = e.b.oy = 0; e.a.busy = e.b.busy = false; return false; }
+          return true; });
+        if (!calm && !document.hidden) st.raf = requestAnimationFrame(draw);
+      };
+      setup(); draw(performance.now());
+      st.vis = () => { cancelAnimationFrame(st.raf); if (!document.hidden && !calm) st.raf = requestAnimationFrame(draw); };
+      document.addEventListener('visibilitychange', st.vis);
+      st.setup = setup; st.draw = draw; return st;
+    },
+    update(el, st) { st.setup(); if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) st.draw(performance.now()); },
+    unmount(el, st) { cancelAnimationFrame(st.raf); document.removeEventListener('visibilitychange', st.vis); }
+  });
+
+  dash.draw('swg', (el) => { el.textContent = ''; el.style.background = dash.colors[0]; el.style.opacity = el.dataset.g; el.style.borderRadius = '50%'; });
+
+  // bubble pack: one bubble per table, sized by samples, grouped by sample type
+  dash.draw('pack', (el) => {
+    const all = SA.rows('atlas');
+    el.replaceChildren();
+    if (!all) return;
+    const rows = all.filter((r) => !r.control);
+    const W = Math.max(280, el.clientWidth), H = Math.min(560, Math.max(320, W * .62));
+    const root = d3.hierarchy({ children: SA.GROUPS.map((g) => ({ name: g, children: rows.filter((r) => r.group === g) })).filter((g) => g.children.length) })
+      .sum((d) => d.samples || 0).sort((a, b) => b.value - a.value);
+    d3.pack().size([W, H]).padding((d) => d.depth === 0 ? 14 : 3)(root);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Every table as a bubble, sized by samples and grouped by sample type');
+    const t = SA.tip(el), calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const groups = svg.selectAll('g.grp').data(root.children).join('g').attr('class', 'grp');
+    groups.append('circle').attr('cx', (d) => d.x).attr('cy', (d) => d.y).attr('r', (d) => d.r)
+      .style('fill', (d) => SA.color(d.data.name)).style('fill-opacity', .07).style('stroke', (d) => SA.color(d.data.name)).style('stroke-opacity', .5).style('stroke-dasharray', '3 3');
+    groups.append('text').attr('x', (d) => d.x).attr('y', (d) => d.y - d.r - 4).attr('text-anchor', 'middle').style('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-weight', 600)
+      .text((d) => d.r > 30 ? d.data.name : '');
+    const leaves = svg.selectAll('g.leaf').data(root.leaves()).join('g').attr('class', 'leaf').attr('transform', (d) => `translate(${d.x},${d.y})`);
+    const c = leaves.append('circle').attr('r', calm ? (d) => d.r : 0)
+      .style('fill', (d) => SA.color(d.data.group)).style('fill-opacity', (d) => SA.gradeOpacity[d.data.grade] ?? .15)
+      .style('stroke', (d) => SA.color(d.data.group)).style('stroke-width', 1.5)
+      .on('mousemove', (ev, d) => SA.show(el, t, ev, [d.data.short, `${d.data.group} · ${d3.format(',')(d.data.samples)} samples`, `${d.data.grade}: ${d.data.caught}% of hidden swaps caught`]))
+      .on('mouseleave', () => { t.hidden = true; });
+    if (!calm) c.transition().delay((d, i) => 80 + i * 35).duration(700).ease(d3.easeBackOut ? d3.easeBackOut.overshoot(1.4) : (t) => t).attr('r', (d) => d.r);
+    leaves.append('text').attr('text-anchor', 'middle').attr('dy', '0.35em').style('pointer-events', 'none').style('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
+      .text((d) => d.r > 34 ? `${d.data.caught}%` : '');
+  });
+
+  // illustrations for the three steps (no data; colours follow the theme)
+  dash.draw('how', (el) => {
+    el.replaceChildren();
+    const step = +el.dataset.step, W = 220, H = 104, cols = 5, people = 3;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const tw = 26, th = 18, gx = 14, gy = 12, x0 = 12, y0 = 12;
+    const pos = (p, c) => [x0 + c * (tw + gx), y0 + p * (th + gy)];
+    const swapA = [0, 3], swapB = [1, 1];
+    for (let p = 0; p < people; p++) for (let c = 0; c < cols; c++) {
+      let owner = p;
+      if (step >= 2 && p === swapA[0] && c === swapA[1]) owner = swapB[0];
+      if (step >= 2 && p === swapB[0] && c === swapB[1]) owner = swapA[0];
+      const [x, y] = pos(p, c);
+      const isSwap = step >= 2 && ((p === swapA[0] && c === swapA[1]) || (p === swapB[0] && c === swapB[1]));
+      svg.append('rect').attr('x', x).attr('y', y).attr('width', tw).attr('height', th).attr('rx', 5)
+        .style('fill', dash.colors[owner]).style('fill-opacity', step === 3 && !isSwap ? .35 : .9)
+        .style('stroke', 'var(--color-panel)').style('stroke-width', 1.5);
+      svg.append('rect').attr('x', x - 2).attr('y', y + th - 4).attr('width', 6).attr('height', 4).style('fill', dash.colors[p]).style('fill-opacity', step >= 2 ? .9 : 0);
+    }
+    if (step === 2) {
+      const [ax, ay] = pos(...swapA), [bx, by] = pos(...swapB);
+      const p1 = [ax + tw / 2, ay + th + 2], p2 = [bx + tw / 2, by - 2];
+      svg.append('path').attr('d', `M${p1[0]},${p1[1]} C${p1[0]},${(p1[1] + p2[1]) / 2 + 6} ${p2[0]},${(p1[1] + p2[1]) / 2 - 6} ${p2[0]},${p2[1]}`)
+        .style('fill', 'none').style('stroke', 'var(--color-fg)').style('stroke-width', 1.5).style('stroke-dasharray', '3 3');
+    }
+    if (step === 3) {
+      for (const s of [swapA, swapB]) {
+        const [x, y] = pos(...s);
+        svg.append('circle').attr('cx', x + tw / 2).attr('cy', y + th / 2).attr('r', 17).style('fill', 'none').style('stroke', 'var(--color-fg)').style('stroke-width', 2);
+        svg.append('line').attr('x1', x + tw / 2 + 12).attr('y1', y + th / 2 + 12).attr('x2', x + tw / 2 + 19).attr('y2', y + th / 2 + 19).style('stroke', 'var(--color-fg)').style('stroke-width', 3).style('stroke-linecap', 'round');
+      }
+    }
+  });
+
+  dash.draw('gradebar', (el) => {
+    const all = SA.rows('atlas');
+    el.replaceChildren();
+    if (!all) return;
+    const rows = all.filter((r) => !r.control).sort((a, b) => (b.caught - a.caught) || d3.ascending(a.short, b.short));
+    const W = Math.max(280, el.clientWidth), gap = 3, bh = 44, H = bh + 46;
+    const bw = (W - gap * (rows.length - 1)) / rows.length;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Every table coloured by its checkability grade');
+    const t = SA.tip(el);
+    svg.selectAll('rect.b').data(rows).join('rect').attr('class', 'b sa-grow').attr('x', (d, i) => i * (bw + gap)).attr('y', 0).attr('width', bw).attr('height', bh).attr('rx', 2)
+      .style('fill', dash.colors[0]).style('fill-opacity', (d) => SA.gradeOpacity[d.grade] ?? .1)
+      .style('animation-delay', (d, i) => (i * 12) + 'ms')
+      .on('mousemove', (ev, d) => SA.show(el, t, ev, [d.short, `${d.grade}: ${d.caught}% of hidden swaps caught`, `${d3.format(',')(d.samples)} samples`]))
+      .on('mouseleave', () => { t.hidden = true; });
+    // grade brackets under the blocks
+    let i0 = 0;
+    for (const g of SA.GRADES) {
+      const n = rows.filter((r) => r.grade === g).length; if (!n) continue;
+      const xa = i0 * (bw + gap), xb = (i0 + n) * (bw + gap) - gap;
+      svg.append('line').attr('x1', xa).attr('x2', xb).attr('y1', bh + 8).attr('y2', bh + 8).style('stroke', 'var(--cds-chart-axis)').style('stroke-width', 1);
+      const label = `${g} · ${n}`;
+      const tx = SA.text(svg, xa, bh + 26, label, 'start', false);
+      if (xb - xa < tx.node().getComputedTextLength() + 4) { tx.text(String(n)); }
+      SA.text(svg, xa, bh + 42, n === 1 ? 'table' : 'tables').style('opacity', xb - xa < 40 ? 0 : 1);
+      i0 += n;
+    }
+  });
+
+  dash.draw('strip', (el) => {
+    const all = SA.rows('atlas');
+    el.replaceChildren();
+    if (!all) return;
+    const rows = all.filter((r) => !r.control && r.caught != null);
+    const groups = SA.GROUPS.filter((g) => rows.some((r) => r.group === g))
+      .sort((a, b) => d3.median(rows.filter((r) => r.group === b), (r) => r.caught) - d3.median(rows.filter((r) => r.group === a), (r) => r.caught));
+    const W = Math.max(280, el.clientWidth), rowH = 50, top = 4, H = top + groups.length * rowH + 22, xr = W - 14;
+    const x = d3.scaleLinear([0, 100], [8, xr]);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Hidden swaps caught, by sample type');
+    [0, 50, 100].forEach((v) => {
+      svg.append('line').attr('x1', x(v)).attr('x2', x(v)).attr('y1', top).attr('y2', H - 20).style('stroke', 'var(--cds-chart-grid)');
+      SA.text(svg, x(v), H - 4, v + '%', v === 0 ? 'start' : v === 100 ? 'end' : 'middle');
+    });
+    const t = SA.tip(el);
+    groups.forEach((g, gi) => {
+      const y = top + gi * rowH, rs = rows.filter((r) => r.group === g), med = d3.median(rs, (r) => r.caught);
+      SA.text(svg, x(0), y + 13, `${g} (${rs.length})`, 'start', false);
+      svg.append('line').attr('x1', x(0)).attr('x2', x(100)).attr('y1', y + 32).attr('y2', y + 32).style('stroke', 'var(--cds-chart-grid)');
+      svg.append('line').attr('x1', x(med)).attr('x2', x(med)).attr('y1', y + 20).attr('y2', y + 44).style('stroke', 'var(--color-fg)').style('stroke-width', 2);
+      // light jitter so equal values stay visible
+      const seen = new Map();
+      svg.selectAll(null).data(rs).join('circle').attr('cx', (d) => x(d.caught)).attr('cy', (d) => { const k = Math.round(d.caught / 4); const c = seen.get(k) || 0; seen.set(k, c + 1); return y + 32 + (c % 2 ? 1 : -1) * Math.ceil(c / 2) * 6; })
+        .attr('r', 6).style('fill', SA.color(g)).style('fill-opacity', .9).style('stroke', 'var(--color-panel)').style('stroke-width', 1.5)
+        .on('mousemove', (ev, d) => SA.show(el, t, ev, [d.short, `${d.caught}% of hidden swaps caught`, `${d3.format(',')(d.samples)} samples`]))
+        .on('mouseleave', () => { t.hidden = true; });
+    });
+  });
+
+  dash.draw('labels', (el) => {
+    const all = SA.rows('atlas');
+    el.replaceChildren();
+    if (!all) return;
+    const q = SA.lq.trim().toLowerCase(), k = SA.ls;
+    const rows = all.filter((r) => !r.control && (!SA.group || r.group === SA.group) && (!q || `${r.name} ${r.short} ${r.group} ${r.ref || ''} ${r.type || ''}`.toLowerCase().includes(q)))
+      .sort((a, b) => k === 'short' ? d3.ascending(a.short, b.short) : ((b[k] ?? -1) - (a[k] ?? -1)) || d3.ascending(a.short, b.short));
+    const f = d3.format(',');
+    for (const r of rows) {
+      const card = document.createElement('article'); card.className = 'sa-label'; card.tabIndex = 0; card.setAttribute('role', 'button');
+      card.setAttribute('aria-pressed', String(r.key === SA.sel)); card.setAttribute('aria-label', `Open the profile of ${r.short}`);
+      const open = () => { SA.sel = r.key; el.querySelectorAll('.sa-label').forEach((c) => c.setAttribute('aria-pressed', String(c === card))); dash.draw('pv'); dash.draw('pbars');
+        const pr = document.getElementById('profile'); if (pr) pr.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
+      card.addEventListener('click', open); card.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); open(); } });
+      const ring = document.createElement('div');
+      const S = 64, R = 27, svg = d3.select(ring).append('svg').attr('width', S).attr('height', S).attr('viewBox', `0 0 ${S} ${S}`).attr('role', 'img').attr('aria-label', `${r.caught}% of hidden swaps caught`);
+      const arc = d3.arc().innerRadius(R - 6).outerRadius(R).cornerRadius(3);
+      const g = svg.append('g').attr('transform', `translate(${S / 2},${S / 2})`);
+      g.append('path').attr('d', arc({ startAngle: 0, endAngle: 2 * Math.PI })).style('fill', 'var(--cds-chart-grid)');
+      if (r.review > r.caught) g.append('path').attr('d', arc({ startAngle: 0, endAngle: 2 * Math.PI * r.review / 100 })).style('fill', dash.colors[0]).style('fill-opacity', .3);
+      if (r.caught > 0) g.append('path').attr('d', arc({ startAngle: 0, endAngle: 2 * Math.PI * r.caught / 100 })).style('fill', dash.colors[0]);
+      g.append('text').attr('text-anchor', 'middle').attr('dy', '0.35em').style('fill', 'var(--color-fg)').style('font-family', 'var(--display)').style('font-size', 'var(--cds-font-size-heading)').text(`${r.caught}%`);
+      const txt = document.createElement('div'); txt.style.minWidth = '0';
+      const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = r.short;
+      const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = `${r.group} · ${f(r.samples)} samples · ${f(r.subjects)} ${r.group === 'Mouse gut' ? 'mice' : r.group === 'Same-stool aliquots' ? 'donors' : 'people'}`;
+      txt.append(nm, meta);
+      const row = document.createElement('div'); row.className = 'row';
+      const pill = document.createElement('span'); pill.className = 'sa-pill ' + String(r.grade).replace(' ', '-'); pill.textContent = r.grade;
+      const fl = document.createElement('span');
+      fl.textContent = r.flags === 0 ? 'No samples in doubt' : `${r.flags} in doubt · ${r.supported} with rare-strain support`;
+      if (r.supported > 0) fl.className = 'sa-flag';
+      row.append(pill, fl);
+      card.append(ring, txt, row);
+      card.title = r.name;
+      el.appendChild(card);
+    }
+  });
+
+  dash.draw('pv', (el) => {
+    const rows = SA.rows('atlas');
+    if (!rows) { el.textContent = '—'; return; }
+    const r = rows.find((x) => x.key === SA.sel) || rows[0];
+    el.dataset.where = 'key=' + encodeURIComponent(r.key);
+    const v = r[el.dataset.field];
+    el.textContent = v == null || v === '' ? '—' : (SA.fmt[el.dataset.fmt || 'raw'])(v);
+  });
+
+  dash.draw('pbars', (el) => {
+    const rows = SA.rows('atlas');
+    el.replaceChildren();
+    if (!rows) return;
+    const r = rows.find((x) => x.key === SA.sel) || rows[0];
+    const items = [
+      ['Swapped samples caught (strong flag)', r.caught, 1],
+      ['Swapped samples caught (with check list)', r.review, .45],
+      ['One-way relabels caught', r.relabel, .7],
+      ['Re-identified (closest sample is the same person)', r.reid, .25],
+      ['Power shown by SwapSeq now', r.powerV111, .7],
+      ['Power shown by SwapSeq 1.0', r.selfPowerSwap, .15]
+    ];
+    const W = Math.max(240, el.clientWidth), rowH = 36, H = items.length * rowH;
+    const x = d3.scaleLinear([0, 100], [0, W - 44]);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', `Measured results for ${r.short}`);
+    items.forEach(([label, v, op], i) => {
+      const y = i * rowH;
+      SA.text(svg, 0, y + 12, label, 'start', false);
+      svg.append('rect').attr('x', 0).attr('y', y + 17).attr('width', x(100)).attr('height', 10).attr('rx', 3).style('fill', 'var(--cds-chart-grid)');
+      if (v != null) svg.append('rect').attr('class', 'sa-grow').attr('x', 0).attr('y', y + 17).attr('width', Math.max(2, x(v))).attr('height', 10).attr('rx', 3).style('fill', dash.colors[0]).style('fill-opacity', op).style('animation-delay', (i * 70) + 'ms');
+      svg.append('text').attr('x', x(100) + 8).attr('y', y + 27).style('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').style('font-variant-numeric', 'tabular-nums').text(v == null ? '—' : `${Math.round(v)}%`);
+    });
+  });
+
+  dash.draw('funnel', (el) => {
+    const rows = SA.rows('funnel');
+    el.replaceChildren();
+    if (!rows) return;
+    const W = Math.max(260, el.clientWidth), rowH = 50, H = rows.length * rowH;
+    const max = d3.max(rows, (r) => r.n) || 1, x = d3.scaleLinear([0, max], [0, W - 48]);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Flags narrowed down to strong candidates');
+    rows.forEach((r, i) => {
+      const y = i * rowH;
+      SA.text(svg, 0, y + 13, r.step, 'start', false);
+      svg.append('rect').attr('class', 'sa-grow').attr('x', 0).attr('y', y + 20).attr('height', 20).attr('rx', 3).attr('width', Math.max(2, x(r.n)))
+        .style('fill', dash.colors[0]).style('fill-opacity', i === rows.length - 1 ? 1 : .35 + i * .2).style('animation-delay', (i * 120) + 'ms');
+      svg.append('text').attr('x', x(r.n) + 8).attr('y', y + 35).style('fill', 'var(--color-fg)').style('font-family', 'var(--display)').style('font-size', 'var(--cds-font-size-heading)').text(d3.format(',')(r.n));
+    });
+  });
+
+  // place dots without overlap: each dot moves away from its true height (up or down) until it is clear
+  SA.dodge = (pts, r, dirOf) => {
+    const done = [], gap = 2 * r + 1;
+    pts.slice().sort((a, b) => a.y0 - b.y0 || a.x - b.x).forEach((p) => {
+      const dir = dirOf(p); let k = 0; p.y = p.y0;
+      while (done.some((q) => Math.hypot(q.x - p.x, q.y - p.y) < gap) && k < 40) { k++; p.y = p.y0 + dir * k * (gap * .62); }
+      done.push(p);
+    });
+    return pts;
+  };
+  SA.hover = (sel, el, t, lines) => sel.style('cursor', 'pointer')
+    .on('mousemove click', (ev, d) => { ev.stopPropagation(); SA.show(el, t, ev, lines(d)); })
+    .on('mouseleave', () => { t.hidden = true; });
+
+  dash.draw('scatter', (el) => {
+    const all = SA.rows('atlas');
+    el.replaceChildren();
+    if (!all) return;
+    const rows = all.filter((r) => !r.control && r.reid != null);
+    const W = Math.max(260, el.clientWidth), H = W < 480 ? 340 : 320, m = { l: 40, r: 12, t: 52, b: 46 }, R = 5.5;
+    const x = d3.scaleLinear([20, 100], [m.l, W - m.r]), y = d3.scaleLinear([0, 100], [H - m.b, m.t]);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'Re-identification against swaps caught, one dot per table');
+    const zone = (a, b) => { const z = rows.filter((r) => r.reid >= a && r.reid < b); return { n: z.length, k: z.filter((r) => r.caught >= 50).length }; };
+    const hard = zone(0, 75), easy = zone(85, 101);
+    // zones
+    svg.append('rect').attr('x', x(85)).attr('y', m.t).attr('width', x(100) - x(85)).attr('height', H - m.b - m.t).style('fill', dash.colors[2]).style('fill-opacity', .1);
+    svg.append('rect').attr('x', x(20)).attr('y', m.t).attr('width', x(75) - x(20)).attr('height', H - m.b - m.t).style('fill', 'var(--cds-chart-grid)').style('fill-opacity', .45);
+    [20, 40, 60, 80, 100].forEach((v) => { svg.append('line').attr('x1', x(v)).attr('x2', x(v)).attr('y1', m.t).attr('y2', H - m.b).style('stroke', 'var(--cds-chart-grid)'); SA.text(svg, x(v), H - m.b + 16, v + '%', v === 100 ? 'end' : v === 20 ? 'start' : 'middle'); });
+    [0, 50, 100].forEach((v) => { svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(v)).attr('y2', y(v)).style('stroke', v === 0 ? 'var(--cds-chart-axis)' : 'var(--cds-chart-grid)').style('stroke-dasharray', v === 50 ? '4 4' : null); SA.text(svg, m.l - 6, y(v) + 4, v + '%', 'end'); });
+    // axis titles, written the way you read them
+    SA.text(svg, 2, 14, 'Swaps caught ↑', 'start', false).style('font-weight', 600);
+    SA.text(svg, W - m.r, H - 6, 'Re-identified (sample looks most like its own person) →', 'end', false).style('font-weight', 600).style('font-size', W < 480 ? '11px' : 'var(--cds-font-size-caption)');
+    // what the zones mean
+    const lab = (xx, yy, lines, anchor) => lines.forEach((s, i) => SA.text(svg, xx, yy + i * 15, s, anchor, i === 0).style('font-weight', i === 0 ? 600 : null));
+    lab((x(20) + x(75)) / 2, y(100) + 18, ['Below 75%: hard to check', `${hard.k} of ${hard.n} tables catch half the swaps`, 'babies, lab mice, heavy antibiotics'], 'middle');
+    lab(W - m.r, 34, [`85% and up: ${easy.k} of ${easy.n} catch half or more`], 'end');
+    svg.append('line').attr('x1', (x(85) + x(100)) / 2).attr('x2', (x(85) + x(100)) / 2).attr('y1', 39).attr('y2', m.t - 2).style('stroke', dash.colors[2]).style('stroke-width', 1.2);
+    SA.text(svg, x(73), y(50) - 6, 'half of swaps caught', 'end');
+    const t = SA.tip(el);
+    const pts = SA.dodge(rows.map((d) => ({ d, x: x(Math.max(20, d.reid)), y0: y(d.caught) })), R, (p) => (p.d.caught < 50 ? -1 : 1));
+    const c = svg.selectAll('circle').data(pts).join('circle').attr('cx', (p) => p.x).attr('cy', (p) => p.y).attr('r', R)
+      .style('fill', (p) => SA.color(p.d.group)).style('stroke', 'var(--color-panel)').style('stroke-width', 1.5);
+    SA.hover(c, el, t, (p) => [`${p.d.short} · ${p.d.group}`, `Re-identified ${p.d.reid}% · swaps caught ${p.d.caught}%`]);
+  });
+
+  dash.draw('swk', (el) => { el.textContent = ''; el.style.background = el.dataset.k === 'new' ? dash.colors[0] : 'transparent'; el.style.border = `1.5px solid ${dash.colors[0]}`; el.style.borderRadius = '50%'; });
+
+  dash.draw('groups', (el) => {
+    const all = SA.rows('atlas');
+    el.replaceChildren();
+    if (!all) return;
+    const present = new Set(all.filter((r) => !r.control).map((r) => r.group));
+    SA.GROUPS.filter((g) => present.has(g)).forEach((g) => { const s = document.createElement('span'); const i = document.createElement('i'); i.className = 'sa-sw'; i.style.background = SA.color(g); s.append(i, document.createTextNode(g)); el.appendChild(s); });
+  });
+
+  dash.draw('gap', (el) => {
+    const all = SA.rows('atlas');
+    el.replaceChildren();
+    if (!all) return;
+    const rows = all.filter((r) => !r.control && r.selfPowerSwap != null && r.caught != null && r.powerV111 != null);
+    const W = Math.max(260, el.clientWidth), narrow = W < 480, R = 5.5, laneH = 122, m = { l: 12, r: 12, t: 6, b: 52 };
+    const H = m.t + 2 * laneH + m.b;
+    const x = d3.scaleLinear([-100, 100], [m.l, W - m.r]);
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img').attr('aria-label', 'How far the power SwapSeq showed was from the measured catch rate, version 1.0 and 1.1, one dot per table');
+    // the "about right" band
+    svg.append('rect').attr('x', x(-10)).attr('width', x(10) - x(-10)).attr('y', m.t).attr('height', 2 * laneH).style('fill', dash.colors[2]).style('fill-opacity', .12);
+    svg.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', m.t).attr('y2', m.t + 2 * laneH).style('stroke', dash.colors[2]).style('stroke-width', 1.5);
+    [-100, -50, 50, 100].forEach((v) => svg.append('line').attr('x1', x(v)).attr('x2', x(v)).attr('y1', m.t).attr('y2', m.t + 2 * laneH).style('stroke', 'var(--cds-chart-grid)'));
+    const yb = m.t + 2 * laneH;
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', yb).attr('y2', yb).style('stroke', 'var(--cds-chart-axis)');
+    [-100, -50, 0, 50, 100].forEach((v) => SA.text(svg, x(v), yb + 15, (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v), v === -100 ? 'start' : v === 100 ? 'end' : 'middle'));
+    SA.text(svg, x(-100), yb + 33, '← showed too low', 'start', false).style('font-weight', 600);
+    SA.text(svg, x(100), yb + 33, 'showed too high →', 'end', false).style('font-weight', 600);
+    SA.text(svg, x(0), yb + 33, narrow ? 'spot on' : 'spot on (±10)', 'middle').style('fill', dash.colors[2]).style('font-weight', 600);
+    SA.text(svg, (m.l + W - m.r) / 2, yb + 49, 'points between the power shown and the catch rate measured here', 'middle').style('font-size', narrow ? '10.5px' : 'var(--cds-font-size-caption)');
+    const t = SA.tip(el);
+    [['selfPowerSwap', 'Version 1.0', false], ['powerV111', 'Now (1.1.1)', true]].forEach(([f, name, fill], i) => {
+      const top = m.t + i * laneH, mid = top + laneH / 2 + 12;
+      if (i) svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', top).attr('y2', top).style('stroke', 'var(--cds-chart-grid)');
+      const avg = Math.round(d3.mean(rows, (r) => Math.abs(r[f] - r.caught)));
+      const ok = rows.filter((r) => Math.abs(r[f] - r.caught) <= 10).length;
+      SA.text(svg, m.l + 2, top + 16, name, 'start', false).style('font-weight', 700);
+      SA.text(svg, W - m.r - 2, top + 16, `${avg} points off on average · ${ok} of ${rows.length} spot on`, 'end').style('font-size', narrow ? '11px' : 'var(--cds-font-size-caption)');
+      const pts = SA.dodge(rows.map((d) => ({ d, x: x(d[f] - d.caught), y0: mid })), R, (p) => ((p.d.key.length + p.x) % 2 < 1 ? -1 : 1));
+      const c = svg.append('g').selectAll('circle').data(pts).join('circle').attr('cx', (p) => p.x).attr('cy', (p) => Math.max(top + 32, Math.min(top + laneH - 8, p.y))).attr('r', R)
+        .style('fill', fill ? dash.colors[0] : 'var(--color-panel)').style('stroke', fill ? 'var(--color-panel)' : dash.colors[0]).style('stroke-width', 1.6);
+      SA.hover(c, el, t, (p) => [p.d.short, `${name} showed ${p.d[f]}% · measured ${p.d.caught}%`, `${Math.abs(p.d[f] - p.d.caught)} points ${p.d[f] < p.d.caught ? 'too low' : p.d[f] > p.d.caught ? 'too high' : 'off'}`]);
+    });
+  });
+
+  dash.draw('tbody', (el) => {
+    const all = SA.rows('atlas');
+    el.replaceChildren();
+    if (!all) return;
+    const q = SA.q.trim().toLowerCase();
+    const order = { 'High': 4, 'Medium': 3, 'Low': 2, 'Very low': 1 };
+    const val = (r, k) => k === 'grade' ? (order[r.grade] || 0) : r[k];
+    const rows = all.filter((r) => !q || `${r.name} ${r.short} ${r.group} ${r.type} ${r.host || ''}`.toLowerCase().includes(q))
+      .sort((a, b) => { const A = val(a, SA.sort.key), B = val(b, SA.sort.key); const c = typeof A === 'string' ? String(A).localeCompare(String(B)) : (A ?? -1) - (B ?? -1); return c * SA.sort.dir; });
+    const f = d3.format(',');
+    for (const r of rows) {
+      const tr = document.createElement('tr'); tr.dataset.key = r.key;
+      const cells = [r.short, r.group, f(r.samples), f(r.subjects), r.reid == null ? '—' : d3.format('.1f')(r.reid), r.caught == null ? '—' : String(r.caught), r.review == null ? '—' : String(r.review), r.fp == null ? '—' : d3.format('.2f')(r.fp), String(r.flags), String(r.supported)];
+      cells.forEach((c, i) => { const td = document.createElement('td'); if (i === 1) td.className = 'sa-l'; td.textContent = c; if (i === 0) td.title = r.name; tr.appendChild(td); });
+      const td = document.createElement('td'); td.className = 'sa-l'; const p = document.createElement('span'); p.className = 'sa-pill ' + String(r.grade || '').replace(' ', '-'); p.textContent = r.grade || '—'; td.appendChild(p); tr.appendChild(td);
+      el.appendChild(tr);
+    }
+  });
+
+  document.querySelectorAll('.sa-chip[data-group]').forEach((b) => {
+    b.addEventListener('click', () => {
+      SA.group = b.dataset.group;
+      document.querySelectorAll('.sa-chip[data-group]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+      dash.draw('labels');
+    });
+  });
+  document.querySelectorAll('.sa-table th button[data-sort]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const k = b.dataset.sort;
+      SA.sort = SA.sort.key === k ? { key: k, dir: -SA.sort.dir } : { key: k, dir: (k === 'short' || k === 'group') ? 1 : -1 };
+      document.querySelectorAll('.sa-table th button[data-sort]').forEach((o) => o.removeAttribute('aria-sort'));
+      b.setAttribute('aria-sort', SA.sort.dir === 1 ? 'ascending' : 'descending');
+      dash.draw('tbody');
+    });
+  });
+  document.querySelectorAll('#sa-lq').forEach((inp) => inp.addEventListener('input', () => { SA.lq = inp.value; dash.draw('labels'); }));
+  document.querySelectorAll('#sa-ls').forEach((sel) => sel.addEventListener('change', () => { SA.ls = sel.value; dash.draw('labels'); }));
+  document.querySelectorAll('.sa-nav a[data-go]').forEach((a) => a.addEventListener('click', (ev) => {
+    const t = document.getElementById(a.dataset.go); if (!t) return; ev.preventDefault(); t.scrollIntoView({ behavior: 'smooth', block: 'start' }); dash.setLink(a.dataset.go);
+    document.querySelectorAll('.sa-nav a').forEach((o) => o.setAttribute('aria-current', String(o === a)));
+  }));
+  document.querySelectorAll('#sa-copy').forEach((b) => b.addEventListener('click', () => {
+    const t = document.getElementById('sa-cite-text'); if (!t) return;
+    const pick = () => { const r = document.createRange(); r.selectNodeContents(t); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); };
+    try { navigator.clipboard.writeText(t.textContent).then(() => { b.setAttribute('aria-label', 'Copied'); b.classList.add('copied'); }, pick); } catch (e) { pick(); }
+  }));
+  document.querySelectorAll('#sa-q').forEach((inp) => inp.addEventListener('input', () => { SA.q = inp.value; dash.draw('tbody'); }));
+</script>
+
+<div class="foot">
+<p style="margin:0"><b>Data.</b> Built only from datasets that their authors made public. Each dataset stays under its own terms; this page shows study-level statistics derived from them, with full credit in the Method section. No sample IDs, no personal data. A flag is a candidate for a records check, not a finding of error; sample-level details go to each study's authors first.</p>
+<p style="margin:0"><b>Privacy.</b> No cookies, no analytics, no tracking. Fonts and scripts are served from this site; nothing is loaded from third parties. The website host may keep standard access logs for security.</p>
+<p style="margin:0"><b>Use.</b> Research quality control only. Not a medical device; not for diagnosis or clinical decisions. Provided without warranty.</p>
+<p style="margin:0"><b>Licences.</b> Code: GPL-3.0-or-later. Fonts: SIL Open Font License (Bricolage Grotesque, Instrument Sans, JetBrains Mono). d3: ISC licence.</p>
+<p style="margin:0"><b>AI use.</b> This Atlas and SwapSeq were built with AI assistants (Claude, Anthropic; Gemini, Google). Mankirat Singh is responsible for the content and for any errors.</p>
+<p style="margin:0">Made by Mankirat Singh · <a href="https://orcid.org/0009-0005-3375-2123">ORCID</a> · <a href="https://www.linkedin.com/in/mankirat-singh-694440177">LinkedIn</a> · <a href="https://github.com/bymankirat/swapseq/issues/new/choose">Feedback</a></p>
+</div>
+</div>
+
+<script>
+  dash._runAll();
+  let lastW=innerWidth,rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(Math.abs(innerWidth-lastW)>4){lastW=innerWidth;dash._runAll()}},200)});
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>dash._runAll());
+  const go=document.getElementById(location.hash.slice(1));if(go)setTimeout(()=>go.scrollIntoView(),50);
+</script>
+</body>
+</html>

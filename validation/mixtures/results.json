@@ -1,0 +1,696 @@
+{
+ "personal_taxa_statistic": {
+  "cafe": {
+   "samples": 95,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 100,
+    "0.3": 100,
+    "0.2": 99,
+    "0.1": 91
+   }
+  },
+  "david": {
+   "samples": 236,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 55,
+    "0.3": 41,
+    "0.2": 36,
+    "0.1": 21
+   }
+  },
+  "diet": {
+   "samples": 522,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 28,
+    "0.3": 18,
+    "0.2": 21,
+    "0.1": 13
+   }
+  },
+  "digiulio": {
+   "samples": 756,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 21,
+    "0.3": 28,
+    "0.2": 18,
+    "0.1": 12
+   }
+  },
+  "ecam": {
+   "samples": 875,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 26,
+    "0.3": 23,
+    "0.2": 19,
+    "0.1": 19
+   }
+  },
+  "hmpNostril": {
+   "samples": 332,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 20,
+    "0.3": 18,
+    "0.2": 8,
+    "0.1": 8
+   }
+  },
+  "hmpPlaque": {
+   "samples": 747,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 4,
+    "0.3": 5,
+    "0.2": 5,
+    "0.1": 3
+   }
+  },
+  "hmpSkin": {
+   "samples": 729,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 8,
+    "0.3": 5,
+    "0.2": 5,
+    "0.1": 0
+   }
+  },
+  "hmpStool": {
+   "samples": 386,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 46,
+    "0.3": 43,
+    "0.2": 35,
+    "0.1": 24
+   }
+  },
+  "hmpTongue": {
+   "samples": 368,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 13,
+    "0.3": 7,
+    "0.2": 7,
+    "0.1": 8
+   }
+  },
+  "ibdmdb": {
+   "samples": 382,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 18,
+    "0.3": 12,
+    "0.2": 7,
+    "0.1": 7
+   }
+  },
+  "imp": {
+   "samples": 110,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 95,
+    "0.3": 87,
+    "0.2": 97,
+    "0.1": 93
+   }
+  },
+  "karelia": {
+   "samples": 1761,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 3,
+    "0.3": 6,
+    "0.2": 5,
+    "0.1": 3
+   }
+  },
+  "mars": {
+   "samples": 444,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 70,
+    "0.3": 64,
+    "0.2": 62,
+    "0.1": 39
+   }
+  },
+  "ploeg_saliva": {
+   "samples": 427,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 59,
+    "0.3": 55,
+    "0.2": 56,
+    "0.1": 51
+   }
+  },
+  "ploeg_tongue": {
+   "samples": 429,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 44,
+    "0.3": 49,
+    "0.2": 49,
+    "0.1": 47
+   }
+  },
+  "poyet": {
+   "samples": 164,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 51,
+    "0.3": 42,
+    "0.2": 43,
+    "0.1": 37
+   }
+  },
+  "shao": {
+   "samples": 682,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 7,
+    "0.3": 10,
+    "0.2": 5,
+    "0.1": 4
+   }
+  },
+  "smpForehead": {
+   "samples": 675,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 23,
+    "0.3": 19,
+    "0.2": 12,
+    "0.1": 3
+   }
+  },
+  "smpGut": {
+   "samples": 638,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 53,
+    "0.3": 39,
+    "0.2": 20,
+    "0.1": 7
+   }
+  },
+  "smpPalm": {
+   "samples": 515,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 26,
+    "0.3": 19,
+    "0.2": 10,
+    "0.1": 6
+   }
+  },
+  "smpTongue": {
+   "samples": 692,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 5,
+    "0.3": 3,
+    "0.2": 2,
+    "0.1": 2
+   }
+  },
+  "storage": {
+   "samples": 1300,
+   "pct_above_4th_highest_unmixed": {
+    "0.5": 50,
+    "0.3": 23,
+    "0.2": 14,
+    "0.1": 3
+   }
+  }
+ },
+ "current_tool": {
+  "cafe": {
+   "samples": 95,
+   "0.5": {
+    "planted": 8,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   },
+   "0.3": {
+    "planted": 8,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   },
+   "0.1": {
+    "planted": 8,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "david": {
+   "samples": 236,
+   "0.5": {
+    "planted": 8,
+    "strong_flag": 7,
+    "listed": 7,
+    "right_person_named": 7
+   },
+   "0.3": {
+    "planted": 8,
+    "strong_flag": 2,
+    "listed": 2,
+    "right_person_named": 2
+   },
+   "0.1": {
+    "planted": 8,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "diet": {
+   "samples": 522,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 2,
+    "listed": 7,
+    "right_person_named": 7
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "digiulio": {
+   "samples": 756,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 4,
+    "listed": 4,
+    "right_person_named": 4
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 4,
+    "listed": 7,
+    "right_person_named": 7
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 1,
+    "listed": 1,
+    "right_person_named": 0
+   }
+  },
+  "ecam": {
+   "samples": 875,
+   "0.5": {
+    "planted": 24,
+    "strong_flag": 1,
+    "listed": 8,
+    "right_person_named": 8
+   },
+   "0.3": {
+    "planted": 24,
+    "strong_flag": 0,
+    "listed": 5,
+    "right_person_named": 5
+   },
+   "0.1": {
+    "planted": 24,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "hmpNostril": {
+   "samples": 332,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 5,
+    "listed": 7,
+    "right_person_named": 7
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 2,
+    "right_person_named": 2
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "hmpPlaque": {
+   "samples": 747,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 2,
+    "listed": 6,
+    "right_person_named": 6
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 2,
+    "listed": 3,
+    "right_person_named": 3
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "hmpSkin": {
+   "samples": 729,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 3,
+    "listed": 8,
+    "right_person_named": 8
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 1,
+    "listed": 2,
+    "right_person_named": 2
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 1,
+    "listed": 1,
+    "right_person_named": 0
+   }
+  },
+  "hmpStool": {
+   "samples": 386,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 4,
+    "listed": 9,
+    "right_person_named": 9
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 1,
+    "listed": 1,
+    "right_person_named": 1
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "hmpTongue": {
+   "samples": 368,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 5,
+    "right_person_named": 5
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "ibdmdb": {
+   "samples": 382,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "imp": {
+   "samples": 110,
+   "0.5": {
+    "planted": 8,
+    "strong_flag": 1,
+    "listed": 4,
+    "right_person_named": 4
+   },
+   "0.3": {
+    "planted": 8,
+    "strong_flag": 4,
+    "listed": 4,
+    "right_person_named": 4
+   },
+   "0.1": {
+    "planted": 8,
+    "strong_flag": 3,
+    "listed": 5,
+    "right_person_named": 5
+   }
+  },
+  "karelia": {
+   "samples": 1761,
+   "0.5": {
+    "planted": 40,
+    "strong_flag": 0,
+    "listed": 12,
+    "right_person_named": 12
+   },
+   "0.3": {
+    "planted": 40,
+    "strong_flag": 0,
+    "listed": 6,
+    "right_person_named": 6
+   },
+   "0.1": {
+    "planted": 40,
+    "strong_flag": 0,
+    "listed": 1,
+    "right_person_named": 1
+   }
+  },
+  "mars": {
+   "samples": 444,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 1,
+    "listed": 8,
+    "right_person_named": 8
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 3,
+    "right_person_named": 3
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 1,
+    "right_person_named": 0
+   }
+  },
+  "ploeg_saliva": {
+   "samples": 427,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 4,
+    "listed": 5,
+    "right_person_named": 5
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 2,
+    "listed": 3,
+    "right_person_named": 3
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 1,
+    "listed": 1,
+    "right_person_named": 1
+   }
+  },
+  "ploeg_tongue": {
+   "samples": 429,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 7,
+    "listed": 10,
+    "right_person_named": 10
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 3,
+    "listed": 4,
+    "right_person_named": 4
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "poyet": {
+   "samples": 164,
+   "0.5": {
+    "planted": 8,
+    "strong_flag": 3,
+    "listed": 3,
+    "right_person_named": 3
+   },
+   "0.3": {
+    "planted": 8,
+    "strong_flag": 2,
+    "listed": 2,
+    "right_person_named": 2
+   },
+   "0.1": {
+    "planted": 8,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "shao": {
+   "samples": 682,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "smpForehead": {
+   "samples": 675,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 15,
+    "listed": 16,
+    "right_person_named": 16
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 11,
+    "listed": 12,
+    "right_person_named": 12
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "smpGut": {
+   "samples": 638,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 4,
+    "listed": 4,
+    "right_person_named": 4
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "smpPalm": {
+   "samples": 515,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 10,
+    "listed": 11,
+    "right_person_named": 11
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 8,
+    "listed": 11,
+    "right_person_named": 11
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "smpTongue": {
+   "samples": 692,
+   "0.5": {
+    "planted": 16,
+    "strong_flag": 2,
+    "listed": 5,
+    "right_person_named": 5
+   },
+   "0.3": {
+    "planted": 16,
+    "strong_flag": 1,
+    "listed": 1,
+    "right_person_named": 0
+   },
+   "0.1": {
+    "planted": 16,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  },
+  "storage": {
+   "samples": 1300,
+   "0.5": {
+    "planted": 32,
+    "strong_flag": 2,
+    "listed": 2,
+    "right_person_named": 2
+   },
+   "0.3": {
+    "planted": 32,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   },
+   "0.1": {
+    "planted": 32,
+    "strong_flag": 0,
+    "listed": 0,
+    "right_person_named": 0
+   }
+  }
+ }
+}

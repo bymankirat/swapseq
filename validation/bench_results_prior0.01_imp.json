@@ -1,0 +1,24 @@
+[
+ {
+  "dataset": "IMP adults (16S)",
+  "samples": 110,
+  "people": 18,
+  "swappedSamplesCaught": 0.433,
+  "swapPairsNamedExactly": 0.717,
+  "oneWayCaught": 0.117,
+  "falseFlagsPer1000": 0,
+  "withReview": {
+   "swaps": 0.842,
+   "oneWay": 0.483,
+   "falsePer1000": 0.78
+  },
+  "selfEstimatedPower": {
+   "single": 0.134,
+   "swap": 0.567
+  },
+  "flagsOnOriginal": 0,
+  "checksOnOriginal": 1,
+  "reps": 60,
+  "prior": 0.01
+ }
+]

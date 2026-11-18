@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Open SwapSeq
+    url: https://bymankirat.github.io/swapseq/
+    about: The tool itself runs in your browser.

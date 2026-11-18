@@ -1,0 +1,24 @@
+{
+ "dataset": "Diet study (strain-level)",
+ "res": {
+  "neighbour swap": {
+   "samplesFlagged": 0.872,
+   "withCheck": 0.922,
+   "falseShiftReportsPerRepeat": 0,
+   "falseFlagsPer1000": 0.45,
+   "falseChecksPer1000": 1.22,
+   "errorsPlanted": 180
+  },
+  "shift run": {
+   "samplesFlagged": 0.822,
+   "withCheck": 0.878,
+   "runsWithHalfCaught": 0.933,
+   "shiftNamed": 0,
+   "runLength": 3,
+   "falseShiftReportsPerRepeat": 0,
+   "falseFlagsPer1000": 0.51,
+   "falseChecksPer1000": 1.47,
+   "errorsPlanted": 90
+  }
+ }
+}

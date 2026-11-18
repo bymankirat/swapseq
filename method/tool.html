@@ -1,0 +1,545 @@
+<title>SwapSeq</title>
+<meta name="description" content="SwapSeq finds swapped tubes, wrong labels and sample-sheet shifts in longitudinal microbiome studies, from each person's microbial fingerprint. Your files never leave your computer.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SwapSeq">
+<meta property="og:title" content="SwapSeq: sample mix-up checker for microbiome studies">
+<meta property="og:description" content="Finds swapped tubes, wrong labels and sample-sheet shifts in longitudinal microbiome studies from each person's microbial fingerprint. Free, open source, and your files never leave your computer.">
+<meta property="og:url" content="https://bymankirat.github.io/swapseq/">
+<meta property="og:image" content="https://bymankirat.github.io/swapseq/assets/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="627">
+<meta property="og:image:alt" content="A 96-well plate with row E opened up as tubes; SwapSeq marks two swapped tubes and one wrong label.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F3F5F8;--surface:#FFFFFF;--sunk:#E9EDF3;--plate:#FBFCFE;--rim:#C9D1DD;
+  --ink:#172036;--muted:#56617A;--faint:#8992A6;--line:#DCE1E9;--line2:#C4CBD8;
+  --accent:#2B47C9;--accent-ink:#FFFFFF;--accent-soft:#E6EAFB;
+  --swap:#D2304A;--swap-soft:#FBE7EA;--mis:#A86200;--mis-soft:#FCF0DC;--ok:#1E8458;--ok-soft:#E2F3EA;
+  --obs:#8B95AA;--plant:#D2304A;--grid:#E4E8EF;--tubeA:#C9864C;--tubeB:#4E968A;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --sans:"Instrument Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1424;--surface:#151D31;--sunk:#10172A;--plate:#18213A;--rim:#33405F;
+  --ink:#E9EDF6;--muted:#A0AAC0;--faint:#76809A;--line:#263049;--line2:#36425F;
+  --accent:#93A4FF;--accent-ink:#0E1424;--accent-soft:#1F2A4C;
+  --swap:#FF6F80;--swap-soft:#3A1C27;--mis:#F3B24C;--mis-soft:#352914;--ok:#56D195;--ok-soft:#14302A;
+  --obs:#76809A;--plant:#FF6F80;--grid:#222C44;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1424;--surface:#151D31;--sunk:#10172A;--plate:#18213A;--rim:#33405F;
+  --ink:#E9EDF6;--muted:#A0AAC0;--faint:#76809A;--line:#263049;--line2:#36425F;
+  --accent:#93A4FF;--accent-ink:#0E1424;--accent-soft:#1F2A4C;
+  --swap:#FF6F80;--swap-soft:#3A1C27;--mis:#F3B24C;--mis-soft:#352914;--ok:#56D195;--ok-soft:#14302A;
+  --obs:#76809A;--plant:#FF6F80;--grid:#222C44;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:17px/1.6 var(--sans);margin:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1140px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+a{color:var(--accent);text-underline-offset:3px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;color:var(--ink)}
+h2{font-size:clamp(28px,3.4vw,38px);line-height:1.08;font-weight:700;letter-spacing:-.02em}
+h3{font-size:19px;line-height:1.25;font-weight:700;letter-spacing:-.005em}
+p{margin:0}
+.mono{font-family:var(--mono);font-size:.88em}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+.label{font-size:14px;color:var(--muted)}
+
+/* header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:21;background:var(--bg)}
+header .wrap{display:flex;align-items:center;gap:26px;padding-block:14px}
+.brand{display:flex;align-items:center;gap:10px;font:700 21px/1 var(--display);letter-spacing:-.02em;color:var(--ink);text-decoration:none}
+nav{display:flex;gap:22px;margin-left:auto}
+nav a{color:var(--muted);text-decoration:none;font-size:15px;white-space:nowrap}
+nav a:hover{color:var(--ink)}
+.privacy{display:flex;align-items:center;gap:7px;font-size:14px;color:var(--muted)}
+.privacy svg{flex:none}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:56px;align-items:center;padding-block:64px 40px}
+.hero h1{font-size:clamp(42px,5.4vw,68px);line-height:1.02;font-weight:700;letter-spacing:-.022em}
+.lede{margin-top:22px;font-size:19px;line-height:1.55;color:var(--muted);max-width:34em}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px;align-items:center}
+.news{display:inline-flex;align-items:center;gap:10px;margin-bottom:22px;padding:6px 14px 6px 6px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--ink);text-decoration:none;font-size:14px;box-shadow:0 1px 2px rgba(20,30,60,.05);max-width:100%}
+.news:hover{border-color:var(--accent)}
+.news-tag{background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:12px;padding:3px 9px;border-radius:999px;letter-spacing:.02em}
+.where{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:40px;align-items:start}
+.where-stats{display:grid;gap:14px}
+.where-stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.where-stat b{display:block;font:700 34px/1.05 var(--display);letter-spacing:-.02em}
+.where-stat span{font-size:15px;color:var(--muted)}
+.sites{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;display:grid;gap:14px}
+.site{display:grid;grid-template-columns:minmax(0,11em) minmax(0,1fr) 3.2em;gap:12px;align-items:center;font-size:15px}
+.site small{display:block;color:var(--faint);font-size:12.5px}
+.sbar{height:12px;border-radius:6px;background:var(--grid);overflow:hidden;width:100%}
+.sbar i{display:block;height:100%;border-radius:6px;background:var(--accent);transform-origin:left;animation:grow 1s cubic-bezier(.2,.8,.2,1) both}
+.sbar.low i{background:var(--faint)}
+.site .pct{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.sbar i{animation:none}}
+.rbox{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:36px;align-items:center}
+.code{position:relative;background:#0F1526;color:#E6EAF5;border-radius:14px;padding:18px 20px;font:14px/1.7 var(--mono);overflow-x:auto;white-space:pre}
+.code .c{color:#8C97B4}.code .s{color:#9FE2B5}.code .f{color:#93A4FF}
+.code button{position:absolute;top:10px;right:10px;font:600 12px var(--sans);background:#1F2A4C;color:#E6EAF5;border:1px solid #34406A;border-radius:8px;padding:6px 10px;cursor:pointer}
+.versions{margin-top:28px;font-size:15px;color:var(--muted)}
+.versions summary{cursor:pointer;color:var(--ink);font-weight:600}
+.versions ul{margin:10px 0 0;padding-left:18px}
+.versions li{margin-bottom:6px}
+@media (max-width:860px){.where,.rbox{grid-template-columns:1fr;gap:24px}.site{grid-template-columns:minmax(0,1fr) 3.2em}.site .sbar{grid-column:1 / -1;grid-row:2}}
+.proof{margin-top:26px;font-size:15px;color:var(--muted);max-width:36em;padding-left:14px;border-left:3px solid var(--accent)}
+.plate-card{position:relative;margin:0}
+.plate-card svg{width:100%;height:auto;display:block;overflow:visible}
+.key{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:18px;font-size:15px;color:var(--muted)}
+.key span{display:inline-flex;align-items:center;gap:9px}
+.key svg{flex:none;width:auto;display:inline}
+.plate-cap{margin-top:10px;font-size:15px;color:var(--muted);min-height:3em}
+.plate-cap b{color:var(--ink)}
+.liq{transform-box:fill-box;transform-origin:50% 100%}
+.flagbox,.flagtxt,.swaparc,.pring{opacity:0;transition:opacity .45s ease}
+.plate-card.found .flagbox,.plate-card.found .flagtxt,.plate-card.found .swaparc,.plate-card.found .pring{opacity:1}
+.pw{transform-box:fill-box;transform-origin:center;transition:opacity .5s ease}
+.plate-card.zoomed .pw:not(.inrow){opacity:.35}
+.scanbox{opacity:0}.plate-card.zoomed .scanbox{opacity:1;transform:translateY(136px)}
+.zoom{opacity:0;transition:opacity .5s ease}.plate-card.zoomed .zoom{opacity:1}
+
+/* buttons */
+.btn{font:700 16px/1 var(--sans);border-radius:10px;padding:14px 20px;border:1.5px solid transparent;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.primary:disabled{opacity:.4;cursor:not-allowed;filter:none}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line2)}
+.btn.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn.small{font-size:14px;padding:9px 13px;border-radius:8px}
+.linkbtn{background:none;border:0;padding:0;font:inherit;font-size:15px;color:var(--accent);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+/* sections */
+section{padding-block:56px;scroll-margin-top:70px}
+.sec-h{display:flex;flex-direction:column;gap:10px;margin-bottom:26px;max-width:46em}
+.sec-h p{color:var(--muted);font-size:17px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px}
+
+/* check your data */
+#check{padding-top:28px}
+.load{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:hidden}
+.step{padding:24px;border-right:1px solid var(--line);min-width:0;display:flex;flex-direction:column;gap:14px}
+.step:nth-child(2){border-right:0}
+.step3{grid-column:1/-1;border-right:0;border-top:1px solid var(--line);background:var(--sunk);gap:16px}
+.s3-top{display:flex;flex-wrap:wrap;align-items:center;gap:14px 34px}
+.ready{display:flex;flex-wrap:wrap;gap:10px 26px;list-style:none;margin:0;padding:0;font-size:15px;color:var(--muted)}
+.ready li{display:flex;align-items:center;gap:9px}.ready b{color:var(--ink);font-weight:600}
+.tick{width:18px;height:18px;border-radius:50%;border:2px solid var(--line2);flex:none;display:grid;place-items:center}
+.ready li.ok .tick{background:var(--ok);border-color:var(--ok)}
+.ready li.ok .tick::after{content:"";width:8px;height:4.5px;border-left:2px solid var(--surface);border-bottom:2px solid var(--surface);transform:rotate(-45deg) translate(1px,-1px)}
+.s3-row{display:flex;flex-wrap:wrap;gap:14px 18px;align-items:flex-end}
+.s3-row .field{flex:1 1 210px;min-width:0}
+.s3-go{display:flex;align-items:center;gap:14px;flex:0 0 auto}
+.step-h{display:flex;align-items:center;gap:12px}
+.n{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--accent-soft);color:var(--accent);font:700 14px/1 var(--display)}
+.drop{border:2px dashed var(--line2);border-radius:12px;padding:20px 16px;text-align:center;cursor:pointer;background:var(--bg);transition:border-color .15s,background .15s;min-height:132px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop svg{color:var(--faint);margin-bottom:4px}
+.drop strong{font-weight:700;font-size:16px}
+.drop small{color:var(--muted);font-size:14px}
+.drop.done{border-style:solid;border-color:var(--ok);background:var(--ok-soft)}
+.drop.done svg{color:var(--ok)}
+.drop input{display:none}
+.hint{font-size:14px;color:var(--muted);margin:0;line-height:1.5}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:14px;font-weight:700;color:var(--ink)}
+select{font:16px var(--sans);padding:10px 12px;border-radius:9px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);width:100%}
+select:disabled{opacity:.6}
+.more{border-top:1px solid var(--line);padding-top:12px}
+.catches{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px;padding:0;list-style:none}
+.catches li{display:flex;align-items:center;gap:9px;padding:9px 14px 9px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:15px;font-weight:600;color:var(--ink)}
+.catches svg{flex:none}
+.brand small{font:500 13px/1.2 var(--sans);color:var(--muted);letter-spacing:0;margin-left:2px}
+.more summary{cursor:pointer;font-size:14px;font-weight:700;color:var(--muted)}
+.more[open]{display:flex;flex-direction:column;gap:12px}
+.actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.status{font-size:14px;color:var(--muted);min-height:1.5em}
+.err{color:var(--swap)}
+.progress{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-top:6px}.progress i{display:block;height:100%;width:30%;background:var(--accent);animation:slide 1.1s ease-in-out infinite}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(340%)}}
+
+/* results */
+#results{padding-top:20px}
+.group{margin-bottom:34px}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.tile{padding:18px;min-width:0}
+.tile .v{font:700 34px/1 var(--display);letter-spacing:-.02em;margin-top:10px;font-variant-numeric:tabular-nums}
+.tile .d{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.45}
+.verdict{padding:16px 20px;border-radius:12px;margin-bottom:14px;font-size:16px;border-left:5px solid var(--line2);background:var(--surface)}
+.verdict.good{border-left-color:var(--ok);background:var(--ok-soft)}
+.verdict.warn{border-left-color:var(--swap);background:var(--swap-soft)}
+.verdict.weak{border-left-color:var(--mis);background:var(--mis-soft)}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:760px}
+th{font-size:13px;font-weight:700;color:var(--muted);text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);background:var(--sunk);white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.id{font-family:var(--mono);font-size:14px;white-space:nowrap}
+.tag{font-size:13px;font-weight:700;padding:4px 9px;border-radius:999px;display:inline-block;white-space:nowrap}
+.tag.swap{background:var(--swap-soft);color:var(--swap)}.tag.mismatch{background:var(--mis-soft);color:var(--mis)}.tag.review{background:var(--sunk);color:var(--muted);border:1px solid var(--line2)}
+.prob{display:flex;align-items:center;gap:9px;font-size:14px;white-space:nowrap}
+.bar{width:64px;height:7px;border-radius:4px;background:var(--sunk);overflow:hidden;flex:none}.bar i{display:block;height:100%;background:var(--swap);border-radius:4px}
+.why{color:var(--muted);font-size:14.5px;max-width:48ch}
+.ev{display:block;margin-top:6px;color:var(--ink);font-size:14px}.ev.warnc{color:var(--mis)}
+.empty{padding:20px;color:var(--muted)}
+.chart{padding:18px 18px 12px;margin-top:16px}
+.chart svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--muted);margin-bottom:8px}
+.legend span{display:inline-flex;align-items:center;gap:7px}.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.tools .btn,.methods .btn{font-size:14px;padding:10px 14px}
+.methods{padding:18px 20px;margin-top:14px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}.mtext{margin:0;font-size:15px;max-width:80ch}
+
+/* how it works */
+.how{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px}
+.how > div{min-width:0;display:flex;flex-direction:column;gap:10px}
+.how svg{width:100%;height:auto;max-width:300px;margin-bottom:8px}
+.how p{color:var(--muted);font-size:16px}
+
+/* validation */
+.valchart{padding:22px 22px 14px}
+.valchart svg{width:100%;height:auto;display:block}
+details.full{margin-top:16px}
+details.full summary{cursor:pointer;font-weight:700;font-size:15px;color:var(--accent);margin-bottom:12px}
+.val td.num,.val th.num{text-align:right;font-variant-numeric:tabular-nums}
+.val td.best{color:var(--accent);font-weight:700}
+.val td:first-child{white-space:nowrap}.val th{white-space:normal;vertical-align:bottom}
+.realswap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center;padding:20px 22px;margin-top:18px}
+.realswap .pair{display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:14px}
+.realswap .pair b{padding:8px 10px;border-radius:8px;border:2px solid var(--swap);background:var(--swap-soft);font-weight:500}
+.realswap p{color:var(--muted);font-size:16px}
+.notes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 40px;color:var(--muted);font-size:16px;margin:18px 0 0;padding:0;list-style:none}
+.notes li{padding-left:18px;position:relative}
+.notes li::before{content:"";position:absolute;left:0;top:.65em;width:7px;height:7px;border-radius:50%;background:var(--line2)}
+.notes b{color:var(--ink)}
+footer{border-top:1px solid var(--line)}
+.tip{position:absolute;z-index:5;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13.5px;line-height:1.45;padding:9px 11px;border-radius:9px;max-width:230px;box-shadow:0 6px 20px rgba(10,16,32,.18)}
+.map-wrap{position:relative}
+.smap .map-h{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.smap .pt{fill:var(--obs);fill-opacity:.55;stroke:var(--surface);stroke-width:1;cursor:pointer;transition:opacity .15s}
+.smap .pt.f-swap{fill:var(--swap);fill-opacity:1;stroke-width:1.6}.smap .pt.f-mis,.smap .pt.f-check{fill:var(--mis);fill-opacity:1;stroke-width:1.6}
+.smap .pt.dim{opacity:.18}.smap .pt.hl{fill:var(--accent);fill-opacity:1;opacity:1}.smap .pt.sel{stroke:var(--ink);stroke-width:2.5;opacity:1}
+.smap .pt.other{fill:var(--surface);fill-opacity:1;stroke:var(--ok);stroke-width:2.5;opacity:1}
+.map-sel{margin-top:8px;font-size:15px;color:var(--muted);min-height:1.5em}.map-sel b{color:var(--ink)}
+tr[data-sid]{cursor:pointer}tr[data-sid]:hover td{background:var(--sunk)}
+.vtabs{display:inline-flex;gap:4px;padding:4px;border-radius:11px;background:var(--sunk);margin-bottom:16px;flex-wrap:wrap}
+.vtabs button{font:600 14px var(--sans);border:0;background:transparent;color:var(--muted);padding:8px 14px;border-radius:8px;cursor:pointer}
+.vtabs button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(10,16,32,.12)}
+.valchart h3{margin-bottom:4px}.valchart .legend{margin-top:10px}
+.legal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px;border-bottom:1px solid var(--line)}.legal p{font-size:13.5px;line-height:1.55}.legal b{color:var(--ink)}
+footer .wrap{padding-block:26px;display:flex;gap:12px;flex-wrap:wrap;justify-content:space-between;color:var(--muted);font-size:14px}
+
+@media (prefers-reduced-motion:reduce){.progress i{animation:none;width:100%}.flagbox,.flagtxt,.swaparc,.pring,.pw,.zoom{transition:none}}
+@media (max-width:900px){
+  nav{display:none}.privacy{margin-left:auto}
+  .hero{grid-template-columns:1fr;gap:34px;padding-block:40px 24px}
+  .load{grid-template-columns:1fr}.step{border-right:0;border-bottom:1px solid var(--line)}.step:last-child{border-bottom:0}.s3-go{flex:1 1 100%;flex-wrap:wrap}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.how{grid-template-columns:1fr;gap:30px}.notes{grid-template-columns:1fr}
+  .realswap{grid-template-columns:1fr}.legal{grid-template-columns:1fr}
+}
+@media (max-width:480px){.privacy span{display:none}.tile .v{font-size:28px}.lede{font-size:17px}.btn{width:100%;justify-content:center}.cta .linkbtn{width:100%;text-align:center}}
+.hostbox{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:16px;align-items:start;margin-top:12px}
+.drop.small{min-height:96px;padding:14px}
+.hint{margin:0;font-size:14px;color:var(--muted);line-height:1.5}
+@media (max-width:720px){.hostbox{grid-template-columns:1fr}}
+.tag.host{background:var(--accent-soft);color:var(--accent)}
+.how-extra{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:36px}
+.how-extra .panel{padding:22px 24px;display:flex;flex-direction:column;gap:8px}
+.how-extra p{color:var(--muted);font-size:16px;margin:0}
+.kicker{font:600 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.where-next{margin-top:22px;padding:18px 22px;font-size:16px;color:var(--muted);border-left:4px solid var(--accent)}
+.where-next b{color:var(--ink)}
+.codes{display:grid;gap:14px;min-width:0}
+@media (max-width:860px){.how-extra{grid-template-columns:1fr}}
+</style>
+
+<header><div class="wrap">
+  <a class="brand" href="#top" aria-label="SwapSeq home">
+    <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1.5" y="1.5" width="25" height="25" rx="6" fill="none" stroke="var(--ink)" stroke-width="1.6" opacity=".35"/><circle cx="9" cy="14" r="4.6" fill="var(--accent)"/><circle cx="19" cy="14" r="4.6" fill="var(--swap)"/><path d="M8 7.2c3-3 9-3 12 0M20 20.8c-3 3-9 3-12 0" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <span>SwapSeq <small>sample mix-up checker</small></span></a>
+  <nav aria-label="Sections"><a href="#check">Check your data</a><a href="#how">How it works</a><a href="#validation">Validation</a><a href="atlas/">Atlas</a><a href="#r">Pipelines</a><a href="validation.html">Methods</a></nav>
+  <span class="privacy"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7.5" rx="1.8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.3 7V5.2a2.7 2.7 0 0 1 5.4 0V7" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span>Files stay on your computer</span></span>
+</div></header>
+
+<main id="top">
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <a class="news" href="atlas/"><span class="news-tag">New</span><span>SwapSeq Atlas: 42 public datasets put to the test</span><span aria-hidden="true">&rarr;</span></a>
+      <h1>Is every sample from the person on its label?</h1>
+      <p class="lede">Tubes get swapped, labels get typed wrong, and sample sheets slip by a row. In a study where each person is sampled more than once, one mix-up quietly breaks every paired test. SwapSeq reads each person's microbial fingerprint and points to the samples that belong to someone else.</p>
+      <ul class="catches" aria-label="What SwapSeq catches">
+        <li><svg width="26" height="20" viewBox="0 0 26 20" aria-hidden="true"><rect x="2" y="4" width="7" height="14" rx="3.5" fill="none" stroke="var(--swap)" stroke-width="1.8"/><rect x="17" y="4" width="7" height="14" rx="3.5" fill="none" stroke="var(--swap)" stroke-width="1.8"/><path d="M8 3c3-3 7-3 10 0M18 3l-.5-2.6M18 3l-2.6.4" fill="none" stroke="var(--swap)" stroke-width="1.6" stroke-linecap="round"/></svg>Swapped tubes</li>
+        <li><svg width="22" height="20" viewBox="0 0 22 20" aria-hidden="true"><rect x="7" y="4" width="8" height="14" rx="4" fill="none" stroke="var(--mis)" stroke-width="1.8"/><rect x="5.5" y="1.5" width="11" height="4" rx="1.5" fill="var(--mis)"/><path d="M17 9l4 4M21 9l-4 4" stroke="var(--mis)" stroke-width="1.8" stroke-linecap="round"/></svg>Wrong labels</li>
+        <li><svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true"><path d="M3 4h12M3 10h12M3 16h12" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/><path d="M19 5v10M19 15l-2.5-2.5M19 15l2.5-2.5" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Sample-sheet shifts</li>
+      </ul>
+      <div class="cta"><button class="btn primary" id="demoHero">Run the demo study</button><a class="btn ghost" href="#check">Check my own data</a></div>
+      <p class="proof">Validated on 4,732 samples from five public studies and checked on 42 public datasets (20,974 samples) in the <a href="atlas/">SwapSeq Atlas</a>. In one study it flagged, without being told where to look, a tube swap that the authors had found and corrected.</p>
+    </div>
+    <figure class="plate-card" id="plateCard">
+      /*PLATE*/
+      <div class="key">
+        <span><svg width="22" height="14" viewBox="0 0 22 14" aria-hidden="true"><rect x="1" y="1" width="20" height="12" rx="3" fill="var(--muted)"/></svg>Cap: the name written on the tube</span>
+        <span><svg width="14" height="18" viewBox="0 0 14 18" aria-hidden="true"><path d="M1 1V11a6 6 0 0 0 12 0V1Z" fill="var(--plate)" stroke="var(--line2)"/><path d="M1 8V11a6 6 0 0 0 12 0V8Z" fill="var(--muted)"/></svg>Inside: whose microbes SwapSeq finds</span>
+      </div>
+      <figcaption class="plate-cap" id="plateCap">Plate 1 of the demo study, with row E opened up as tubes.</figcaption>
+    </figure>
+  </div>
+</div>
+
+<section id="check"><div class="wrap">
+  <div class="sec-h"><h2>Check your study</h2><p>Open your feature table and the sheet that says who each sample came from. Both stay on your computer: SwapSeq runs inside this page. It works best with raw counts at ASV or OTU level and two or more samples per person.</p></div>
+  <div class="panel load" id="load">
+    <div class="step">
+      <div class="step-h"><span class="n">1</span><h3>Feature table</h3></div>
+      <label class="drop" id="dropT"><input type="file" id="fileT" accept=".qza,.biom,.tsv,.txt,.csv,.json">
+        <svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2.8h8l4.2 4.2V20a1.2 1.2 0 0 1-1.2 1.2H6A1.2 1.2 0 0 1 4.8 20V4A1.2 1.2 0 0 1 6 2.8Z M14 2.8V7h4.2 M8.5 12h7 M8.5 15.5h7 M8.5 19h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <strong>Open a .qza, .biom or .tsv</strong><small>click to choose, or drag it here</small></label>
+      <p class="hint" id="infoT">QIIME 2 artifacts, BIOM 1 and 2, and text tables all work. The file is read here in your browser and is not sent anywhere.</p>
+    </div>
+    <div class="step">
+      <div class="step-h"><span class="n">2</span><h3>Sample metadata</h3></div>
+      <label class="drop" id="dropM"><input type="file" id="fileM" accept=".tsv,.txt,.csv">
+        <svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 9h17M3.5 14h17M9 4v16" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+        <strong>Open metadata.tsv</strong><small>click to choose, or drag it here</small></label>
+      <p class="hint" id="infoM">First column: sample ID. One column: who the sample came from. The QIIME 2 format works as it is.</p>
+    </div>
+    <div class="step step3">
+      <div class="s3-top">
+        <div class="step-h"><span class="n">3</span><h3>Check</h3></div>
+        <ul class="ready" aria-live="polite">
+          <li id="statT"><span class="tick" aria-hidden="true"></span><span><b>Feature table</b> <span class="st">not opened yet</span></span></li>
+          <li id="statM"><span class="tick" aria-hidden="true"></span><span><b>Sample metadata</b> <span class="st">not opened yet</span></span></li>
+        </ul>
+      </div>
+      <div class="s3-row">
+        <div class="field colfield" hidden><label for="colP">Who each sample came from</label><select id="colP"></select></div>
+        <div class="field colfield" hidden><label for="colG">Check separately by</label><select id="colG"><option value="">No split</option></select></div>
+        <div class="field"><label for="dtype">Data type</label>
+          <select id="dtype"><option value="counts" selected>Taxa or ASV counts (16S or shotgun)</option><option value="markers">Strain markers or genes (shotgun, present or absent)</option></select></div>
+        <div class="field"><label for="prior">Expected error rate</label>
+          <select id="prior"><option value="0.005">0.5%, a very careful lab</option><option value="0.01" selected>1%, typical</option><option value="0.02">2%</option><option value="0.05">5%, known problems or a wide first screen</option></select></div>
+        <div class="s3-go"><button class="btn primary" id="run">Check samples</button><button class="linkbtn" id="demo">or load the demo study</button></div>
+      </div>
+      <details class="more"><summary>Host DNA from shotgun reads (optional, beta)</summary>
+        <div class="hostbox">
+          <label class="drop small" id="dropH"><input type="file" id="fileH" accept=".tsv,.txt,.csv"><strong>Open host_counts.tsv</strong><small>columns: sample, site, alt, total</small></label>
+          <p class="hint">Shotgun reads carry some of the person's own DNA. SwapSeq matches each sample's reads at common human SNPs to every person's other samples, which works even when microbes change too fast to identify anyone (newborns, antibiotics). Tested on simulated data so far; needs at least 1,500 covered SNP sites per sample and works best with 6 or more samples per person. <b>This is human genetic data:</b> use it only within your ethics approval. Like everything here, it stays on this computer. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the file</a></p>
+          <p class="hint" id="infoH"></p>
+        </div>
+      </details>
+      <details class="more colfield" hidden><summary>Household and plate columns (optional)</summary>
+        <div class="s3-row">
+          <div class="field"><label for="colH">Household or family</label><select id="colH"><option value="">None</option></select></div>
+          <div class="field"><label for="colW">Plate well (A01–H12) or plating order <span class="muted" style="font-weight:400">(helps catch swaps between neighbours)</span></label><select id="colW"><option value="">None</option></select></div>
+          <div class="field"><label for="colL">Plate ID</label><select id="colL"><option value="">None</option></select></div>
+        </div>
+      </details>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+</div></section>
+
+<section id="results" hidden><div class="wrap">
+  <div class="sec-h"><h2>Results</h2><span class="label" id="resMeta"></span></div>
+  <div id="groups"></div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <div class="sec-h"><h2>How it works</h2><p>Three checks, all run in your browser on your own table, and two more for shotgun data.</p></div>
+  <div class="how">
+    <div>
+      <svg viewBox="0 0 300 120" role="img" aria-label="A sample shares rare taxa with its own person and few with someone else">
+        <text x="0" y="22" font-size="13" fill="var(--muted)" font-family="var(--sans)">This sample</text>
+        <text x="0" y="62" font-size="13" fill="var(--muted)" font-family="var(--sans)">Same person</text>
+        <text x="0" y="102" font-size="13" fill="var(--muted)" font-family="var(--sans)">Someone else</text>
+        <g transform="translate(96 8)">
+          <g fill="var(--line2)"><circle cx="8" cy="10" r="6"/><circle cx="30" cy="10" r="6"/><circle cx="96" cy="10" r="6"/><circle cx="162" cy="10" r="6"/><circle cx="8" cy="50" r="6"/><circle cx="30" cy="50" r="6"/><circle cx="118" cy="50" r="6"/><circle cx="162" cy="50" r="6"/><circle cx="8" cy="90" r="6"/><circle cx="30" cy="90" r="6"/><circle cx="74" cy="90" r="6"/><circle cx="140" cy="90" r="6"/><circle cx="184" cy="90" r="6"/></g>
+          <g fill="var(--accent)"><circle cx="52" cy="10" r="6"/><circle cx="140" cy="10" r="6"/><circle cx="184" cy="10" r="6"/><circle cx="52" cy="50" r="6"/><circle cx="140" cy="50" r="6"/><circle cx="184" cy="50" r="6"/></g>
+          <path d="M52 17v26M140 17v26M184 17v26" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3 3"/>
+        </g>
+      </svg>
+      <h3>A fingerprint of rare taxa</h3>
+      <p>Everyone carries a few uncommon ASVs that stay with them week after week. SwapSeq compares which ASVs each sample holds, at a matched sequencing depth, and their log-ratio profile. A sample closer to somebody else than to its own person stands out.</p>
+    </div>
+    <div>
+      <svg viewBox="0 0 300 120" role="img" aria-label="Two tubes whose labels belong to each other">
+        <g font-family="var(--sans)" font-size="13">
+          <rect x="40" y="18" width="46" height="88" rx="14" fill="none" stroke="var(--line2)" stroke-width="2"/><rect x="40" y="10" width="46" height="14" rx="4" fill="var(--line2)"/><rect x="47" y="52" width="32" height="46" rx="9" fill="var(--tubeA)"/>
+          <rect x="214" y="18" width="46" height="88" rx="14" fill="none" stroke="var(--line2)" stroke-width="2"/><rect x="214" y="10" width="46" height="14" rx="4" fill="var(--line2)"/><rect x="221" y="52" width="32" height="46" rx="9" fill="var(--tubeB)"/>
+          <text x="63" y="44" text-anchor="middle" fill="var(--ink)" font-weight="700">A</text><text x="237" y="44" text-anchor="middle" fill="var(--ink)" font-weight="700">B</text>
+          <path d="M98 46 C130 20 170 20 202 46" fill="none" stroke="var(--swap)" stroke-width="2.4"/><path d="M196 38l7 9-11 2" fill="none" stroke="var(--swap)" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M202 80 C170 106 130 106 98 80" fill="none" stroke="var(--swap)" stroke-width="2.4"/><path d="M104 88l-7-9 11-2" fill="none" stroke="var(--swap)" stroke-width="2.4" stroke-linejoin="round"/>
+          <text x="150" y="64" text-anchor="middle" fill="var(--muted)">swap back?</text>
+        </g>
+      </svg>
+      <h3>A test for swapped pairs</h3>
+      <p>Two swapped tubes leave a signature: tube A fits person B and tube B fits person A. SwapSeq tests every pair and names the partner when swapping their labels back makes both fit again.</p>
+    </div>
+    <div>
+      <svg viewBox="0 0 300 120" role="img" aria-label="Scores of your samples sit apart from scores of planted errors">
+        <path d="M10 104 C40 104 50 30 80 30 C110 30 120 104 160 104" fill="var(--obs)" fill-opacity=".28" stroke="var(--obs)" stroke-width="2"/>
+        <path d="M150 104 C185 104 195 46 225 46 C255 46 262 104 292 104" fill="var(--plant)" fill-opacity=".16" stroke="var(--plant)" stroke-width="2"/>
+        <line x1="2" x2="298" y1="104" y2="104" stroke="var(--line2)"/>
+        <line x1="168" x2="168" y1="14" y2="104" stroke="var(--ink)" stroke-dasharray="4 4" opacity=".5"/>
+        <text x="80" y="20" text-anchor="middle" font-size="13" fill="var(--muted)" font-family="var(--sans)">your samples</text>
+        <text x="228" y="34" text-anchor="middle" font-size="13" fill="var(--swap)" font-family="var(--sans)">planted errors</text>
+      </svg>
+      <h3>Calibrated on your own table</h3>
+      <p>Before judging, SwapSeq swaps hundreds of labels in a copy of your data to learn what an error looks like there. It then gives strong flags with almost no false alarms, a list to check against lab records, and a measured rate of how many swaps it catches in your study, from test errors hidden in copies of your labels.</p>
+    </div>
+  </div>
+  <div class="how-extra">
+    <div class="panel">
+      <span class="kicker">Shotgun data</span>
+      <h3>Strain markers</h3>
+      <p>Species are shared by many people, but strains are often personal. Choose <i>Strain markers or genes</i> as the data type and give a presence table, for example MetaPhlAn marker presence. SwapSeq then compares samples on the rare markers they share. In tests on public cohorts this matched the species table in adults and helped only a little in infants, so it does not make infant studies checkable.</p>
+    </div>
+    <div class="panel">
+      <span class="kicker">Shotgun data &middot; beta</span>
+      <h3>Host DNA</h3>
+      <p>Shotgun reads carry some of the person's own DNA, which does not change when their microbes do. SwapSeq matches each sample's reads at common human SNPs to every person's other samples. In a stress test on simulated people (uneven DNA, relatives, twins, contamination, mixed populations) it made almost no false flags and caught 85&ndash;100% of swaps with 2,000&ndash;4,000 covered SNP sites per sample and 6 samples per person, but few with only 2&ndash;3 samples per person. Identical twins cannot be told apart by DNA. It is not yet tested on real samples, and it is human genetic data: use it within your ethics approval. <a href="https://github.com/bymankirat/swapseq/blob/main/docs/host-dna.md" target="_blank" rel="noopener">How to make the input</a>.</p>
+    </div>
+    <div class="panel">
+      <span class="kicker">Several errors</span>
+      <h3>Swap pairs and a note</h3>
+      <p>A swap leaves two samples that each fit the other's person. When both point at each other, SwapSeq now makes them strong flags in tables where test swaps stand out well. With 3% of samples swapped in seven shotgun tables, strong flags caught 41% of swaps instead of 5%. If a table holds more swap pairs than the expected error rate explains, SwapSeq says so; raising the rate to 2&ndash;5% then caught about 80%.</p>
+    </div>
+    <div class="panel">
+      <span class="kicker">All study designs</span>
+      <h3>Duplicates</h3>
+      <p>Two samples labelled as different people with near-identical microbes are listed as possible duplicates: one tube sequenced twice, a reused extract or a file uploaded twice. It works with one sample per person too. With test duplicates planted in 15 public shotgun tables it found 97% in cross-sectional and 63% in longitudinal tables, and reported no pair that was not planted.</p>
+    </div>
+  </div>
+</div></section>
+
+<section id="validation"><div class="wrap">
+  <div class="sec-h"><h2>Tested on public studies</h2><p>Known errors were planted in real published tables at about a 1% rate, 30 to 60 times each, and every result was counted. Bray-Curtis is the same pipeline with the distance used by a recent shotgun mislabel detector. <a href="validation.html">Read the full methods and validation</a>.</p></div>
+  <div class="panel valchart" id="valChart"><noscript>/*VALCHART*/</noscript></div>
+  <div class="panel valchart" id="plateChart" style="margin-top:18px"></div>
+  <div class="panel realswap">
+    <div class="pair" aria-label="MCT.f.0086 and MCT.f.0417"><b>MCT.f.0086</b><svg width="34" height="18" viewBox="0 0 34 18" aria-hidden="true"><path d="M3 6h26l-4-4M31 12H5l4 4" fill="none" stroke="var(--swap)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><b>MCT.f.0417</b></div>
+    <p><b style="color:var(--ink)">A known swap, found blind.</b> In the Minnesota diet study (Johnson et al. 2019) the authors found and corrected two swapped tubes. With their original labels restored, SwapSeq reported exactly that pair as a swap at probability 1.00.</p>
+  </div>
+  <details class="full"><summary>Show the full results table</summary>
+    <div class="tablewrap"><table class="val" id="valTable"></table></div>
+    <p class="hint" style="margin-top:12px">Student Microbiome Project (Flores et al. 2014, 16S, weekly), Immigration Microbiome Project (Vangay et al. 2018, 16S, monthly), ECAM (Bokulich et al. 2016, 16S, infants from birth), Minnesota diet study (Johnson et al. 2019, shallow shotgun, daily) and MDSINE2 mice (Gibson et al. 2025, 16S, every mouse given one donor's stool, a negative control). False flags are counted on samples that were left untouched.</p>
+  </details>
+
+  <h3 style="margin-top:44px">Before you trust a flag</h3>
+  <ul class="notes">
+    <li><b>Two or more samples per person.</b> Three or more works better. With exactly two, SwapSeq can say which two people do not fit, but not always which tube moved.</li>
+    <li><b>People who live together share microbes.</b> Add a household column and look-alikes from one home move to the check list.</li>
+    <li><b>Infants and same-donor animals carry little individual signal.</b> SwapSeq says so with a low measured power and rarely flags anything.</li>
+    <li><b>Mixtures are mostly missed.</b> A sample holding material from two people usually looks normal. In tests, about a third of half-and-half mixtures were listed and almost none at one part in ten.</li>
+    <li><b>Antibiotics and illness</b> can make a sample unlike its owner without making it like anyone else. Those usually stay unflagged.</li>
+    <li><b>A flag is a reason to check the lab records.</b> Look at plate maps, extraction batches and sample sheets before you relabel or drop anything.</li>
+    <li><b>Your data stays on your computer.</b> Opening a file here reads it inside your browser. No server ever receives it.</li>
+  </ul>
+</div></section>
+
+<section id="where"><div class="wrap">
+  <h2>Where it works</h2>
+  <p class="lede" style="max-width:46em">We hid swaps in 42 public datasets and counted how many SwapSeq caught. The answer depends mostly on where the samples come from: a person's microbes need to stay recognisable from one sample to the next.</p>
+  <div class="where" style="margin-top:26px">
+    <div class="where-stats">
+      <div class="where-stat"><b>85&ndash;99%</b><span>of hidden swaps caught in most adult stool, forehead skin and vaginal tables, with few false alarms</span></div>
+      <div class="where-stat"><b>28 of 42</b><span>public datasets SwapSeq can check well, catching half or more of hidden swaps</span></div>
+      <div class="where-stat"><b>&asymp;0%</b><span>in infant stool (16S), patients on heavy antibiotics and lab mice from one donor, where no fingerprint survives. SwapSeq says so instead of guessing. One shotgun table of preterm infants was an exception (85%).</span></div>
+    </div>
+    <div class="sites" aria-label="Typical share of hidden swaps caught, by sample type">
+      <div class="site"><span>Adult stool<small>12 datasets, 3,489 samples</small></span><div class="sbar"><i style="width:90%"></i></div><span class="pct">90%</span></div>
+      <div class="site"><span>Same-stool aliquots<small>1 dataset, 1,300 samples</small></span><div class="sbar"><i style="width:89%;animation-delay:.08s"></i></div><span class="pct">89%</span></div>
+      <div class="site"><span>Vaginal swabs<small>1 dataset, 756 samples</small></span><div class="sbar"><i style="width:88%;animation-delay:.16s"></i></div><span class="pct">88%</span></div>
+      <div class="site"><span>Skin and nose<small>4 datasets, 2,251 samples</small></span><div class="sbar"><i style="width:83%;animation-delay:.24s"></i></div><span class="pct">83%</span></div>
+      <div class="site"><span>Mouth<small>9 datasets, 4,337 samples</small></span><div class="sbar"><i style="width:82%;animation-delay:.32s"></i></div><span class="pct">82%</span></div>
+      <div class="site"><span>Other gut cohorts (shotgun)<small>4 datasets, 1,384 samples</small></span><div class="sbar"><i style="width:81%;animation-delay:.40s"></i></div><span class="pct">81%</span></div>
+      <div class="site"><span>Hospital patients<small>1 dataset, 2,479 samples</small></span><div class="sbar low"><i style="width:1%;animation-delay:.48s"></i></div><span class="pct">1%</span></div>
+      <div class="site"><span>Infant stool<small>7 datasets, 4,181 samples</small></span><div class="sbar low"><i style="width:0.6%;animation-delay:.56s"></i></div><span class="pct">0%</span></div>
+      <div class="site"><span>Lab mice<small>3 datasets, 797 samples</small></span><div class="sbar low"><i style="width:0.6%;animation-delay:.64s"></i></div><span class="pct">0%</span></div>
+      <p class="hint" style="margin:4px 0 0">Middle dataset of each group, strong flags only. <a href="atlas/">Explore every dataset in the Atlas</a>.</p>
+    </div>
+  </div>
+  <div class="panel where-next">
+    <b>Infants, antibiotics or lab animals?</b> From taxa alone, no method we tried could check these: we also tested time-aware fingerprints that remove what all samples of the same age share, and they raised the catch on these tables only from 3% to 4%. With shotgun data, the <a href="#how">host-DNA check</a> (beta) is the way forward, because a person's own DNA does not change.
+  </div>
+</div></section>
+
+<section id="r"><div class="wrap">
+  <div class="rbox">
+    <div>
+      <h2>Use it in a pipeline</h2>
+      <p class="lede">On a server or in a pipeline, the command-line version needs only Node.js 18. It writes one row per sample, a summary and a report for your records, and <span class="mono">--fail-on-flags</span> stops the pipeline when a sample is strongly flagged. <a href="https://github.com/bymankirat/swapseq/tree/main/pipelines" target="_blank" rel="noopener">Nextflow and Snakemake examples</a>.</p>
+    </div>
+    <div class="codes">
+    <div class="code" id="clicode"><button type="button" id="copyC">Copy</button><span class="c"># command line (Node.js 18+)</span>
+npx github:bymankirat/swapseq table.tsv metadata.tsv \
+    --subject subject_id --out swapseq --fail-on-flags</div>
+    </div>
+  </div>
+  <details class="versions"><summary>What changed in each version</summary>
+    <ul>
+      <li><b>1.1.1, fourth November update</b> &middot; With a plate map, a swap between two tubes in neighbouring wells needs less evidence to become a strong flag (in tests: 68% to 76% of such swaps caught, no more other flags). Listed samples now say whether a second, simpler check agrees. A wide screen lists, apart from the main result, what a wider net (5% expected rate) would add. A script makes the host-DNA file from BAM files. Without a plate map, flags and probabilities are unchanged. Details in <a href="validation.html#newchecks">the validation page</a>.</li>
+      <li><b>1.1.1, third November update</b> &middot; A report for your records: one HTML file with the flags, four figures, plain-language notes and space to write what the lab records showed; open it and print to PDF (the command line writes it too). Clearer plots on this page: an at-a-glance bar, the share of hidden errors found, a card for each listed sample showing whose rare microbes it carries, and a sample map that names listed samples. Flags and probabilities are unchanged. Tested and reported, not added: strain markers help only a little in infants, and a check for mixtures of two people was not reliable.</li>
+      <li><b>1.1.1, second November update</b> &middot; Small studies: a clear swap in a table of 24&ndash;40 samples is now a strong flag (about 60&ndash;70% caught on real data, up from 1&ndash;30%). Sturdier file reading: semicolon and old-Mac files, R tables without a corner cell, and clear messages for duplicate sample IDs, text in a count cell, empty files and Excel files. Relative abundances are handled as such. 17 defects found by an independent code review were fixed.</li>
+      <li><b>1.1.1, November update</b> &middot; Strain-marker mode and a host-DNA check (beta) for shotgun data; a command-line tool for pipelines; a duplicate check; swap pairs that point at each other are strong flags in tables that separate swaps well, which helps most when a table holds several errors.</li>
+      <li><b>1.1.1</b> &middot; Measured power no longer reads low when a table already holds errors.</li>
+      <li><b>1.1.0</b> &middot; Power is measured on your own table by hiding test errors in copies of your labels. Version 1.0 could show near 0% for tables it checks well.</li>
+      <li><b>1.0.1</b> &middot; Methods and validation page, feedback forms, citation details.</li>
+      <li><b>1.0.0</b> &middot; First release.</li>
+    </ul>
+  </details>
+</div></section>
+</main>
+
+<footer><div class="wrap legal">
+  <p><b>Privacy.</b> SwapSeq has no server. Files you open are read by your browser and never sent anywhere. This page sets no cookies and uses no analytics or tracking. The website host may keep standard access logs, such as IP addresses, for security.</p>
+  <p><b>Use.</b> SwapSeq is a quality-control tool for research data. It is not a medical device and must not be used for diagnosis or clinical decisions. Results come without warranty; check flags against your lab records. Free software under <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPL-3.0-or-later</a>.</p>
+  <p><b>Feedback.</b> Found a problem or have an idea? <a href="https://github.com/bymankirat/swapseq/issues/new?template=bug_report.yml" target="_blank" rel="noopener">Report a problem</a> or <a href="https://github.com/bymankirat/swapseq/issues/new?template=feedback.yml" target="_blank" rel="noopener">send feedback</a> on GitHub. Reports are public, so please leave out sample IDs and any study data.</p>
+  <p><b>Demo data.</b> From the public Student Microbiome Project (Flores et al. 2014, <i>Genome Biology</i>), with participant IDs replaced. The demo plate layout and its two errors are simulated.</p>
+  <p><b>AI use.</b> SwapSeq was built with AI assistants (Claude, Anthropic; Gemini, Google). I am responsible for the content and for any errors.</p>
+</div><div class="wrap">
+  <span>Made by <a href="https://bymankirat.github.io/myportfolio/" target="_blank" rel="noopener">Mankirat Singh</a>, with AI assistants.</span>
+  <span id="ver">Cite: Singh M. (2026) SwapSeq v1.1.1. <a href="https://doi.org/10.5281/zenodo.23963612" target="_blank" rel="noopener">doi:10.5281/zenodo.23963612</a></span>
+</div></footer>
+
+<script>/*JSZIP*/</script>
+<script>/*HDF5*/</script>
+<script type="text/plain" id="coreSrc">/*CORE*/</script>
+<script>
+const DEMO=/*DEMO*/;
+const VAL=/*VAL*/;
+// Hero: the plate fills column by column, a frame scans down to row E, row E opens up as tubes,
+// the tubes fill, then SwapSeq marks the tubes whose microbes do not match their cap.
+[['copyR','rcode'],['copyC','clicode']].forEach(([bid,cid])=>{const b=document.getElementById(bid),box=document.getElementById(cid);if(!b||!box)return;
+  b.addEventListener('click',()=>{const t=[...box.childNodes].filter(n=>n!==b).map(n=>n.textContent).join('').trim();
+    const ok=()=>{b.textContent='Copied';setTimeout(()=>b.textContent='Copy',1600)};
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(box);const s=getSelection();s.removeAllRanges();s.addRange(r)};
+    try{navigator.clipboard.writeText(t).then(ok,sel)}catch(e){sel()}})});
+(function(){const card=document.getElementById('plateCard');if(!card)return;const svg=card.querySelector('svg');if(!svg)return;
+  const wells=[...svg.querySelectorAll('.pw')],liq=[...svg.querySelectorAll('.liq')],box=svg.querySelector('.scanbox'),cap=document.getElementById('plateCap');
+  const zoom=()=>card.classList.add('zoomed');
+  const reveal=()=>{zoom();card.classList.add('found');cap.innerHTML='<b>E01 and E02 hold each other\'s samples, and E03 holds someone else\'s.</b> SwapSeq found all three from the microbes alone, in row E of the demo study\'s plate.'};
+  let reduce=false;try{reduce=matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+  if(reduce||!wells.length||!wells[0].animate){reveal();return}
+  // start when the figure is on screen (on phones it sits below the fold)
+  const play=()=>{
+  wells.forEach(w=>w.animate([{opacity:0,transform:'scale(.3)'},{opacity:1,transform:'scale(1)'}],{duration:260,delay:100+(+w.dataset.c)*55+(+w.dataset.r)*10,fill:'backwards',easing:'cubic-bezier(.2,.8,.2,1)'}));
+  const tScan=100+11*55+80+150;
+  box.animate([{opacity:0,transform:'translateY(0px)'},{opacity:1,offset:.15,transform:'translateY(0px)'},{opacity:1,transform:'translateY(136px)'}],{duration:1000,delay:tScan,easing:'cubic-bezier(.45,0,.2,1)',fill:'backwards'});
+  setTimeout(zoom,tScan+1000);
+  const tFill=tScan+1300;
+  liq.forEach((l,i)=>l.animate([{transform:'scaleY(0)'},{transform:'scaleY(1)'}],{duration:480,delay:tFill+i*110,fill:'backwards',easing:'cubic-bezier(.3,.7,.2,1)'}));
+  setTimeout(reveal,tFill+liq.length*110+550);};
+  wells.forEach(w=>w.style.opacity='0');liq.forEach(l=>l.style.transform='scaleY(0)');
+  const go=()=>{wells.forEach(w=>w.style.opacity='');liq.forEach(l=>l.style.transform='');play()};
+  if('IntersectionObserver' in window){const io=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){io.disconnect();go()}},{threshold:.35});io.observe(card)}else go();
+})();
+/*APP*/
+</script>

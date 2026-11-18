@@ -1,0 +1,26 @@
+name: Feedback or idea
+description: Tell us what would make SwapSeq more useful, or how you use it.
+title: "Feedback: "
+labels: [feedback]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your feedback or idea
+    validations:
+      required: true
+  - type: dropdown
+    id: role
+    attributes:
+      label: You are mostly
+      options: [Wet-lab researcher, Bioinformatician, Principal investigator, Student, Sequencing core staff, Other]
+  - type: dropdown
+    id: data
+    attributes:
+      label: Kind of data you checked
+      options: [16S rRNA, Shotgun metagenomics, Other, I only tried the demo]
+  - type: textarea
+    id: found
+    attributes:
+      label: Did SwapSeq find a real mix-up for you?
+      description: Optional. Tell us only what you are allowed to share; no sample IDs or participant details.

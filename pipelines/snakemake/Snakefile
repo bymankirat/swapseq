@@ -1,0 +1,19 @@
+# SwapSeq as a Snakemake rule: checks every sample against the person on its label before analysis.
+# Needs Node.js 18+ on the PATH. Example:  snakemake --cores 1 swapseq/swapseq.tsv
+# The rule fails (exit code 2) when a sample is strongly flagged; drop --fail-on-flags to only report.
+
+configfile: "config.yaml"   # table, metadata, subject, type (counts or markers)
+
+rule swapseq:
+    input:
+        table=config["table"],
+        metadata=config["metadata"]
+    output:
+        audit="swapseq/swapseq.tsv",
+        summary="swapseq/swapseq.json"
+    params:
+        subject=config.get("subject", "subject_id"),
+        type=config.get("type", "counts")
+    shell:
+        "npx --yes github:bymankirat/swapseq {input.table} {input.metadata} "
+        "--subject {params.subject} --type {params.type} --out swapseq/swapseq --fail-on-flags"
